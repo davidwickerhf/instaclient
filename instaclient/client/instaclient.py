@@ -8,20 +8,22 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import time
 
 from instaclient.utilities.utilities import *
-from instaclient.errors.common import *
+from instaclient.errors import *
 from instaclient.client.paths import Paths
 from instaclient.client.urls import ClientUrls
 
 
 class InstaClient:
     CHROMEDRIVER=1
-    def __init__(self, username: str, password: str, driver: int=CHROMEDRIVER):
+    def __init__(self, username: str=None, password: str=None, driver: int=CHROMEDRIVER):
         """
         Creates an instance of instaclient class.
 
         Args:
-            username:str: The username of the user
-            password:str: The password of the user
+            You can omit the username and password if you prefer to insert them in the client.login() method:
+                username:str: The username of the user
+                password:str: The password of the user
+
             driver_location:str: Path of the driver file (must be in the root folder of your project)
             wait_time:int: (Seconds) time to wait before raising driver exception
 
@@ -35,9 +37,9 @@ class InstaClient:
 
         try:
             if driver == self.CHROMEDRIVER:
-                self.driver = webdriver.Chrome('drivers/chromedriver.exe')
+                self.driver = webdriver.Chrome('instaclient/drivers/chromedriver.exe')
             else:
-                raise InexistingDriverError(driver)
+                raise InvaildDriverError(driver)
             self.driver.maximize_window()
         except Exception as error:
             raise error
@@ -45,22 +47,31 @@ class InstaClient:
 
 
     @insta_method
-    def login(self):
+    def login(self, username:str, password:str):
         """
         Logs a user into Instagram via the web portal
         """
+        self.username = username
+        self.password = password
         # Get Elements
         try:
             # Attempt Login
             self.driver.get(ClientUrls.LOGIN_URL)
+            # Detect Cookies Dialogue
+            try:
+                alert = self._find_element(EC.element_to_be_clickable((By.XPATH, Paths.ACCEPT_COOKIES)), wait_time=3)
+                alert.click()
+            except:
+                print('No alert')
+                pass
+            # Get Form elements
             username_input = self._find_element(EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)))
             password_input = self._find_element(EC.presence_of_element_located((By.XPATH,Paths.PASSWORD_INPUT)))
             login_btn = self._find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)))# login button xpath changes after text is entered, find first
             # Fill out form
-            print('Button: ', type(login_btn), ' ', str(login_btn))
-            username_input.send_keys(self.username)
+            username_input.send_keys(username)
             time.sleep(1)
-            password_input.send_keys(self.password)
+            password_input.send_keys(password)
             time.sleep(1)
             login_btn.click()
         except:
@@ -70,28 +81,68 @@ class InstaClient:
         # Detect correct Login
         try:
             # Credentials Incorrect
-            alert: WebElement = self._find_element(EC.presence_of_element_located((By.XPATH,Paths.ALERT)))
-            if 'username' in alert.text:
+            alert: WebElement = self._find_element(EC.presence_of_element_located((By.XPATH,Paths.ALERT)), wait_time=3)
+            if 'username' in alert.text: #TODO insert in translation
                 self.driver.get(ClientUrls.LOGIN_URL)
-                raise IncorrectUsernameError(self.username)
-            elif 'password' in alert.text:
+                raise InvalidUserError(self.username)
+            elif 'password' in alert.text: #TODO insert in translation
                 self.driver.get(ClientUrls.LOGIN_URL)
-                raise IncorrectPasswordError(self.password)
+                raise InvaildPasswordError(self.password)
         except (TimeoutException, NoSuchElementException):
-            self.logged_in = True
-        # Detect save info Dialog
-        try:
-            save_info_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SAVE_INFO_BTN)))
-            save_info_btn.click()
-        except:
             pass
+
+        # Detect 2FS
+        scode_input = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.SECURITY_CODE)), wait_time=4)
+        if scode_input:
+            # 2F Auth is enabled, request security code
+            raise SecurityCodeNecessary()
+        else:
+            self.logged_in = True
+
+        # Detect and dismiss save info Dialog
+        self.driver.get(ClientUrls.HOME_URL)
+
         # Detect 'Turn On Notifications' Box
         try:
-            no_notifications_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.NO_NOTIFICATIONS_BTN)))
+            no_notifications_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.NO_NOTIFICATIONS_BTN)), wait_time=4)
             no_notifications_btn.click()
         except:
             pass
+        self.dismiss_dialogue()
         return self.logged_in
+
+    
+    @insta_method
+    def input_security_code(self, code):
+        """
+        Use when authenticating and the 2FA security code is required.
+
+        Args:
+            code:int: Security code sent by instagram to the user's phone number or Authenticator App.
+
+        Returns:
+            True if login is successful
+
+        Raises:
+            InvalidSecurityCodeError() if the security code is incorrect
+        """
+        scode_input: WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SECURITY_CODE)), wait_time=4)
+        scode_input.send_keys(code)
+        scode_btn: WebElement = self._find_element(EC.element_to_be_clickable((By.XPATH, Paths.SECURITY_CODE_BTN)), wait_time=5)
+        time.sleep(1)
+        scode_btn.click()
+
+        alert = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.ALERT)))
+        if alert:
+            # Code is Wrong
+            # Clear input field
+            scode_input.clear()
+            raise InvalidSecurityCodeError()
+        else:
+            # Auth Correct
+            self.logged_in = True
+            self.dismiss_dialogue()
+            return self.logged_in
 
 
     @insta_method
@@ -172,6 +223,7 @@ class InstaClient:
             like:bool: If True, likes recent posts, else if False, unlikes recent posts
 
         TODO: Currently maxes out around 15.
+        TODO: Adapt this def
         """
 
         action = 'Like' if like else 'Unlike'
@@ -224,34 +276,75 @@ class InstaClient:
 
         #print('Commentd.')
 
-    
+
     @insta_method
-    def get_followers(self, user:str):
+    def scrape_followers(self, user:str, count:int=100, callback_frequency:int=10, callback=None, *args, **kwargs):
         """
         Gets all followers of a certain user
 
         Args:
             user:str: Username of the user for followers look-up
+            count:int: Number of followers to get. Note that high follower counts will take longer and longer exponentially (even hours)
+            callback_frequency:int: Number of followers to get before sending an update
+    
         
         Returns:
             followers:list<str>: List of usernames (str)
+
+        Raises:
+            InvalidUserError if user does not exist
+            PrivateAccountError if account is private
         """
-        
-        self.nav_user_followers(user) # Open followers page
-        # Scroll list and save usernames
+        # Nav to user page
+        self.nav_user(user)
+        # Find Followers button/link
+        followers_btn:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), wait_time=4)
+        # Get the number of followers and set the count
+        follower_count_div:WebElement = followers_btn.find_element_by_class_name(Paths.FOLLOWER_COUNT)
+        follower_count = int(follower_count_div.get_attribute('title'))
+        if count == -1:
+            # Scrape all followers:
+            count = follower_count
+        elif count > follower_count:
+            count = follower_count
+            
+        # Start scraping
         followers = []
-        finished = False
-        while not finished:
+        # Click followers btn
+        followers_btn.click()
+        time.sleep(2)
 
-            finished = self._infinite_scroll() # scroll down
-
-            followers.extend([follower.get_attribute('title') for follower in self.driver.find_elements_by_class_name('FPmhX notranslate  _0imsa')]) # scrape srcs
-
-        followers = list(set(followers)) # clean up duplicates
+        for i in range(1,count+1):
+            try:
+                div:WebElement = self.driver.find_element_by_xpath(Paths.FOLLOWER_USER_DIV % i)
+                time.sleep(1)
+                username = div.text.split('\n')[0]
+                if  username not in followers:
+                    followers.append(username)
+                if i%callback_frequency==0:
+                    if callback is None:
+                        print('Got another {} followers...'.format(callback_frequency))
+                    else:
+                        callback(*args, **kwargs)
+                self.driver.execute_script("arguments[0].scrollIntoView();", div)
+                # TODO OPTIMIZE ALGORITHM (scroll by more than one account only)
+            except Exception as error:
+                raise error
+            
+        # and you're back
         return followers
-
-
+                
+                
     # IG UTILITY METHODS
+    @insta_method
+    def dismiss_dialogue(self):
+        try:
+            dialogue = self._find_buttons(button_text='Not Now') # add this to 'Translation' doc
+            dialogue.click()
+        except:
+            pass
+    
+
     @insta_method
     def search_tag(self, tag:str):
         """
@@ -265,12 +358,9 @@ class InstaClient:
         alert: WebElement = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)))
         if alert:
             # Tag does not exist
-            self.driver.get(ClientUrls.HOME_URL)
-            print('Returned Home')
-            raise InexistingTagError(tag=tag)
+            raise InvaildTagError(tag=tag)
         else: 
             # Operation Successful
-            print('Sucessfully Navigated to tag page')
             return True
 
 
@@ -286,19 +376,24 @@ class InstaClient:
             True if operation is successful
 
         Raises:
-            InexistinUserError if user does not exist
+            InvaildUserError if user does not exist
         """
         self.driver.get(ClientUrls.NAV_USER.format(user))
-        element = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)))
+        element = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=3)
         if element:
             # User does not exist
             self.driver.get(ClientUrls.HOME_URL)
             print('Returned Home')
-            raise InexistingUserError(user=user)
+            raise InvalidUserError(username=user)
         else: 
             # Operation Successful
             print('Sucessfully Navigated to user')
-            return True
+            paccount_alert = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PRIVATE_ACCOUNT_ALERT)), wait_time=3)
+            if paccount_alert:
+                # navigate back to home page
+                raise PrivateAccountError(user)
+            else:
+                return True
 
 
     @insta_method
@@ -308,24 +403,19 @@ class InstaClient:
         
         Args:
             user:str: Username of the user to send the dm to
+
+        Raises:
+            InvalidUserError if user does not exist
+
+        Returns:
+            True if operation was successful
         """
         self.nav_user(user)
-
         message_btn = self._find_buttons('Message')
         # Open User DM Page
         message_btn.click()
-
-    
-    @insta_method
-    def nav_user_followers(self, user:str):
-        """
-        Navigates to the user's followers page
-
-        Args:
-            user:str: Username of the user
-        """
-        self.driver.get(ClientUrls.FOLLOWERS_URL.format(user))
-
+        return True
+        
 
     # IG PRIVATE UTILITIES
     def _infinite_scroll(self):
@@ -362,11 +452,11 @@ class InstaClient:
         Args:
             button_text: Text that the desired button(s) has 
         """
-        buttons = self._find_element(EC.presence_of_element_located((By.XPATH, "//*[text()='{}']".format(button_text))))
+        buttons = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.BUTTON.format(button_text))), wait_time=4)
         return buttons
 
 
-    def _find_element(self, expectation, wait_time=10):
+    def _find_element(self, expectation, wait_time:int=10):
         """
         Finds widget (element) based on the field's value
         Args:
@@ -378,7 +468,7 @@ class InstaClient:
         return widgets
 
 
-    def _check_existence(self, expectation, wait_time=10):
+    def _check_existence(self, expectation, wait_time:int=10):
         """
         Checks if an element exists.
         Args:

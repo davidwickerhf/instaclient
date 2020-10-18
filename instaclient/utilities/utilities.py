@@ -1,5 +1,6 @@
 """This module contains utilities used by the InstaClient"""
 import functools
+from functools import wraps
 import logging
 import time
 import random
@@ -50,7 +51,6 @@ def exception(func):
     return wrapper
 
 
-@exception
 def insta_method(func):
     """
     Instagram method decorator. Sleeps for 2 seconds before and after calling any methods that interact with Instagram.
@@ -61,10 +61,11 @@ def insta_method(func):
     Returns:
         wrapper:function: Wrapper function
     """
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        func(*args, **kwargs)
-        time.sleep(random.randint(2, 5))
-
+    def wrapper(*args, **kw):
+        # Call function
+        time.sleep(random.randint(1, 2))
+        output = func(*args, **kw)
+        # Post Processing
+        time.sleep(random.randint(1, 2))
+        return output
     return wrapper

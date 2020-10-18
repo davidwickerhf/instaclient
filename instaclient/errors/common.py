@@ -15,7 +15,8 @@ class InstaClientError(Exception):
     def __str__(self):
         return f'{self.message}'
 
-class InexistingDriverError(InstaClientError):
+
+class InvaildDriverError(InstaClientError):
     """Raised when trying to pass an incorrect driver index in InstaClient.__init__()
 
     Args:
@@ -29,20 +30,21 @@ class InexistingDriverError(InstaClientError):
         return f'{self.driver_int} -> {self.message}'
 
 
-class IncorrectUsernameError(InstaClientError):
-    """Raised when trying to log in with an unexisting account's username
+class InvalidUserError(InstaClientError):
+    """Raised when searching for an incorrect user's username or when trying to login with an unexisting account's username
     
     Args:
-        username:str: The username that caused the exception
+        user:str: The user's username that caused the exception
     """
     def __init__(self, username:str):
         self.username = username
-        super().__init__(message='The username used to attempt login is not recognized. Check the username.')
+        super().__init__(message='The username was not recognized. Operation to navigate to the user was unsuccessful.')
 
     def __str__(self):
         return f'{self.username} -> {self.message}'
 
-class IncorrectPasswordError(InstaClientError):
+
+class InvaildPasswordError(InstaClientError):
     """Raised when trying to log in with an incorrect password
     
     Args:
@@ -52,20 +54,20 @@ class IncorrectPasswordError(InstaClientError):
         self.password = password
         super().__init__(message='The password used to attempt login is incorrect. Check the password.')
 
-class InexistingUserError(InstaClientError):
-    """Raised when searching for an incorrect user's username
-    
-    Args:
-        user:str: The user's username that caused the exception
-    """
-    def __init__(self, user:str):
-        self.user = user
-        super().__init__(message='The username was not recognized. Operation to navigate to the user was unsuccessful.')
 
-    def __str__(self):
-        return f'{self.user} -> {self.message}'
+class SecurityCodeNecessary(InstaClientError):
+    """Raised if security code is necessary to log in"""
+    def __init__(self):
+        super().__init__(message='The 2FA security code is required. The Security Code has been sent to the user\'s phone number or Authenticator App.')
 
-class InexistingTagError(InstaClientError):
+
+class InvalidSecurityCodeError(InstaClientError):
+    """Raised if security code inputted by the user is invalid"""
+    def __init__(self):
+        super().__init__(message='The used security code is invalid. Please try entering the code correctly or ask the user to input one of their backup codes')
+
+
+class InvaildTagError(InstaClientError):
     """Raised when searching for an incorrect tag
     
     Args:
@@ -76,3 +78,16 @@ class InexistingTagError(InstaClientError):
 
     def __str__(self):
         return f'{self.tag} -> {self.message}'
+
+
+class PrivateAccountError(InstaClientError):
+    """Raise when trying to access a private account's followers
+    Args: 
+        user:str: The username of the private account that caused the error
+    """
+    def __init__(self, user):
+        self.user = user
+        super().__init__(message='Getting this account\'s followers is impossible as this account is private')
+
+    def __str__(self):
+        return f'{self.user} -> {self.message}'
