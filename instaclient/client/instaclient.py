@@ -5,7 +5,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException        
-import time
+import time, os
 
 from instaclient.utilities.utilities import *
 from instaclient.errors import *
@@ -15,31 +15,38 @@ from instaclient.client.urls import ClientUrls
 
 class InstaClient:
     CHROMEDRIVER=1
-    def __init__(self, username: str=None, password: str=None, driver: int=CHROMEDRIVER):
+    LOCAHOST=1
+    WEB_SERVER=2
+    def __init__(self, driver_type: int=CHROMEDRIVER, host=None):
         """
         Creates an instance of instaclient class.
 
         Args:
-            You can omit the username and password if you prefer to insert them in the client.login() method:
-                username:str: The username of the user
-                password:str: The password of the user
-
-            driver_location:str: Path of the driver file (must be in the root folder of your project)
-            wait_time:int: (Seconds) time to wait before raising driver exception
+            driver_type:int: 
+                InstaClient.CHROMEDRIVER for a Chrome instance
+            host:int: 
+                InstaClient.LOCALHOST for testing / running locally
+                InstaClient.WEB_SERVER for production / running on a web server
 
         Attributes:
             driver: Instance of the Selenium Webdriver (defaults to Chrome) 
             logged_in:bool: Boolean whether current user is logged in or not. Defaults to False
         """
-
-        self.username = username
-        self.password = password
-
         try:
-            if driver == self.CHROMEDRIVER:
-                self.driver = webdriver.Chrome('instaclient/drivers/chromedriver.exe')
+            if driver_type == self.CHROMEDRIVER:
+                if host in (None, self.LOCAHOST):
+                    # Running on web server
+                    chrome_options = webdriver.ChromeOptions()
+                    chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+                    chrome_options.add_argument("--headless")
+                    chrome_options.add_argument("--disable-dev-shm-usage")
+                    chrome_options.add_argument("--no-sandbox")
+                    self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
+                else:
+                    # Running locally
+                    self.driver = webdriver.Chrome('instaclient/drivers/chromedriver.exe')
             else:
-                raise InvaildDriverError(driver)
+                raise InvaildDriverError(driver_type)
             self.driver.maximize_window()
         except Exception as error:
             raise error
