@@ -253,7 +253,7 @@ class InstaClient:
 
 
     @insta_method
-    def send_dm(self, user:str, message:str):
+    def send_dm(self, user:str, message:str, check_user=True):
         """
         Send a DM to the specified user.
 
@@ -262,7 +262,7 @@ class InstaClient:
             message:str: Message to send to the user
         """
         # Navigate to User's dm page
-        self.nav_user_dm(user)
+        self.nav_user_dm(user, check_user=check_user)
         text_area = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.DM_TEXT_AREA)))
         print(text_area)
         text_area.send_keys(message)
@@ -285,7 +285,7 @@ class InstaClient:
 
 
     @insta_method
-    def scrape_followers(self, user:str, count:int=100, callback_frequency:int=10, callback=None, *args, **kwargs):
+    def scrape_followers(self, user:str, count:int=100, callback_frequency:int=10, callback=None, check_user=True, *args, **kwargs):
         """
         Gets all followers of a certain user
 
@@ -303,7 +303,7 @@ class InstaClient:
             PrivateAccountError if account is private
         """
         # Nav to user page
-        self.nav_user(user)
+        self.nav_user(user, check_user=check_user)
         # Find Followers button/link
         followers_btn:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), wait_time=4)
         # Get the number of followers and set the count
@@ -372,12 +372,13 @@ class InstaClient:
 
 
     @insta_method
-    def nav_user(self, user:str):
+    def nav_user(self, user:str, check_user=True):
         """
         Navigates to a users profile page
 
         Args:
             user:str: Username of the user to navigate to the profile page of
+            check_user:bool: Condition whether to check if a user is valid or not
 
         Returns:
             True if operation is successful
@@ -386,21 +387,9 @@ class InstaClient:
             InvaildUserError if user does not exist
         """
         self.driver.get(ClientUrls.NAV_USER.format(user))
-        element = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=3)
-        if element:
-            # User does not exist
-            self.driver.get(ClientUrls.HOME_URL)
-            print('Returned Home')
-            raise InvalidUserError(username=user)
-        else: 
-            # Operation Successful
-            print('Sucessfully Navigated to user')
-            paccount_alert = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PRIVATE_ACCOUNT_ALERT)), wait_time=3)
-            if paccount_alert:
-                # navigate back to home page
-                raise PrivateAccountError(user)
-            else:
-                return True
+        if check_user:
+            return self.is_valid_user(user=user)
+        
 
 
     @insta_method
@@ -423,6 +412,24 @@ class InstaClient:
         message_btn.click()
         return True
         
+
+    def is_valid_user(self, user):
+        element = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=3)
+        if element:
+            # User does not exist
+            self.driver.get(ClientUrls.HOME_URL)
+            print('Returned Home')
+            raise InvalidUserError(username=user)
+        else: 
+            # Operation Successful
+            print('Sucessfully Navigated to user')
+            paccount_alert = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PRIVATE_ACCOUNT_ALERT)), wait_time=3)
+            if paccount_alert:
+                # navigate back to home page
+                raise PrivateAccountError(user)
+            else:
+                return True
+
 
     # IG PRIVATE UTILITIES
     def _infinite_scroll(self):
