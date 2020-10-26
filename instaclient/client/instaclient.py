@@ -34,7 +34,7 @@ class InstaClient:
         """
         try:
             if driver_type == self.CHROMEDRIVER:
-                if host not in (None, self.LOCAHOST):
+                if host == self.WEB_SERVER:
                     # Running on web server
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
@@ -42,9 +42,11 @@ class InstaClient:
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
                     self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
-                else:
+                elif host == self.LOCAHOST:
                     # Running locally
                     self.driver = webdriver.Chrome('instaclient/drivers/chromedriver.exe')
+                else:
+                    raise InvaildHostError(host)
             else:
                 raise InvaildDriverError(driver_type)
             self.driver.maximize_window()

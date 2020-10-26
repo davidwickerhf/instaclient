@@ -16,6 +16,20 @@ class InstaClientError(Exception):
         return f'{self.message}'
 
 
+class InvaildHostError(InstaClientError):
+    """Raised when trying to pass an incorrect host index in InstaClient.__init__()
+
+    Args:
+        host_int:int: The driver int variable passed to InstaClient()
+    """
+    def __init__(self, host_int:int):
+        self.host_int = host_int
+        super().__init__(message='This integer does not refer to any host')
+
+    def __str__(self):
+        return f'{self.host_int} -> {self.message}'
+
+
 class InvaildDriverError(InstaClientError):
     """Raised when trying to pass an incorrect driver index in InstaClient.__init__()
 
