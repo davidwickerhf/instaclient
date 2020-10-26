@@ -34,7 +34,7 @@ class InstaClient:
         """
         try:
             if driver_type == self.CHROMEDRIVER:
-                if host in (None, self.LOCAHOST):
+                if host not in (None, self.LOCAHOST):
                     # Running on web server
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
