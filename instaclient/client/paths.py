@@ -13,8 +13,8 @@ class Paths:
     INCORRECT_PASSWORD_ALERT = '//div[@class="piCib"]'
     INCORRECT_PASSWORD_ALERT_BTNS = '{}//button[contains(@class, "aOOlW")]'
     ALERT = '//*[@id="slfErrorAlert" or @id="twoFactorErrorAlert"]'
-    PAGE_NOT_FOUND = '//*[@class="Cv-5h"]'
-    PRIVATE_ACCOUNT_ALERT = '//*[@class="rkEop"]'
+    PAGE_NOT_FOUND = '//h2[@class="_7UhW9      x-6xq    qyrsm KV-D4          uL8Hv     l4b0S    "]'
+    PRIVATE_ACCOUNT_ALERT = '//h2[@class="rkEop"]'
     # Followers Procedure
     FOLLOWERS_BTN = '//li[@class=" LH36I"]//descendant::a'
     FOLLOWERS_LIST_MAIN = '//main[@role="main"]'

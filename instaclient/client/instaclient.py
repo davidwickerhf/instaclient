@@ -419,9 +419,8 @@ class InstaClient:
         """
         self.driver.get(ClientUrls.NAV_USER.format(user))
         if check_user:
-            return self.is_valid_user(user=user)
+            return self.is_valid_user(user=user, nav_to_user=False)
         
-
 
     @insta_method
     def nav_user_dm(self, user:str, check_user:bool=True):
@@ -444,16 +443,17 @@ class InstaClient:
         return True
         
 
-    def is_valid_user(self, user):
+    @insta_method
+    def is_valid_user(self, user, nav_to_user=True):
+        if nav_to_user:
+            self.driver.get(ClientUrls.NAV_USER.format(user))
         element = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=3)
         if element:
             # User does not exist
             self.driver.get(ClientUrls.HOME_URL)
-            print('Returned Home')
             raise InvalidUserError(username=user)
         else: 
             # Operation Successful
-            print('Sucessfully Navigated to user')
             paccount_alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PRIVATE_ACCOUNT_ALERT)), wait_time=3)
             if paccount_alert:
                 # navigate back to home page
