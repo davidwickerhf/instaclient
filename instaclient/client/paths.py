@@ -5,7 +5,13 @@ class Paths:
     LOGIN_BTN = '//button[@class="sqdOP  L3NKy   y3zKF     "]/div'
     USERNAME_INPUT = '//input[@name="username"]'
     PASSWORD_INPUT = '//input[@name="password"]'
-    SECURITY_CODE = '//input[@name="verificationCode"]'
+    # Suscpicious Activity Dialogue
+    SEND_CODE = '//button[@class="_5f5mN       jIbKX KUBKM      yZn4P   "]'
+    SECURITY_CODE_INPUT = '//input[@name="security_code" or @class="_281Ls zyHYP"]'
+    INPUT_CODE_BTN = '//button[@class="_5f5mN       jIbKX KUBKM      yZn4P   "]'
+    INVALID_CODE = '//div[@class="_3_2jD" and @id="form_error"]'
+    # 2FA Verification
+    VERIFICATION_CODE = '//input[@name="verificationCode"]'
     SECURITY_CODE_BTN = '//button[@class="sqdOP  L3NKy   y3zKF     "]'
     NO_NOTIFICATIONS_BTN = '/html/body/div[4]/div/div/div/div[3]/button[2]'
     # Nav to User Procedure

@@ -37,16 +37,21 @@ class InstaClient:
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
                     chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
-                    chrome_options.add_argument("window-size=525,950")
+                    chrome_options.add_argument("--window-size=720,1280")
                     chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
+                    chrome_options.add_argument("--disable-gpu")
                     self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
                 elif host == self.LOCAHOST:
                     # Running locally
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
-                    chrome_options.add_argument("window-size=525,950")
+                    chrome_options.add_argument("--window-size=720,1280")
+                    #chrome_options.add_argument("--headless")
+                    chrome_options.add_argument("--disable-dev-shm-usage")
+                    chrome_options.add_argument("--no-sandbox")
+                    chrome_options.add_argument("--disable-gpu")
                     self.driver = webdriver.Chrome(executable_path='instaclient/drivers/chromedriver.exe', chrome_options=chrome_options)
                 else:
                     raise InvaildHostError(host)
@@ -136,11 +141,17 @@ class InstaClient:
             self.password = None
             raise InvaildPasswordError(password)
 
+        # Detect Suspicious Login Attempt Dialogue
+        send_code = self.__find_buttons(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=3)
+        if send_code:
+            send_code.click()
+            raise SuspisciousLoginAttemptError()
+
         # Detect 2FS
-        scode_input = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.SECURITY_CODE)), wait_time=3)
+        scode_input = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.VERIFICATION_CODE)), wait_time=3)
         if scode_input:
             # 2F Auth is enabled, request security code
-            raise SecurityCodeNecessary()
+            raise VerificationCodeNecessary()
         else:
             self.logged_in = True
 
@@ -156,9 +167,40 @@ class InstaClient:
         self.dismiss_dialogue()
         return self.logged_in
 
-    
+
     @insta_method
     def input_security_code(self, code:int or str):
+        code = str(code)
+        if len(code) < 6:
+            raise InvalidSecurityCodeError()
+        elif not code.isdigit():
+            raise InvalidSecurityCodeError()
+
+        scode_input:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SECURITY_CODE_INPUT)), wait_time=4)
+        scode_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SECURITY_CODE_BTN)), wait_time=4)
+        scode_input.send_keys(code)
+        time.sleep(0.5)
+        scode_btn.click()
+
+        # Detect Error
+        form_error = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.INVALID_CODE)), wait_time=3)
+        if form_error:
+            # Invalid Code
+            scode_input.clear()
+            raise InvalidSecurityCodeError()
+
+        self.logged_in = True
+        self.dismiss_dialogue()
+        return self.logged_in
+
+
+
+
+
+
+    
+    @insta_method
+    def input_verification_code(self, code:int or str):
         """
         Complete login procedure started with `InstaClient.login()` and insert 2FA security code. Sets `instaclient.logged_in` to True if login was successful.
 
@@ -171,7 +213,7 @@ class InstaClient:
         Returns:
             bool: Returns True if login was successful
         """
-        scode_input: WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SECURITY_CODE)), wait_time=4)
+        scode_input: WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.VERIFICATION_CODE)), wait_time=4)
         scode_input.send_keys(code)
         scode_btn: WebElement = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.SECURITY_CODE_BTN)), wait_time=5)
         time.sleep(1)
@@ -182,7 +224,7 @@ class InstaClient:
             # Code is Wrong
             # Clear input field
             scode_input.clear()
-            raise InvalidSecurityCodeError()
+            raise InvalidVerificationCodeError()
         else:
             # Auth Correct
             self.logged_in = True
@@ -447,7 +489,7 @@ class InstaClient:
     def is_valid_user(self, user, nav_to_user=True):
         if nav_to_user:
             self.driver.get(ClientUrls.NAV_USER.format(user))
-        element = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=3)
+        element = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=8)
         if element:
             # User does not exist
             self.driver.get(ClientUrls.HOME_URL)

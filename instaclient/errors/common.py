@@ -69,16 +69,28 @@ class InvaildPasswordError(InstaClientError):
         super().__init__(message='The password used to attempt login is incorrect. Check the password.')
 
 
-class SecurityCodeNecessary(InstaClientError):
+class VerificationCodeNecessary(InstaClientError):
     """Raised if security code is necessary to log in"""
     def __init__(self):
         super().__init__(message='The 2FA security code is required. The Security Code has been sent to the user\'s phone number or Authenticator App.')
 
 
+class SuspisciousLoginAttemptError(InstaClientError):
+    """Raised if security code is necessary to log in"""
+    def __init__(self):
+        super().__init__(message='The provided security code is invalid.')
+
+
 class InvalidSecurityCodeError(InstaClientError):
     """Raised if security code inputted by the user is invalid"""
     def __init__(self):
-        super().__init__(message='The used security code is invalid. Please try entering the code correctly or ask the user to input one of their backup codes')
+        super().__init__(message='The used security code is invalid.')
+
+
+class InvalidVerificationCodeError(InstaClientError):
+    """Raised if security code inputted by the user is invalid"""
+    def __init__(self):
+        super().__init__(message='The used verification code is invalid. Please try entering the code correctly or ask the user to input one of their backup codes')
 
 
 class InvaildTagError(InstaClientError):
