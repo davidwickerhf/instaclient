@@ -41,17 +41,15 @@ class InstaClient:
                     chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
-                    chrome_options.add_argument("--disable-gpu")
                     self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
                 elif host == self.LOCAHOST:
                     # Running locally
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
                     chrome_options.add_argument("--window-size=720,1280")
-                    #chrome_options.add_argument("--headless")
+                    chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
-                    chrome_options.add_argument("--disable-gpu")
                     self.driver = webdriver.Chrome(executable_path='instaclient/drivers/chromedriver.exe', chrome_options=chrome_options)
                 else:
                     raise InvaildHostError(host)
@@ -142,8 +140,9 @@ class InstaClient:
             raise InvaildPasswordError(password)
 
         # Detect Suspicious Login Attempt Dialogue
-        send_code = self.__find_buttons(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=3)
+        send_code = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=3)
         if send_code:
+            send_code = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=4)
             send_code.click()
             raise SuspisciousLoginAttemptError()
 
