@@ -115,15 +115,13 @@ class InstaClient:
             login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)))# login button xpath changes after text is entered, find first
             print('INSTACLIENT: Found elements')
             # Fill out form
-            print('INSTACLIENT: Username: ', username, ' ', type(username))
             username_input.send_keys(username)
             time.sleep(1)
-            print('INSTACLIENT: Username: ', username, ' ', type(username))
             password_input.send_keys(password)
             time.sleep(1)
             print('INSTACLIENT: Filled in form')
             login_btn.click()
-            print('INSTACLIENT:  form')
+            print('INSTACLIENT: Sent form')
         except Exception as error:
             # User already logged in ?
             result = self.check_status()
@@ -231,7 +229,7 @@ class InstaClient:
         scode_btn.click()
 
         # Detect Error
-        form_error = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.INVALID_CODE)), wait_time=3)
+        form_error = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.INVALID_CODE)), wait_time=3)
         if form_error:
             # Invalid Code
             scode_input.clear()
@@ -258,7 +256,7 @@ class InstaClient:
         """
         scode_input: WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.VERIFICATION_CODE)), wait_time=4)
         scode_input.send_keys(code)
-        scode_btn: WebElement = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.SECURITY_CODE_BTN)), wait_time=5)
+        scode_btn: WebElement = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.VERIFICATION_CODE_BTN)), wait_time=5)
         time.sleep(1)
         scode_btn.click()
 
@@ -462,9 +460,12 @@ class InstaClient:
     @insta_method
     def dismiss_dialogue(self):
         try:
-            dialogue = self.__find_buttons(button_text='Not Now') # add this to 'Translation' doc
+            dialogue = self.__find_buttons(button_text='Not Now') # TODO add this to 'Translation' doc
             dialogue.click()
         except:
+            dialogue = self.__find_buttons(button_text='Cancel') # TODO add this to translation docs
+            dialogue.click()
+        finally:
             pass
     
 

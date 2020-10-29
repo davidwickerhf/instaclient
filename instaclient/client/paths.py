@@ -14,9 +14,10 @@ class Paths:
     RESEND_CODE_BTN = '//p[@class="GusmU  t_gv9    "]//descendant::a'
     SELECT_EMAIL_BTN = '//label[@class="UuB0U " and @for="choice_1"]//descendant::div'
     BACK_BTN = '//svg[@class="_8-yf5 "]'
+    SECURITY_CODE_BTN = '//button[@class="_5f5mN       jIbKX KUBKM      yZn4P   "]'
     # 2FA Verification
     VERIFICATION_CODE = '//input[@name="verificationCode"]'
-    SECURITY_CODE_BTN = '//button[@class="sqdOP  L3NKy   y3zKF     "]'
+    VERIFICATION_CODE_BTN = '//button[@class="sqdOP  L3NKy   y3zKF     "]'
     NO_NOTIFICATIONS_BTN = '/html/body/div[4]/div/div/div/div[3]/button[2]'
     # Nav to User Procedure
     INCORRECT_USERNAME_ALERT = '//p[@role="alert" and @id="slfErrorAlert"]'
