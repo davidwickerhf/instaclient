@@ -37,7 +37,7 @@ class InstaClient:
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
                     chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
-                    chrome_options.add_argument("--window-size=720,1280")
+                    chrome_options.add_argument("--window-size=343,915")
                     chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
@@ -46,7 +46,7 @@ class InstaClient:
                     # Running locally
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
-                    chrome_options.add_argument("--window-size=720,1280")
+                    chrome_options.add_argument("--window-size=343,915")
                     #chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
@@ -101,7 +101,7 @@ class InstaClient:
         try:
             # Attempt Login
             self.driver.get(ClientUrls.LOGIN_URL)
-            print('Got Login Page')
+            print('INSTACLIENT: Got Login Page')
             # Detect Cookies Dialogue
             try:
                 alert = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.ACCEPT_COOKIES)), wait_time=4)
@@ -113,24 +113,24 @@ class InstaClient:
             username_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)))
             password_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.PASSWORD_INPUT)))
             login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)))# login button xpath changes after text is entered, find first
-            print('Found elements')
+            print('INSTACLIENT: Found elements')
             # Fill out form
-            print('Username: ', username, ' ', type(username))
+            print('INSTACLIENT: Username: ', username, ' ', type(username))
             username_input.send_keys(username)
             time.sleep(1)
-            print('Username: ', username, ' ', type(username))
+            print('INSTACLIENT: Username: ', username, ' ', type(username))
             password_input.send_keys(password)
             time.sleep(1)
-            print('Filled in form')
+            print('INSTACLIENT: Filled in form')
             login_btn.click()
-            print('Sent form')
+            print('INSTACLIENT:  form')
         except Exception as error:
             # User already logged in ?
             result = self.check_status()
             if not result:
                 raise error
             else:
-                print('User already logged in?')
+                print('INSTACLIENT: User already logged in?')
                 return self.logged_in
         
         # Detect correct Login
@@ -152,17 +152,27 @@ class InstaClient:
         # Detect Suspicious Login Attempt Dialogue
         send_code = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=3)
         if send_code:
-            print('Suspicious Login Attempt.')
+            print('INSTACLIENT: Suspicious Login Attempt.')
             send_code = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=4)
             send_code.click()
-            print('Sent Security Code')
-            raise SuspisciousLoginAttemptError()
+            print('INSTACLIENT: Sent Security Code')
+            # Detect Error
+            alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.ERROR_SENDING_CODE)), wait_time=4)
+            if alert:
+                # Error in sending code, send via email
+                email = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SELECT_EMAIL_BTN)), wait_time=4)
+                email.click()
+                time.sleep(0.5)
+                send_code.click()
+                print('INSTACLIENT: Sending code via email')
+                raise SuspisciousLoginAttemptError(mode=SuspisciousLoginAttemptError.EMAIL)
+            raise SuspisciousLoginAttemptError(mode=SuspisciousLoginAttemptError.PHONE)
 
         # Detect 2FS
         scode_input = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.VERIFICATION_CODE)), wait_time=3)
         if scode_input:
             # 2F Auth is enabled, request security code
-            print('2FA Required. Check Auth App')
+            print('INSTACLIENT: 2FA Required. Check Auth App')
             raise VerificationCodeNecessary()
         else:
             self.logged_in = True
@@ -179,6 +189,14 @@ class InstaClient:
         self.dismiss_dialogue()
         return self.logged_in
 
+
+    @insta_method
+    def resend_security_code(self):
+        url = self.driver.current_url
+        if ClientUrls.SECURITY_CODE_URL in url:
+            print('INSTACLIENT: Resending code')
+            resend_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.RESEND_CODE_BTN)), wait_time=4)
+            resend_btn.click()
 
     @insta_method
     def input_security_code(self, code:int or str):
@@ -206,11 +224,6 @@ class InstaClient:
         return self.logged_in
 
 
-
-
-
-
-    
     @insta_method
     def input_verification_code(self, code:int or str):
         """
@@ -280,7 +293,7 @@ class InstaClient:
                 unfollow_confirmation = self.__find_buttons('Unfollow')[0]
                 unfollow_confirmation.click()
         else:
-            print('No {} buttons were found.'.format('Following'))
+            print('INSTACLIENT: No {} buttons were found.'.format('Following'))
     
 
     @insta_method

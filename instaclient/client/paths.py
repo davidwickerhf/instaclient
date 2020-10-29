@@ -10,6 +10,9 @@ class Paths:
     SECURITY_CODE_INPUT = '//input[@name="security_code" or @class="_281Ls zyHYP"]'
     INPUT_CODE_BTN = '//button[@class="_5f5mN       jIbKX KUBKM      yZn4P   "]'
     INVALID_CODE = '//div[@class="_3_2jD" and @id="form_error"]'
+    ERROR_SENDING_CODE = '//div[@class="_3_2jD" and @id="form_error"]//descendant::p'
+    RESEND_CODE_BTN = '//p[@class="GusmU  t_gv9    "]//descendant::a'
+    SELECT_EMAIL_BTN = '//label[@class="UuB0U " and @for="choice_1"]//descendant::div'
     # 2FA Verification
     VERIFICATION_CODE = '//input[@name="verificationCode"]'
     SECURITY_CODE_BTN = '//button[@class="sqdOP  L3NKy   y3zKF     "]'

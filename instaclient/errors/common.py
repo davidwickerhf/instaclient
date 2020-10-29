@@ -76,9 +76,15 @@ class VerificationCodeNecessary(InstaClientError):
 
 
 class SuspisciousLoginAttemptError(InstaClientError):
+    PHONE = 0
+    EMAIL = 1
     """Raised if security code is necessary to log in"""
-    def __init__(self):
-        super().__init__(message='The provided security code is invalid.')
+    def __init__(self, mode=PHONE):
+        self.mode = mode
+        super().__init__(message='Suspicious Login Attempt warning detected. Sending code mode: '.format(mode))
+
+    def __str__(self):
+        return f'{self.message}'
 
 
 class InvalidSecurityCodeError(InstaClientError):
