@@ -1,7 +1,7 @@
 """This module contains the InstaClient class"""
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support.wait import WebDriverWait, wait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException        
@@ -197,6 +197,24 @@ class InstaClient:
             print('INSTACLIENT: Resending code')
             resend_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.RESEND_CODE_BTN)), wait_time=4)
             resend_btn.click()
+
+            alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.ERROR_SENDING_CODE)), wait_time=3)
+            if alert:
+                back_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.BACK_BTN)), wait_time=4)
+                back_btn.click()
+                time.sleep(1)
+                email = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SELECT_EMAIL_BTN)), wait_time=4)
+                email.click()
+                time.sleep(0.5)
+                send_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=4)
+                send_btn.click()
+                mode = SuspisciousLoginAttemptError.EMAIL
+                raise SuspisciousLoginAttemptError(mode)
+            raise SuspisciousLoginAttemptError()
+        else:
+            print('Wrong Url when resending code')
+            return False
+
 
     @insta_method
     def input_security_code(self, code:int or str):
