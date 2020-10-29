@@ -1,4 +1,5 @@
 """This module contains the InstaClient class"""
+from os import waitpid
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
@@ -63,10 +64,11 @@ class InstaClient:
     @insta_method
     def check_status(self):
         """
-        Check if account is currently logged in. Returns True if account is logged in. Sets the instaclient.logged_in variable accordingly.
+        Check if account is currently logged in. Returns True if account is logged in. Sets the `instaclient.logged_in` variable accordingly.
 
-        :return: True if account is logged in, False if account is NOT logged in.
-        :rtype: boolean
+
+        Returns:
+            bool: True if client is logged in, False if client is not connected.
         """
         icon = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NAV_BAR)), wait_time=4)
         if icon:
@@ -190,6 +192,14 @@ class InstaClient:
 
     @insta_method
     def resend_security_code(self):
+        """
+        Resend security code if code hasn't been sent successfully. The code is used to verify the login attempt if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised.
+
+        Raises:
+            SuspisciousLoginAttemptError: Raised to continue the login procedure. If the `mode` argument of the error is 0, the security code was sent via SMS; if the `mode` argument is 1, then the security code was sent via email.
+        Returns:
+            bool: True if the code has been sent again successfully. False if an error occured or if the client is no longer on the login page.
+        """
         url = self.driver.current_url
         if ClientUrls.SECURITY_CODE_URL in url:
             print('INSTACLIENT: Resending code')
@@ -216,6 +226,18 @@ class InstaClient:
 
     @insta_method
     def input_security_code(self, code:int or str):
+        """
+        Complete login procedure started with `InstaClient.login()` and insert security code required if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised. Sets `InstaClient.logged_in` attribute to True if login was successful.
+
+        Args:
+            code (intorstr): The security code sent by Instagram via SMS or email.
+
+        Raises:
+            InvalidSecurityCodeError: Error raised if the code is not valid
+
+        Returns:
+            bool: True if login was successful.
+        """
         code = str(code)
         if len(code) < 6:
             raise InvalidSecurityCodeError()
@@ -376,11 +398,12 @@ class InstaClient:
     @insta_method
     def send_dm(self, user:str, message:str, check_user=True):
         """
-        Send a DM to the specified user.
+        Send an Instagram Direct Message to a user. if `check_user` is set to True, the `user` argument will be checked to validate whether it is a real instagram username.
 
         Args:
-            user:str: User to send the DM to
-            message:str: Message to send to the user
+            user (str): Instagram username of the account to send the DM to
+            message (str): Message to send to the user via DMs
+            check_user (bool, optional): If set to False, the `InstaClient` will assume that `user` is a valid instagram username. Defaults to True.
         """
         # Navigate to User's dm page
         self.nav_user_dm(user, check_user=check_user)
@@ -408,7 +431,7 @@ class InstaClient:
     @insta_method
     def scrape_followers(self, user:str, check_user=True, *args, **kwargs):
         """
-        Gets all followers of a certain user
+        Gets up to 1100 followers of a certain user. Operation might take a couple of minutes, depending on the internet connection.
 
         Args:
             user:str: Username of the user for followers look-up
@@ -459,6 +482,9 @@ class InstaClient:
     # IG UTILITY METHODS
     @insta_method
     def dismiss_dialogue(self):
+        """
+        Dismiss an eventual Instagram dialogue with button text containing either 'Cancel' or 'Not Now'.
+        """
         try:
             dialogue = self.__find_buttons(button_text='Not Now') # TODO add this to 'Translation' doc
             dialogue.click()
@@ -486,6 +512,27 @@ class InstaClient:
             raise InvaildTagError(tag=tag)
         else: 
             # Operation Successful
+            return True
+
+
+    @insta_method
+    def logout(self):
+        """
+        Check if the client is currently connected to Instagram and logs of the current InstaClient session.
+
+        Returns:
+            [type]: True if the 
+        """
+        result = self.check_status()
+        if result:
+            settings_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SETTINGS_BTN)), wait_time=4)
+            settings_btn.click()
+            logout_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.LOG_OUT_BTN)), wait_time=4)
+            logout_btn.click()
+            confirm_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_LOGOUT_BTN)), wait_time=4)
+            confirm_btn.click()
+            return True
+        else:
             return True
 
 

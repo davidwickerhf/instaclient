@@ -38,4 +38,8 @@ class Paths:
     # Check Login Status Procedure
     NAV_BAR = '//div[@data-testid="mobile-nav-logged-in" and @class="BvyAW"]'
     # GENERAL
+    SETTINGS_BTN = '//button[@class="Q46SR"]//descendant::svg'
     BUTTON = '//button[text()="{}"]'
+    # SETTINGS OPTIONS
+    LOG_OUT_BTN = '//a[@class="_34G9B H0ovd"]'
+    CONFIRM_LOGOUT_BTN = '//button[@class="aOOlW  bIiDR  "]'
