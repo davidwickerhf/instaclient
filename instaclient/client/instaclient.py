@@ -152,14 +152,17 @@ class InstaClient:
         # Detect Suspicious Login Attempt Dialogue
         send_code = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=3)
         if send_code:
+            print('Suspicious Login Attempt.')
             send_code = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=4)
             send_code.click()
+            print('Sent Security Code')
             raise SuspisciousLoginAttemptError()
 
         # Detect 2FS
         scode_input = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.VERIFICATION_CODE)), wait_time=3)
         if scode_input:
             # 2F Auth is enabled, request security code
+            print('2FA Required. Check Auth App')
             raise VerificationCodeNecessary()
         else:
             self.logged_in = True
