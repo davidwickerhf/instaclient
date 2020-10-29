@@ -463,10 +463,11 @@ class InstaClient:
             dialogue = self.__find_buttons(button_text='Not Now') # TODO add this to 'Translation' doc
             dialogue.click()
         except:
-            dialogue = self.__find_buttons(button_text='Cancel') # TODO add this to translation docs
-            dialogue.click()
-        finally:
-            pass
+            try:
+                dialogue = self.__find_buttons(button_text='Cancel') # TODO add this to translation docs
+                dialogue.click()
+            except:
+                pass
     
 
     @insta_method
