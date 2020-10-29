@@ -115,8 +115,10 @@ class InstaClient:
             login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)))# login button xpath changes after text is entered, find first
             print('Found elements')
             # Fill out form
+            print('Username: ', username, ' ', type(username))
             username_input.send_keys(username)
             time.sleep(1)
+            print('Username: ', username, ' ', type(username))
             password_input.send_keys(password)
             time.sleep(1)
             print('Filled in form')
@@ -124,11 +126,11 @@ class InstaClient:
             print('Sent form')
         except Exception as error:
             # User already logged in ?
-            print('User already logged in?')
             result = self.check_status()
             if not result:
                 raise error
             else:
+                print('User already logged in?')
                 return self.logged_in
         
         # Detect correct Login
