@@ -47,7 +47,7 @@ class InstaClient:
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
                     chrome_options.add_argument("--window-size=720,1280")
-                    chrome_options.add_argument("--headless")
+                    #chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
                     self.driver = webdriver.Chrome(executable_path='instaclient/drivers/chromedriver.exe', chrome_options=chrome_options)
@@ -101,9 +101,10 @@ class InstaClient:
         try:
             # Attempt Login
             self.driver.get(ClientUrls.LOGIN_URL)
+            print('Got Login Page')
             # Detect Cookies Dialogue
             try:
-                alert = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.ACCEPT_COOKIES)), wait_time=3)
+                alert = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.ACCEPT_COOKIES)), wait_time=4)
                 alert.click()
             except:
                 print('No alert')
@@ -112,16 +113,23 @@ class InstaClient:
             username_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)))
             password_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.PASSWORD_INPUT)))
             login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)))# login button xpath changes after text is entered, find first
+            print('Found elements')
             # Fill out form
             username_input.send_keys(username)
             time.sleep(1)
             password_input.send_keys(password)
             time.sleep(1)
+            print('Filled in form')
             login_btn.click()
-        except:
+            print('Sent form')
+        except Exception as error:
             # User already logged in ?
             print('User already logged in?')
-            return self.logged_in
+            result = self.check_status()
+            if not result:
+                raise error
+            else:
+                return self.logged_in
         
         # Detect correct Login
         if check_user:
