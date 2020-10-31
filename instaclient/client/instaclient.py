@@ -446,7 +446,7 @@ class InstaClient:
         """
         # Nav to user page
         self.nav_user(user, check_user=check_user)
-        self.driver.save_screenshot('user') # TODO remove after debugging
+        self.driver.save_screenshot('user.png') # TODO remove after debugging
         # Find Followers button/link
         followers_btn:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), wait_time=4)
         # Start scraping
@@ -454,7 +454,7 @@ class InstaClient:
         # Click followers btn
         followers_btn.click()
         time.sleep(2)
-        self.driver.save_screenshot('followers') # TODO remove after debugging
+        self.driver.save_screenshot('followers.png') # TODO remove after debugging
         # Load all followers
         followers = []
         main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)))
