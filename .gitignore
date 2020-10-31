@@ -115,3 +115,4 @@ config.ini
 
 # logs
 bot.log
+*.png

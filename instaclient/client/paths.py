@@ -1,7 +1,7 @@
 class Paths:
     #TODO Traslate texts in German
     # Login Procedue
-    ACCEPT_COOKIES = "/html/body/div[2]/div/div/div/div[2]/button[1]"
+    
     LOGIN_BTN = '//button[@class="sqdOP  L3NKy   y3zKF     "]/div'
     USERNAME_INPUT = '//input[@name="username"]'
     PASSWORD_INPUT = '//input[@name="password"]'
@@ -38,6 +38,8 @@ class Paths:
     # Check Login Status Procedure
     NAV_BAR = '//div[@data-testid="mobile-nav-logged-in" and @class="BvyAW"]'
     # GENERAL
+    COOKIES_LINK = '//a[contains(@heref, "/legal/cookies/")]'
+    ACCEPT_COOKIES = '//button[@class="aOOlW  bIiDR  "]'
     SETTINGS_BTN = '//button[@class="Q46SR"]//descendant::svg'
     BUTTON = '//button[text()="{}"]'
     # SETTINGS OPTIONS

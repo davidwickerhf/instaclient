@@ -105,16 +105,17 @@ class InstaClient:
             self.driver.get(ClientUrls.LOGIN_URL)
             print('INSTACLIENT: Got Login Page')
             # Detect Cookies Dialogue
+
             try:
-                alert = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.ACCEPT_COOKIES)), wait_time=4)
+                alert = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.ACCEPT_COOKIES)), url=ClientUrls.LOGIN_URL)
                 alert.click()
             except:
                 print('No alert')
                 pass
             # Get Form elements
-            username_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)))
-            password_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.PASSWORD_INPUT)))
-            login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)))# login button xpath changes after text is entered, find first
+            username_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)), url=ClientUrls.LOGIN_URL)
+            password_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.PASSWORD_INPUT)), url=ClientUrls.LOGIN_URL)
+            login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)), url=ClientUrls.LOGIN_URL)# login button xpath changes after text is entered, find first
             print('INSTACLIENT: Found elements')
             # Fill out form
             username_input.send_keys(username)
@@ -142,7 +143,7 @@ class InstaClient:
                 self.username = None
                 raise InvalidUserError(username)
 
-        passwordalert: WebElement = self.__check_existence(EC.presence_of_element_located((By.XPATH,Paths.INCORRECT_PASSWORD_ALERT)), wait_time=3)
+        passwordalert: WebElement = self.__check_existence(EC.presence_of_element_located((By.XPATH,Paths.INCORRECT_PASSWORD_ALERT)))
         if passwordalert:
             # Password is incorrect
             self.driver.get(ClientUrls.LOGIN_URL)
@@ -150,7 +151,7 @@ class InstaClient:
             raise InvaildPasswordError(password)
 
         # Detect Suspicious Login Attempt Dialogue
-        send_code = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=3)
+        send_code = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)))
         if send_code:
             print('INSTACLIENT: Suspicious Login Attempt.')
             send_code = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=4)
@@ -169,7 +170,7 @@ class InstaClient:
             raise SuspisciousLoginAttemptError(mode=SuspisciousLoginAttemptError.PHONE)
 
         # Detect 2FS
-        scode_input = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.VERIFICATION_CODE)), wait_time=3)
+        scode_input = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.VERIFICATION_CODE)))
         if scode_input:
             # 2F Auth is enabled, request security code
             print('INSTACLIENT: 2FA Required. Check Auth App')
@@ -182,7 +183,7 @@ class InstaClient:
 
         # Detect 'Turn On Notifications' Box
         try:
-            no_notifications_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NO_NOTIFICATIONS_BTN)), wait_time=3)
+            no_notifications_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NO_NOTIFICATIONS_BTN)), wait_time=3, url=ClientUrls.HOME_URL)
             no_notifications_btn.click()
         except:
             pass
@@ -448,7 +449,7 @@ class InstaClient:
         self.nav_user(user, check_user=check_user)
         self.driver.save_screenshot('user.png') # TODO remove after debugging
         # Find Followers button/link
-        followers_btn:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), wait_time=4)
+        followers_btn:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), url=ClientUrls.NAV_USER.format(user))
         # Start scraping
         followers = []
         # Click followers btn
@@ -636,19 +637,59 @@ class InstaClient:
         return buttons
 
 
-    def __find_element(self, expectation, wait_time:int=10):
+    def __find_element(self, expectation, url:str=None, wait_time:int=15, attempt=0):
         """
-        Finds widget (element) based on the field's value
+        __find_element finds and returns the `WebElement`(s) that match the expectation's XPATH.
+
+        If a TimeoutException is raised by the driver, this method will take care of finding the reason of the exception and it will call itself another time. If the second attemt fails as well, then the `NoSuchElementException` will be raised.
+
         Args:
-            expectation: EC.class 
-            wait_time:int: (Seconds) retry window before throwing Exception
+            expectation (expected_conditions class): Any class defined in ``selenium.webdriver.support.expected_conditions``
+            url (str): The url where the element is expected to be present
+            wait_time (int, optional): Time to wait to find the element. Defaults to 15.
+            attempt (int, optional): Number of attempts. IMPORTANT: don't change this attribute's value. Defaults to 0.
+
+        Raises:
+            NoSuchElementException: Raised if the element is not found after two attempts.
+
+        Returns:
+            WebElement: web element that matches the `expectation` xpath
         """
-        wait = WebDriverWait(self.driver, wait_time)
-        widgets = wait.until(expectation)
-        return widgets
+        try:
+            wait = WebDriverWait(self.driver, wait_time)
+            widgets = wait.until(expectation)
+            return widgets
+        except TimeoutException:
+            # Element was not found in time
+            current_url = self.driver.current_url
+            if not self.check_status():
+                # Not Logged In!
+                result = self.login(self.username, self.password)
+                self.driver.get(url)
+                time.sleep(1)
+                self.__find_element(expectation, url, wait_time, attempt+1)
+            if url is not None and url not in current_url:
+                # Wrong page
+                if attempt == 1:
+                    # Element not found
+                    self.driver.save_screenshot('element_not_found.png')
+                    raise NoSuchElementException()
+                else:
+                    self.driver.get(url)
+                    self.__find_element(self, expectation, url, wait_time, attempt+1)
+            elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
+                accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
+                accept_btn.click()
+            elif attempt < 1:
+                # refresh page
+                self.driver.navigate().refresh();
+                self.__find_element(expectation, url, wait_time, attempt+1)
+            else:
+                self.driver.save_screenshot('element_not_found.png')
+                raise NoSuchElementException()
 
 
-    def __check_existence(self, expectation, wait_time:int=10):
+    def __check_existence(self, expectation, wait_time:int=2.5):
         """
         Checks if an element exists.
         Args:
