@@ -1,4 +1,5 @@
 """This module contains the InstaClient class"""
+from logging import log
 from os import waitpid
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
@@ -42,13 +43,14 @@ class InstaClient:
     def check_status(self, discard_driver:bool=False):
         """
         Check if account is currently logged in. Returns True if account is logged in. Sets the `instaclient.logged_in` variable accordingly.
-
+        Returns False if the driver is not open yet - even if the Instagram credentials (`username` and `password`) are correct.
 
         Returns:
-            bool: True if client is logged in, False if client is not connected.
+            bool: True if client is logged in, False if client is not connected or webdriver is not open.
         """
         if not self.driver:
-            self.__init_driver()
+            return False
+        self.driver.get(ClientUrls.HOME_URL)
         icon = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NAV_BAR)), wait_time=4)
         if icon:
             self.logged_in = True
@@ -288,6 +290,8 @@ class InstaClient:
             # Auth Correct
             self.logged_in = True
             self.dismiss_dialogue()
+            if discard_driver:
+                self.__discard_driver()
             return self.logged_in
 
 
@@ -299,13 +303,17 @@ class InstaClient:
         Args:
             user:str: Username of the user to follow
         """
-
+        if not self.driver:
+            self.__init_driver(login=True)
+        
         self.nav_user(user)
 
         follow_buttons = self.__find_buttons('Follow')
 
         for btn in follow_buttons:
             btn.click()
+        if discard_driver:
+            self.__discard_driver()
 
     
     @insta_method
@@ -316,7 +324,8 @@ class InstaClient:
         Args:
             user:str: Username of user to unfollow
         """
-
+        if not self.driver:
+            self.__init_driver(login=True)
         self.nav_user(user)
 
         unfollow_btns = self.__find_buttons('Following')
@@ -328,6 +337,8 @@ class InstaClient:
                 unfollow_confirmation.click()
         else:
             print('INSTACLIENT: No {} buttons were found.'.format('Following'))
+        if discard_driver:
+            self.__discard_driver()
     
 
     @insta_method
@@ -401,6 +412,8 @@ class InstaClient:
             message (str): Message to send to the user via DMs
             check_user (bool, optional): If set to False, the `InstaClient` will assume that `user` is a valid instagram username. Defaults to True.
         """
+        if not self.driver:
+            self.__init_driver(login=True)
         # Navigate to User's dm page
         self.nav_user_dm(user, check_user=check_user)
         text_area = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.DM_TEXT_AREA)))
@@ -408,6 +421,8 @@ class InstaClient:
         text_area.send_keys(message)
         send_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_DM_BTN)))
         send_btn.click()
+        if discard_driver:
+            self.__discard_driver()
 
 
     #@insta_method
@@ -425,11 +440,23 @@ class InstaClient:
 
 
     @insta_method
-    def scrape_followers(self, user:str, check_user=True, callback=None, discard_driver:bool=False):
+    def scrape_followers(self, user:str, check_user=True, discard_driver:bool=False):
+        """
+        scrape_followers Scrape an instagram user's followers and return them as a list of strings.
+
+        Args:
+            user (str): User to scrape
+            check_user (bool, optional): If set to True, checks if the `user` is a valid instagram username. Defaults to True.
+            discard_driver (bool, optional): If set to True, the `driver` will be discarded at the end of the method. Defaults to False.
+
+        Returns:
+            list: List of instagram usernames
+        """
         
+        if not self.driver:
+            self.__init_driver(login=True)
         # Nav to user page
         self.nav_user(user, check_user=check_user)
-        self.driver.save_screenshot('user.png') # TODO remove after debugging
         # Find Followers button/link
         followers_btn:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), url=ClientUrls.NAV_USER.format(user))
         # Start scraping
@@ -437,7 +464,6 @@ class InstaClient:
         # Click followers btn
         followers_btn.click()
         time.sleep(2)
-        self.driver.save_screenshot('followers.png') # TODO remove after debugging
         # Load all followers
         followers = []
         main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)))
@@ -463,6 +489,8 @@ class InstaClient:
                     followers.append(username)
             except:
                 pass
+        if discard_driver:
+            self.__discard_driver()
         return followers
 
                 
@@ -508,16 +536,19 @@ class InstaClient:
         Check if the client is currently connected to Instagram and logs of the current InstaClient session.
 
         Returns:
-            [type]: True if the 
+            bool: True if the 
         """
         result = self.check_status()
         if result:
-            settings_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SETTINGS_BTN)), wait_time=4)
-            settings_btn.click()
-            logout_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.LOG_OUT_BTN)), wait_time=4)
-            logout_btn.click()
-            confirm_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_LOGOUT_BTN)), wait_time=4)
-            confirm_btn.click()
+            if discard_driver:
+                self.__discard_driver()
+            else:
+                settings_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SETTINGS_BTN)), wait_time=4)
+                settings_btn.click()
+                logout_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.LOG_OUT_BTN)), wait_time=4)
+                logout_btn.click()
+                confirm_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_LOGOUT_BTN)), wait_time=4)
+                confirm_btn.click()
             return True
         else:
             return True
@@ -566,20 +597,29 @@ class InstaClient:
 
     @insta_method
     def is_valid_user(self, user, nav_to_user=True, discard_driver:bool=False):
+        if not self.driver:
+            self.__init_driver(login=True)
+            nav_to_user = True
         if nav_to_user:
             self.driver.get(ClientUrls.NAV_USER.format(user))
         element = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=8)
         if element:
             # User does not exist
             self.driver.get(ClientUrls.HOME_URL)
+            if discard_driver:
+                self.__discard_driver()
             raise InvalidUserError(username=user)
         else: 
             # Operation Successful
             paccount_alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PRIVATE_ACCOUNT_ALERT)), wait_time=3)
             if paccount_alert:
                 # navigate back to home page
+                if discard_driver:
+                    self.__discard_driver()
                 raise PrivateAccountError(user)
             else:
+                if discard_driver:
+                    self.__discard_driver()
                 return True
 
 
@@ -658,7 +698,6 @@ class InstaClient:
                     # Wrong page
                     if attempt > 0:
                         # Element not found
-                        self.driver.save_screenshot('element_not_found.png')
                         raise NoSuchElementException()
                     else:
                         self.driver.get(url)
@@ -668,7 +707,6 @@ class InstaClient:
                     self.driver.navigate().refresh();
                     self.__find_element(expectation, url, wait_time, attempt+1)
             else:
-                self.driver.save_screenshot('element_not_found.png')
                 raise NoSuchElementException()
 
 
@@ -690,9 +728,11 @@ class InstaClient:
     def __discard_driver(self):
         if self.driver:
             self.driver.quit()
+            self.logged_in = False
             self.driver = None
 
-    def __init_driver(self):
+
+    def __init_driver(self, login=False):
         try:
             if self.driver_type == self.CHROMEDRIVER:
                 if self.host_type == self.WEB_SERVER:
@@ -720,5 +760,11 @@ class InstaClient:
                 raise InvaildDriverError(self.driver_type)
         except Exception as error:
             raise error
+
+        if login:
+            try:
+                self.login(self.username, self.password)
+            except:
+                raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.')
 
         
