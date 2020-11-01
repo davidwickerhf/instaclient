@@ -428,21 +428,8 @@ class InstaClient:
 
 
     @insta_method
-    def scrape_followers(self, user:str, check_user=True, *args, **kwargs):
-        """
-        Gets up to 1100 followers of a certain user. Operation might take a couple of minutes, depending on the internet connection.
-
-        Args:
-            user:str: Username of the user for followers look-up
-            count:int: Number of followers to get. Note that high follower counts will take longer and longer exponentially (even hours)
-            
-        Returns:
-            followers:list<str>: List of usernames (str)
-
-        Raises:
-            InvalidUserError if user does not exist
-            PrivateAccountError if account is private
-        """
+    def scrape_followers(self, user:str, check_user=True, callback=None):
+        
         # Nav to user page
         self.nav_user(user, check_user=check_user)
         self.driver.save_screenshot('user.png') # TODO remove after debugging
@@ -661,12 +648,12 @@ class InstaClient:
             # Element was not found in time
             if attempt < 1:
                 current_url = self.driver.current_url
+                if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
+                    accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
+                    accept_btn.click()
                 if not self.check_status():
                     # Not Logged In!
-                    result = self.login(self.username, self.password)
-                    self.driver.get(url)
-                    time.sleep(1)
-                    self.__find_element(expectation, url, wait_time, attempt+1)
+                    raise NotLoggedInError()
                 if url is not None and url not in current_url:
                     # Wrong page
                     if attempt > 0:
@@ -676,9 +663,6 @@ class InstaClient:
                     else:
                         self.driver.get(url)
                         self.__find_element(self, expectation, url, wait_time, attempt+1)
-                elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
-                    accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
-                    accept_btn.click()
                 else:
                     # refresh page
                     self.driver.navigate().refresh();

@@ -123,3 +123,9 @@ class PrivateAccountError(InstaClientError):
 
     def __str__(self):
         return f'{self.user} -> {self.message}'
+
+
+class NotLoggedInError(InstaClientError):
+    """Raised when trying to use a client method without being logged into instagram"""
+    def __init__(self):
+        super().__init__(message="InstaClient is not logged in.")
