@@ -18,7 +18,7 @@ class InstaClient:
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
-    def __init__(self, driver_type: int=CHROMEDRIVER, host:int=LOCAHOST):
+    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST):
         """
         Create an `InstaClient` object to access the instagram website.
 
@@ -31,38 +31,15 @@ class InstaClient:
             InvaildDriverError: Raised if driver int does not correspond to any driver type.
             error: Normal Exception, raised if anything fails when creating the client.
         """
-        try:
-            if driver_type == self.CHROMEDRIVER:
-                if host == self.WEB_SERVER:
-                    # Running on web server
-                    chrome_options = webdriver.ChromeOptions()
-                    chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-                    chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
-                    chrome_options.add_argument("--window-size=343,915")
-                    chrome_options.add_argument("--headless")
-                    chrome_options.add_argument("--disable-dev-shm-usage")
-                    chrome_options.add_argument("--no-sandbox")
-                    self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
-                elif host == self.LOCAHOST:
-                    # Running locally
-                    chrome_options = webdriver.ChromeOptions()
-                    chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
-                    chrome_options.add_argument("--window-size=343,915")
-                    #chrome_options.add_argument("--headless")
-                    chrome_options.add_argument("--disable-dev-shm-usage")
-                    chrome_options.add_argument("--no-sandbox")
-                    self.driver = webdriver.Chrome(executable_path='instaclient/drivers/chromedriver.exe', chrome_options=chrome_options)
-                else:
-                    raise InvaildHostError(host)
-            else:
-                raise InvaildDriverError(driver_type)
-        except Exception as error:
-            raise error
+        self.driver_type = driver_type
+        self.host_type = host_type
         self.logged_in = False
+        self.driver = None
+        self.__init_driver()
 
 
     @insta_method
-    def check_status(self):
+    def check_status(self, discard_driver:bool=False):
         """
         Check if account is currently logged in. Returns True if account is logged in. Sets the `instaclient.logged_in` variable accordingly.
 
@@ -70,17 +47,22 @@ class InstaClient:
         Returns:
             bool: True if client is logged in, False if client is not connected.
         """
+        if not self.driver:
+            self.__init_driver()
         icon = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NAV_BAR)), wait_time=4)
         if icon:
             self.logged_in = True
-            return True
+            result = True
         else:
             self.logged_in = False
-            return False
+            result = False
+        if discard_driver:
+            self.__discard_driver()
+        return result
 
 
     @insta_method
-    def login(self, username:str, password:str, check_user:bool=True):
+    def login(self, username:str, password:str, check_user:bool=True, discard_driver:bool=False):
         """
         Sign Into Instagram with credentials. Go through 2FA if necessary. Sets the InstaClient variable `InstaClient.logged_in` to True if login was successful.
 
@@ -99,6 +81,11 @@ class InstaClient:
         """
         self.username = username
         self.password = password
+        
+        # Initiate Driver
+        if not self.driver:
+            self.__init_driver()
+
         # Get Elements
         try:
             # Attempt Login
@@ -127,6 +114,8 @@ class InstaClient:
         except Exception as error:
             # User already logged in ?
             result = self.check_status()
+            if discard_driver:
+                self.__discard_driver()
             if not result:
                 raise error
             else:
@@ -177,16 +166,20 @@ class InstaClient:
         else:
             self.logged_in = True
 
-        # Detect and dismiss save info Dialog
-        self.driver.get(ClientUrls.HOME_URL)
+        # Discard Driver or complete login
+        if discard_driver:
+            self.__discard_driver()
+        else:
+            # Detect and dismiss save info Dialog
+            self.driver.get(ClientUrls.HOME_URL)
 
-        # Detect 'Turn On Notifications' Box
-        try:
-            no_notifications_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NO_NOTIFICATIONS_BTN)), wait_time=3, url=ClientUrls.HOME_URL)
-            no_notifications_btn.click()
-        except:
-            pass
-        self.dismiss_dialogue()
+            # Detect 'Turn On Notifications' Box
+            try:
+                no_notifications_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NO_NOTIFICATIONS_BTN)), wait_time=3, url=ClientUrls.HOME_URL)
+                no_notifications_btn.click()
+            except:
+                pass
+            self.dismiss_dialogue()
         return self.logged_in
 
 
@@ -225,7 +218,7 @@ class InstaClient:
 
 
     @insta_method
-    def input_security_code(self, code:int or str):
+    def input_security_code(self, code:int or str, discard_driver:bool=False):
         """
         Complete login procedure started with `InstaClient.login()` and insert security code required if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised. Sets `InstaClient.logged_in` attribute to True if login was successful.
 
@@ -258,12 +251,15 @@ class InstaClient:
             raise InvalidSecurityCodeError()
 
         self.logged_in = True
-        self.dismiss_dialogue()
+        if discard_driver:
+            self.__discard_driver()
+        else:
+            self.dismiss_dialogue()
         return self.logged_in
 
 
     @insta_method
-    def input_verification_code(self, code:int or str):
+    def input_verification_code(self, code:int or str, discard_driver:bool=False):
         """
         Complete login procedure started with `InstaClient.login()` and insert 2FA security code. Sets `instaclient.logged_in` to True if login was successful.
 
@@ -296,7 +292,7 @@ class InstaClient:
 
 
     @insta_method
-    def follow_user(self, user:str):
+    def follow_user(self, user:str, discard_driver:bool=False):
         """
         Follows user(s)
 
@@ -313,7 +309,7 @@ class InstaClient:
 
     
     @insta_method
-    def unfollow_user(self, user:str):
+    def unfollow_user(self, user:str, discard_driver:bool=False):
         """
         Unfollows user(s)
 
@@ -335,7 +331,7 @@ class InstaClient:
     
 
     @insta_method
-    def get_user_images(self, user:str):
+    def get_user_images(self, user:str, discard_driver:bool=False):
         """
         Get all images from a users profile.
 
@@ -353,7 +349,7 @@ class InstaClient:
         finished = False
         while not finished:
 
-            finished = self._infinite_scroll() # scroll down
+            finished = self.__infinite_scroll() # scroll down
             
             elements = self.__find_element((EC.presence_of_element_located(By.CLASS_NAME, 'FFVAD')))
             img_srcs.extend([img.get_attribute('src') for img in elements]) # scrape srcs
@@ -363,7 +359,7 @@ class InstaClient:
     
 
     @insta_method
-    def like_latest_posts(self, user:str, n_posts:int, like:bool=True):
+    def like_latest_posts(self, user:str, n_posts:int, like:bool=True, discard_driver:bool=False):
         """
         Likes a number of a users latest posts, specified by n_posts.
 
@@ -396,7 +392,7 @@ class InstaClient:
 
 
     @insta_method
-    def send_dm(self, user:str, message:str, check_user=True):
+    def send_dm(self, user:str, message:str, check_user=True, discard_driver:bool=False):
         """
         Send an Instagram Direct Message to a user. if `check_user` is set to True, the `user` argument will be checked to validate whether it is a real instagram username.
 
@@ -429,7 +425,7 @@ class InstaClient:
 
 
     @insta_method
-    def scrape_followers(self, user:str, check_user=True, callback=None):
+    def scrape_followers(self, user:str, check_user=True, callback=None, discard_driver:bool=False):
         
         # Nav to user page
         self.nav_user(user, check_user=check_user)
@@ -488,7 +484,7 @@ class InstaClient:
     
 
     @insta_method
-    def search_tag(self, tag:str):
+    def search_tag(self, tag:str, discard_driver:bool=False):
         """
         Naviagtes to a search for posts with a specific tag on IG.
 
@@ -507,7 +503,7 @@ class InstaClient:
 
 
     @insta_method
-    def logout(self):
+    def logout(self, discard_driver:bool=False):
         """
         Check if the client is currently connected to Instagram and logs of the current InstaClient session.
 
@@ -569,7 +565,7 @@ class InstaClient:
         
 
     @insta_method
-    def is_valid_user(self, user, nav_to_user=True):
+    def is_valid_user(self, user, nav_to_user=True, discard_driver:bool=False):
         if nav_to_user:
             self.driver.get(ClientUrls.NAV_USER.format(user))
         element = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=8)
@@ -588,7 +584,7 @@ class InstaClient:
 
 
     # IG PRIVATE UTILITIES
-    def _infinite_scroll(self):
+    def __infinite_scroll(self):
         """
         Scrolls to the bottom of a users page to load all of their media
 
@@ -689,4 +685,40 @@ class InstaClient:
             return True
         except:
             return False
+
+
+    def __discard_driver(self):
+        if self.driver:
+            self.driver.quit()
+            self.driver = None
+
+    def __init_driver(self):
+        try:
+            if self.driver_type == self.CHROMEDRIVER:
+                if self.host_type == self.WEB_SERVER:
+                    # Running on web server
+                    chrome_options = webdriver.ChromeOptions()
+                    chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+                    chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
+                    chrome_options.add_argument("--window-size=343,915")
+                    chrome_options.add_argument("--headless")
+                    chrome_options.add_argument("--disable-dev-shm-usage")
+                    chrome_options.add_argument("--no-sandbox")
+                    self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
+                elif self.host_type == self.LOCAHOST:
+                    # Running locally
+                    chrome_options = webdriver.ChromeOptions()
+                    chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
+                    chrome_options.add_argument("--window-size=343,915")
+                    #chrome_options.add_argument("--headless")
+                    chrome_options.add_argument("--disable-dev-shm-usage")
+                    chrome_options.add_argument("--no-sandbox")
+                    self.driver = webdriver.Chrome(executable_path='instaclient/drivers/chromedriver.exe', chrome_options=chrome_options)
+                else:
+                    raise InvaildHostError(self.host_type)
+            else:
+                raise InvaildDriverError(self.driver_type)
+        except Exception as error:
+            raise error
+
         
