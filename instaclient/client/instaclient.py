@@ -107,6 +107,7 @@ class InstaClient:
             # Detect Cookies Dialogue
 
             if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
+                print('INSTACLIENT: Found Cookies Request')
                 alert = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.ACCEPT_COOKIES)), url=ClientUrls.LOGIN_URL)
                 alert.click()
 
@@ -460,9 +461,12 @@ class InstaClient:
         followers_list:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST)), wait_time=3)
         divs = followers_list.find_elements_by_xpath(Paths.FOLLOWER_USER_DIV)
         for div in divs:
-            username = div.text.split('\n')[0]
-            if username not in followers and username not in ('Follow',):
-                followers.append(username)
+            try:
+                username = div.text.split('\n')[0]
+                if username not in followers and username not in ('Follow',):
+                    followers.append(username)
+            except:
+                pass
         return followers
 
                 

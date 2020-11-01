@@ -38,7 +38,7 @@ class Paths:
     # Check Login Status Procedure
     NAV_BAR = '//div[@data-testid="mobile-nav-logged-in" and @class="BvyAW"]'
     # GENERAL
-    COOKIES_LINK = '//a[contains(@heref, "/legal/cookies/")]'
+    COOKIES_LINK = '//a[contains(@heref, "cookies") or contains(text(), "Cookie")]'
     ACCEPT_COOKIES = '//button[@class="aOOlW  bIiDR  "]'
     SETTINGS_BTN = '//button[@class="Q46SR"]//descendant::svg'
     BUTTON = '//button[text()="{}"]'
