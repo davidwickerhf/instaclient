@@ -106,12 +106,10 @@ class InstaClient:
             print('INSTACLIENT: Got Login Page')
             # Detect Cookies Dialogue
 
-            try:
+            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
                 alert = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.ACCEPT_COOKIES)), url=ClientUrls.LOGIN_URL)
                 alert.click()
-            except:
-                print('No alert')
-                pass
+
             # Get Form elements
             username_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)), url=ClientUrls.LOGIN_URL)
             password_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.PASSWORD_INPUT)), url=ClientUrls.LOGIN_URL)
@@ -661,29 +659,30 @@ class InstaClient:
             return widgets
         except TimeoutException:
             # Element was not found in time
-            current_url = self.driver.current_url
-            if not self.check_status():
-                # Not Logged In!
-                result = self.login(self.username, self.password)
-                self.driver.get(url)
-                time.sleep(1)
-                self.__find_element(expectation, url, wait_time, attempt+1)
-            if url is not None and url not in current_url:
-                # Wrong page
-                if attempt == 1:
-                    # Element not found
-                    self.driver.save_screenshot('element_not_found.png')
-                    raise NoSuchElementException()
-                else:
+            if attempt < 1:
+                current_url = self.driver.current_url
+                if not self.check_status():
+                    # Not Logged In!
+                    result = self.login(self.username, self.password)
                     self.driver.get(url)
-                    self.__find_element(self, expectation, url, wait_time, attempt+1)
-            elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
-                accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
-                accept_btn.click()
-            elif attempt < 1:
-                # refresh page
-                self.driver.navigate().refresh();
-                self.__find_element(expectation, url, wait_time, attempt+1)
+                    time.sleep(1)
+                    self.__find_element(expectation, url, wait_time, attempt+1)
+                if url is not None and url not in current_url:
+                    # Wrong page
+                    if attempt > 0:
+                        # Element not found
+                        self.driver.save_screenshot('element_not_found.png')
+                        raise NoSuchElementException()
+                    else:
+                        self.driver.get(url)
+                        self.__find_element(self, expectation, url, wait_time, attempt+1)
+                elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
+                    accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
+                    accept_btn.click()
+                else:
+                    # refresh page
+                    self.driver.navigate().refresh();
+                    self.__find_element(expectation, url, wait_time, attempt+1)
             else:
                 self.driver.save_screenshot('element_not_found.png')
                 raise NoSuchElementException()
