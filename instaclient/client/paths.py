@@ -26,12 +26,6 @@ class Paths:
     ALERT = '//*[@id="slfErrorAlert" or @id="twoFactorErrorAlert"]'
     PAGE_NOT_FOUND = '//h2[@class="_7UhW9      x-6xq    qyrsm KV-D4          uL8Hv     l4b0S    "]'
     PRIVATE_ACCOUNT_ALERT = '//h2[@class="rkEop"]'
-    # Followers Procedure
-    FOLLOWERS_BTN = '//li[@class=" LH36I"]//descendant::a'
-    FOLLOWERS_LIST_MAIN = '//main[@role="main"]'
-    FOLLOWERS_LIST = '//ul[@class=" jjbaz _6xe7A"]'
-    FOLLOWER_USER_DIV = '{}//li'.format(FOLLOWERS_LIST)
-    FOLLOWER_COUNT = '{}//span[@class="g47SY lOXF2"]'.format(FOLLOWERS_BTN)
     # Send DM Procedure
     DM_TEXT_AREA = '//div[@class="X3a-9"]//descendant::textarea'
     SEND_DM_BTN = '//div[@class="X3a-9"]//descendant::button'
@@ -45,3 +39,16 @@ class Paths:
     # SETTINGS OPTIONS
     LOG_OUT_BTN = '//a[@class="_34G9B H0ovd"]'
     CONFIRM_LOGOUT_BTN = '//button[@class="aOOlW  bIiDR  "]'
+    # USER ACCOUNT PROFILE PAGE
+    # Followers Procedure
+    FOLLOWERS_BTN = '//li[@class=" LH36I"]//descendant::a'
+    FOLLOWERS_LIST_MAIN = '//main[@role="main"]'
+    FOLLOWERS_LIST = '//ul[@class=" jjbaz _6xe7A"]'
+    FOLLOWER_USER_DIV = '{}//li'.format(FOLLOWERS_LIST)
+    FOLLOWER_COUNT = '{}//span[@class="g47SY lOXF2"]'.format(FOLLOWERS_BTN)
+    # Follow User Procedure
+    FOLLOW_BTN = '//button[@class="_5f5mN       jIbKX  _6VtSN     yZn4P   " and contains(text(), "Follow")]'
+    UNFOLLOW_BTN = '//button[@class="_5f5mN    -fzfL     _6VtSN     yZn4P   "]'
+    CONFIRM_UNFOLLOW_BTN = '//button[@class="aOOlW -Cab_   "]'
+    REQUESTED_BTN = '//button[@class="sqdOP  L3NKy _4pI4F   _8A5w5    " and contains(text(), "Requested")'
+    MESSAGE_USER_BTN = '//button[@class="sqdOP  L3NKy _4pI4F   _8A5w5    " and contains(text(), "Message")]'

@@ -3,6 +3,7 @@ from logging import log
 from os import waitpid
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -36,6 +37,8 @@ class InstaClient:
         self.host_type = host_type
         self.logged_in = False
         self.driver = None
+        self.username = None
+        self.password = None
         self.__init_driver()
 
 
@@ -298,22 +301,43 @@ class InstaClient:
     @insta_method
     def follow_user(self, user:str, discard_driver:bool=False):
         """
-        Follows user(s)
+        follow_user follows the instagram user that matches the username in the `user` attribute.
+        If the target account is private, a follow request will be sent to such user and a `PrivateAccountError` will be raised.
 
         Args:
-            user:str: Username of the user to follow
+            user (str): Username of the user to follow.
+            discard_driver (bool, optional): If set to True, the driver will be discarded at the end of the method. Defaults to False.
+
+        Raises:
+            PrivateAccountError: Raised if the `user` is a private account - A request to follow the user will be sent eitherway.
+            InvalidUserError: Raised if the `user` is invalid
         """
         if not self.driver:
             self.__init_driver(login=True)
         
-        self.nav_user(user)
+        self.nav_user(user, check_user=False)
+        try:
+            result = self.is_valid_user(user, nav_to_user=False)
+            private = False
+            
+        except PrivateAccountError:
+            private = True
 
-        follow_buttons = self.__find_buttons('Follow')
+        if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
+            # Follow request already sent
+            pass
+        elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN))):
+            # User already followed
+            pass
+        else:
+            follow_button = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)), url=ClientUrls.NAV_USER.format(user))
+            follow_button.click()
 
-        for btn in follow_buttons:
-            btn.click()
         if discard_driver:
             self.__discard_driver()
+
+        if private:
+            raise PrivateAccountError(user)
 
     
     @insta_method
@@ -403,7 +427,7 @@ class InstaClient:
 
 
     @insta_method
-    def send_dm(self, user:str, message:str, check_user=True, discard_driver:bool=False):
+    def send_dm(self, user:str, message:str, discard_driver:bool=False):
         """
         Send an Instagram Direct Message to a user. if `check_user` is set to True, the `user` argument will be checked to validate whether it is a real instagram username.
 
@@ -415,14 +439,19 @@ class InstaClient:
         if not self.driver:
             self.__init_driver(login=True)
         # Navigate to User's dm page
-        self.nav_user_dm(user, check_user=check_user)
-        text_area = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.DM_TEXT_AREA)))
-        print(text_area)
-        text_area.send_keys(message)
-        send_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_DM_BTN)))
-        send_btn.click()
-        if discard_driver:
-            self.__discard_driver()
+        try:
+            self.follow_user(user)
+            time.sleep(1)
+            self.nav_user_dm(user)
+            text_area = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.DM_TEXT_AREA)))
+            text_area.send_keys(message)
+            send_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_DM_BTN)))
+            send_btn.click()
+        except: 
+            pass
+        finally:
+            if discard_driver:
+                self.__discard_driver()
 
 
     #@insta_method
@@ -480,7 +509,11 @@ class InstaClient:
                 continue
             else:
                 break
-        followers_list:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST)), wait_time=3)
+        try:
+            followers_list:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST)), wait_time=3)
+        except NoSuchElementException:
+            return self.scrape_followers(user, check_user, discard_driver)
+
         divs = followers_list.find_elements_by_xpath(Paths.FOLLOWER_USER_DIV)
         for div in divs:
             try:
@@ -662,7 +695,7 @@ class InstaClient:
         return buttons
 
 
-    def __find_element(self, expectation, url:str=None, wait_time:int=15, attempt=0):
+    def __find_element(self, expectation, url:str=None, wait_time:int=8, attempt=0):
         """
         __find_element finds and returns the `WebElement`(s) that match the expectation's XPATH.
 
@@ -687,25 +720,18 @@ class InstaClient:
         except TimeoutException:
             # Element was not found in time
             if attempt < 1:
-                current_url = self.driver.current_url
                 if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
                     accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
                     accept_btn.click()
                 if not self.check_status():
                     # Not Logged In!
                     raise NotLoggedInError()
-                if url is not None and url not in current_url:
-                    # Wrong page
-                    if attempt > 0:
-                        # Element not found
-                        raise NoSuchElementException()
-                    else:
+                else:
+                    if attempt < 1 and url is not None:
                         self.driver.get(url)
                         self.__find_element(self, expectation, url, wait_time, attempt+1)
-                else:
-                    # refresh page
-                    self.driver.navigate().refresh();
-                    self.__find_element(expectation, url, wait_time, attempt+1)
+                    else:
+                        raise NoSuchElementException()
             else:
                 raise NoSuchElementException()
 
