@@ -125,6 +125,15 @@ class PrivateAccountError(InstaClientError):
         return f'{self.user} -> {self.message}'
 
 
+class FollowRequestSentError(InstaClientError):
+    def __init__(self, user):
+        self.user = user
+        super().__init__(message='A follow request has been sent to this user, but it hasn\'t been accepted yet, hence it is impossible to send a DM.')
+
+    def __str__(self):
+        return f'{self.user} -> {self.message}'
+
+
 class NotLoggedInError(InstaClientError):
     """Raised when trying to use a client method without being logged into instagram"""
     def __init__(self):

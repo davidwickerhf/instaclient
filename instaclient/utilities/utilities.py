@@ -45,7 +45,7 @@ def exception(func):
         except:
             # log the exception
             msg = "Exception in method {}".format(func.__name__)
-            logger = get_logger('bot.log')
+            logger = get_logger('debug.log')
             logger.exception(msg)
  
     return wrapper
@@ -53,7 +53,7 @@ def exception(func):
 
 def insta_method(func):
     """
-    Instagram method decorator. Sleeps for 2 seconds before and after calling any methods that interact with Instagram.
+    Instagram method decorator. Sleeps for around 2 seconds before and after calling any methods that interact with Instagram.
 
     Args:
         func:function: Function to wrap
@@ -61,10 +61,11 @@ def insta_method(func):
     Returns:
         wrapper:function: Wrapper function
     """
-    def wrapper(*args, **kw):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
         # Call function
         time.sleep(random.randint(1, 2))
-        output = func(*args, **kw)
+        output = func(*args, **kwargs)
         # Post Processing
         time.sleep(random.randint(1, 2))
         return output

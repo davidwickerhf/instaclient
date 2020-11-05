@@ -299,7 +299,7 @@ class InstaClient:
 
 
     @insta_method
-    def follow_user(self, user:str, discard_driver:bool=False):
+    def follow_user(self, user:str, nav_to_user:bool=True, discard_driver:bool=False):
         """
         follow_user follows the instagram user that matches the username in the `user` attribute.
         If the target account is private, a follow request will be sent to such user and a `PrivateAccountError` will be raised.
@@ -315,11 +315,16 @@ class InstaClient:
         if not self.driver:
             self.__init_driver(login=True)
         
-        self.nav_user(user, check_user=False)
+        # Navigate to User Page
+        if nav_to_user:
+            self.nav_user(user, check_user=False)
+        
+        # Check User Vadility
         try:
             result = self.is_valid_user(user, nav_to_user=False)
             private = False
             
+        # User is private
         except PrivateAccountError:
             private = True
 
@@ -337,7 +342,7 @@ class InstaClient:
             self.__discard_driver()
 
         if private:
-            raise PrivateAccountError(user)
+            raise FollowRequestSentError(user)
 
     
     @insta_method
@@ -440,18 +445,15 @@ class InstaClient:
             self.__init_driver(login=True)
         # Navigate to User's dm page
         try:
-            self.follow_user(user)
-            time.sleep(1)
             self.nav_user_dm(user)
             text_area = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.DM_TEXT_AREA)))
             text_area.send_keys(message)
             send_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_DM_BTN)))
             send_btn.click()
-        except: 
-            pass
-        finally:
+        except Exception as error: 
             if discard_driver:
                 self.__discard_driver()
+            raise error
 
 
     #@insta_method
@@ -622,10 +624,15 @@ class InstaClient:
             True if operation was successful
         """
         self.nav_user(user, check_user=check_user)
-        message_btn = self.__find_buttons('Message')
-        # Open User DM Page
-        message_btn.click()
-        return True
+        if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN))):
+            self.follow_user(user, nav_to_user=False)
+        if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
+            raise FollowRequestSentError(user)
+        else:
+            message_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN)))
+            # Open User DM Page
+            message_btn.click()
+            return True
         
 
     @insta_method
