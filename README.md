@@ -43,16 +43,7 @@ from instaclient import InstaClient
 from instaclient.errors import *
 
 # Create a instaclient object
-client = Instaclient(driver=InstaClient.CHROMEDRIVER) # Only the ChromeDriver is available at the moment
-```
-You can also directly insert your account's username and password when initiating the client:
-```python
-from instaclient import InstaClient
-from instaclient.errors import *
-
-# Create a instaclient object
-client = Instaclient(username='username', password='password') 
-# You can omit specifying the driver as it will fall back to the ChromeDriver
+client = InstaClient() # Only the ChromeDriver is available at the moment
 ```
 #### LOGIN INTO INSTAGRAM
 ```python
@@ -75,10 +66,10 @@ result = client.send_dm('username', 'Message to send') # send a DM to a user
 > Make sure to distrubute your client.send_dm() requests over a period of time to avoid reaching Instagram's spam limits.
 #### GET A USER'S FOLLOWERS
 ```python
-followers = client.scrape_followers(user='username', count=100, callback_frequency=10)
-# Get first 100 followers of the user, returning a callback every 10 followers (default callback is a terminal print statement)
+followers = client.scrape_followers(user='username')
+# Get first 2000 followers of the user, returning a callback every 15 followers (default callback is a terminal print statement)
 ```
-> The client.scrape_followers() method can take a lot of time depending on the amount of followers you want to scrape. It is advised not to overceed 1000 followers, as the execution time rises exponentially. If you must query a large amount of followers, make sure to run the method in a worker.
+> The client.scrape_followers() method can take a lot of time depending on the amount of followers you want to scrape.
 
 This method might be updated in the near future to cache scraped data in a SQLite database or to scrape the followers in a separate thread with a queue.
 
