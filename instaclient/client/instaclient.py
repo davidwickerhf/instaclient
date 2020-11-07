@@ -60,6 +60,9 @@ class InstaClient:
         if not self.driver:
             return False
         self.driver.get(ClientUrls.HOME_URL)
+        if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
+            self.__dismiss_cookies()
+            
         icon = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NAV_BAR)), wait_time=4)
         if icon:
             self.logged_in = True
@@ -105,9 +108,7 @@ class InstaClient:
             # Detect Cookies Dialogue
 
             if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
-                print('INSTACLIENT: Found Cookies Request')
-                alert = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.ACCEPT_COOKIES)), url=ClientUrls.LOGIN_URL)
-                alert.click()
+                self.__dismiss_cookies()
 
             # Get Form elements
             username_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)), url=ClientUrls.LOGIN_URL)
@@ -177,6 +178,7 @@ class InstaClient:
         else:
             self.logged_in = True
 
+        print('INSTACLIENT: Credentials are Correct')
         # Discard Driver or complete login
         if discard_driver:
             self.__discard_driver()
@@ -190,7 +192,7 @@ class InstaClient:
                 no_notifications_btn.click()
             except:
                 pass
-            self.dismiss_dialogue()
+            self.__dismiss_dialogue()
         return self.logged_in
 
 
@@ -265,7 +267,7 @@ class InstaClient:
         if discard_driver:
             self.__discard_driver()
         else:
-            self.dismiss_dialogue()
+            self.__dismiss_dialogue()
         return self.logged_in
 
 
@@ -298,7 +300,7 @@ class InstaClient:
         else:
             # Auth Correct
             self.logged_in = True
-            self.dismiss_dialogue()
+            self.__dismiss_dialogue()
             if discard_driver:
                 self.__discard_driver()
             return self.logged_in
@@ -328,6 +330,7 @@ class InstaClient:
         # Check User Vadility
         try:
             result = self.is_valid_user(user, nav_to_user=False)
+            print('User <{}> is valid'.format(user))
             private = False
             
         # User is private
@@ -352,7 +355,7 @@ class InstaClient:
 
     
     @insta_method
-    def unfollow_user(self, user:str, discard_driver:bool=False):
+    def unfollow_user(self, user:str, nav_to_user=True, check_user=True, discard_driver:bool=False):
         """
         Unfollows user(s)
 
@@ -361,17 +364,20 @@ class InstaClient:
         """
         if not self.driver:
             self.__init_driver(login=True)
-        self.nav_user(user)
+        if nav_to_user:
+            self.nav_user(user, check_user)
+        elif check_user:
+            self.is_valid_user(user, nav_to_user=False)
+            print('User <{}> is valid'-format(user))
 
-        unfollow_btns = self.__find_buttons('Following')
+        if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN))):
+            unfollow_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN)))
+            unfollow_btn.click()
+            time.sleep(1)
+            confirm_unfollow = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_UNFOLLOW_BTN)))
+            confirm_unfollow.click()
+            print('INSTACLIENT: Unfollowed user <{}>'.format(user))
 
-        if unfollow_btns:
-            for btn in unfollow_btns:
-                btn.click()
-                unfollow_confirmation = self.__find_buttons('Unfollow')[0]
-                unfollow_confirmation.click()
-        else:
-            print('INSTACLIENT: No {} buttons were found.'.format('Following'))
         if discard_driver:
             self.__discard_driver()
     
@@ -536,22 +542,6 @@ class InstaClient:
 
                 
     # IG UTILITY METHODS
-    @insta_method
-    def dismiss_dialogue(self):
-        """
-        Dismiss an eventual Instagram dialogue with button text containing either 'Cancel' or 'Not Now'.
-        """
-        try:
-            dialogue = self.__find_buttons(button_text='Not Now') # TODO add this to 'Translation' doc
-            dialogue.click()
-        except:
-            try:
-                dialogue = self.__find_buttons(button_text='Cancel') # TODO add this to translation docs
-                dialogue.click()
-            except:
-                pass
-    
-
     @insta_method
     def search_tag(self, tag:str, discard_driver:bool=False):
         """
@@ -734,15 +724,14 @@ class InstaClient:
             # Element was not found in time
             if attempt < 1:
                 if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
-                    accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
-                    accept_btn.click()
+                    self.__dismiss_cookies()
                 if not self.check_status():
                     # Not Logged In!
                     raise NotLoggedInError()
                 else:
                     if attempt < 1 and url is not None:
                         self.driver.get(url)
-                        self.__find_element(self, expectation, url, wait_time, attempt+1)
+                        self.__find_element(expectation, url, wait_time, attempt+1)
                     else:
                         raise NoSuchElementException()
             else:
@@ -792,6 +781,7 @@ class InstaClient:
                     #chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
+                    print('Path: ', self.driver_path)
                     self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options)
                 else:
                     raise InvaildHostError(self.host_type)
@@ -806,4 +796,22 @@ class InstaClient:
             except:
                 raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.')
 
-        
+
+    def __dismiss_cookies(self):
+        accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
+        accept_btn.click()
+
+    def __dismiss_dialogue(self):
+        """
+        Dismiss an eventual Instagram dialogue with button text containing either 'Cancel' or 'Not Now'.
+        """
+        try:
+            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
+                dialogue = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)), wait_time=2)
+                dialogue.click()
+        except:
+            try:
+                dialogue = self.__find_buttons(button_text='Cancel') # TODO add this to translation docs
+                dialogue.click()
+            except:
+                pass

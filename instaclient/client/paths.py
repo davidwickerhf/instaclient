@@ -36,6 +36,7 @@ class Paths:
     ACCEPT_COOKIES = '//button[@class="aOOlW  bIiDR  "]'
     SETTINGS_BTN = '//button[@class="Q46SR"]//descendant::svg'
     BUTTON = '//button[text()="{}"]'
+    NOT_NOW_BTN = '//button[@class="aOOlW   HoLwm "]'
     # SETTINGS OPTIONS
     LOG_OUT_BTN = '//a[@class="_34G9B H0ovd"]'
     CONFIRM_LOGOUT_BTN = '//button[@class="aOOlW  bIiDR  "]'
@@ -47,8 +48,10 @@ class Paths:
     FOLLOWER_USER_DIV = '{}//li'.format(FOLLOWERS_LIST)
     FOLLOWER_COUNT = '{}//span[@class="g47SY lOXF2"]'.format(FOLLOWERS_BTN)
     # Follow User Procedure
-    FOLLOW_BTN = '//button[@class="_5f5mN       jIbKX  _6VtSN     yZn4P   " and contains(text(), "Follow")]'
-    UNFOLLOW_BTN = '//button[@class="_5f5mN    -fzfL     _6VtSN     yZn4P   "]'
+    FOLLOW_BTN = '//span[@class="vBF20 _1OSdk"]//descendant::button'
+    UNFOLLOW_BTN = '//button[@class="_5f5mN    -fzfL     _6VtSN     yZn4P   "]//descendant::span'
     CONFIRM_UNFOLLOW_BTN = '//button[@class="aOOlW -Cab_   "]'
-    REQUESTED_BTN = '//button[@class="sqdOP  L3NKy _4pI4F   _8A5w5    " and contains(text(), "Requested")'
-    MESSAGE_USER_BTN = '//button[@class="sqdOP  L3NKy _4pI4F   _8A5w5    " and contains(text(), "Message")]'
+    ' ffKix '
+    'Y2E37'
+    REQUESTED_BTN = '//dic[@class=" ffKix "]//descendant::button'
+    MESSAGE_USER_BTN = '//button[@class="sqdOP  L3NKy _4pI4F   _8A5w5    "]'
