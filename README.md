@@ -75,12 +75,12 @@ except SuspisciousLoginAttemptError as error:
 ```
 #### SEND A DIRECT MESSAGE
 ```python
-result = client.send_dm('username', 'Message to send') # send a DM to a user
+result = client.send_dm('<username>', '<Message to send>') # send a DM to a user
 ```
 > Make sure to distrubute your client.send_dm() requests over a period of time to avoid reaching Instagram's spam limits.
 #### GET A USER'S FOLLOWERS
 ```python
-followers = client.scrape_followers(user='username')
+followers = client.scrape_followers(user='<username>') # replace with the target username
 # Get first 2000 followers of the user, returning a callback every 15 followers (default callback is a terminal print statement)
 ```
 > The client.scrape_followers() method can take a lot of time depending on the amount of followers you want to scrape.
