@@ -48,7 +48,7 @@ class Paths:
     FOLLOWER_USER_DIV = '{}//li'.format(FOLLOWERS_LIST)
     FOLLOWER_COUNT = '{}//span[@class="g47SY lOXF2"]'.format(FOLLOWERS_BTN)
     # Follow User Procedure
-    FOLLOW_BTN = '//span[@class="vBF20 _1OSdk"]//descendant::button'
+    FOLLOW_BTN = '//button[@class="sqdOP  L3NKy _4pI4F  y3zKF     " or @class="_5f5mN       jIbKX  _6VtSN     yZn4P   "]'
     UNFOLLOW_BTN = '//button[@class="_5f5mN    -fzfL     _6VtSN     yZn4P   "]//descendant::span'
     CONFIRM_UNFOLLOW_BTN = '//button[@class="aOOlW -Cab_   "]'
     ' ffKix '
