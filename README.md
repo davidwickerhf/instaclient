@@ -17,10 +17,11 @@ The only thing you need to worry about is to spread your requests throughout the
 7. [License](#license)
 
 ## Current Features
+- Scrape a user's followers
 - Follow a user
 - Unfollow a user
-- Search posts by tag
 - Send DMs to users
+- Search posts by tag
 - Like a users latest posts (max 15 for now - not working yet)
 - Get a users image media (not working yet)
 
