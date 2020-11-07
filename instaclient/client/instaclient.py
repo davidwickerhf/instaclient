@@ -158,7 +158,7 @@ class InstaClient:
             send_code.click()
             print('INSTACLIENT: Sent Security Code')
             # Detect Error
-            alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.ERROR_SENDING_CODE)), wait_time=4)
+            alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.ERROR_SENDING_CODE)), wait_time=2)
             if alert:
                 # Error in sending code, send via email
                 email = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SELECT_EMAIL_BTN)), wait_time=4)
@@ -574,6 +574,7 @@ class InstaClient:
             if discard_driver:
                 self.__discard_driver()
             else:
+                self.driver.get(ClientUrls.NAV_USER.format(self.username))
                 settings_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SETTINGS_BTN)), wait_time=4)
                 settings_btn.click()
                 logout_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.LOG_OUT_BTN)), wait_time=4)
