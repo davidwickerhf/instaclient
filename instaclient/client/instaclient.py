@@ -20,21 +20,27 @@ class InstaClient:
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
-    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST):
+    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None):
         """
         Create an `InstaClient` object to access the instagram website.
 
         Args:
+            
             driver_type (int, optional): The type of browser driver to run instagram on. Defaults to CHROMEDRIVER.
-            host (int, optional): Whether the code is run locally or on a server. Defaults to LOCAHOST.
+            host_type (int, optional): Whether the code is run locally or on a server. Defaults to LOCAHOST.
+            driver_path (str): The path where you saved the c`hromedriver.exe` file. This is required if you are running the client locally. Defaults to None
 
         Raises:
             InvaildHostError: Raised if host int does not correspond to any host type
             InvaildDriverError: Raised if driver int does not correspond to any driver type.
             error: Normal Exception, raised if anything fails when creating the client.
         """
+        
         self.driver_type = driver_type
         self.host_type = host_type
+        if host_type == self.LOCAHOST and driver_path is None:
+            raise InvalidDriverPathError(driver_path)
+        self.driver_path = driver_path
         self.logged_in = False
         self.driver = None
         self.username = None
@@ -786,7 +792,7 @@ class InstaClient:
                     #chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
-                    self.driver = webdriver.Chrome(executable_path='instaclient/drivers/chromedriver.exe', chrome_options=chrome_options)
+                    self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options)
                 else:
                     raise InvaildHostError(self.host_type)
             else:

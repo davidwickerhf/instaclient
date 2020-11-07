@@ -38,13 +38,17 @@ pip install -U instaclient
 ```
 
 ## Usage
+### INSTALL A DRIVER
+If you are running your code on a localhost, then you'll need to install a chromedriver from [here](https://chromedriver.chromium.org/downloads) first and save the chromedriver.exe file in your project folder. Make sure to install the version that matches your Chrome version.
+To check your chrome version, type ```chrome://version/``` in the chrome address bar.
+
 #### CREATE THE CLIENT
 ```python
 from instaclient import InstaClient
 from instaclient.errors import *
 
-# Create a instaclient object
-client = InstaClient() # Only the ChromeDriver is available at the moment
+# Create a instaclient object. Place as driver_path argument the path that leads to where you saved the chromedriver.exe file
+client = InstaClient(driver_path='<projectfolder>/chromedriver.exe')
 ```
 #### LOGIN INTO INSTAGRAM
 ```python
