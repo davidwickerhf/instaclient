@@ -647,6 +647,7 @@ class InstaClient:
 
     @insta_method
     def is_valid_user(self, user, nav_to_user=True, discard_driver:bool=False):
+        print('INSTACLIENT: Checking user vadility')
         if not self.driver:
             self.__init_driver(login=True)
             nav_to_user = True
@@ -656,17 +657,20 @@ class InstaClient:
         if self.driver.current_url != ClientUrls.NAV_USER.format(user):
             self.driver.get(ClientUrls.NAV_USER.format(user))
 
+        print('INSTACLIENT: Url: ', self.driver.current_url)
+
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
-            cookies = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
-            cookies.click()
+            self.__dismiss_cookies()
 
         element = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=3)
         if element:
             # User does not exist
+            print('INSTACLIENT: {} does not exist.'.format(user))
             if discard_driver:
                 self.__discard_driver()
             raise InvalidUserError(username=user)
         else: 
+            print('INSTACLIENT: {} is a valid user.'.format(user))
             # Operation Successful
             paccount_alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PRIVATE_ACCOUNT_ALERT)), wait_time=3)
             if paccount_alert:
