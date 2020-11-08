@@ -653,6 +653,9 @@ class InstaClient:
         if nav_to_user:
             self.driver.get(ClientUrls.NAV_USER.format(user))
 
+        if self.driver.current_url != ClientUrls.NAV_USER.format(user):
+            self.driver.get(ClientUrls.NAV_USER.format(user))
+
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
             cookies = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
             cookies.click()
