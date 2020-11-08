@@ -57,12 +57,19 @@ class InstaClient:
         Returns:
             bool: True if client is logged in, False if client is not connected or webdriver is not open.
         """
+        print('INSTACLIENT: Check Status')
         if not self.driver:
             return False
-        self.driver.get(ClientUrls.HOME_URL)
+        print(self.driver.current_url)
+        if ClientUrls.HOME_URL not in self.driver.current_url:
+            self.driver.get(ClientUrls.HOME_URL)
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
             self.__dismiss_cookies()
-            
+        if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
+            btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)))
+            btn.click()
+            print('INSTACLIENT: Dismissed dialogue')
+
         icon = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NAV_BAR)), wait_time=4)
         if icon:
             self.logged_in = True
@@ -187,12 +194,8 @@ class InstaClient:
             self.driver.get(ClientUrls.HOME_URL)
 
             # Detect 'Turn On Notifications' Box
-            try:
-                no_notifications_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NO_NOTIFICATIONS_BTN)), wait_time=3, url=ClientUrls.HOME_URL)
-                no_notifications_btn.click()
-            except:
-                pass
-            self.__dismiss_dialogue()
+            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NO_NOTIFICATIONS_BTN))):
+                self.__dismiss_dialogue()
         return self.logged_in
 
 
@@ -569,12 +572,14 @@ class InstaClient:
         Returns:
             bool: True if the 
         """
+        print('INSTACLIENT: LOGOUT')
         result = self.check_status()
         if result:
             if discard_driver:
                 self.__discard_driver()
             else:
                 self.driver.get(ClientUrls.NAV_USER.format(self.username))
+                time.sleep(1)
                 settings_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SETTINGS_BTN)), wait_time=4)
                 settings_btn.click()
                 logout_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.LOG_OUT_BTN)), wait_time=4)
@@ -723,6 +728,7 @@ class InstaClient:
             return widgets
         except TimeoutException:
             # Element was not found in time
+            print('INSTACLIENT: Element Not Found...')
             if attempt < 1:
                 if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
                     self.__dismiss_cookies()
@@ -801,6 +807,7 @@ class InstaClient:
     def __dismiss_cookies(self):
         accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
         accept_btn.click()
+        print('INSTACLIENT: Dismissed Cookies')
 
     def __dismiss_dialogue(self):
         """

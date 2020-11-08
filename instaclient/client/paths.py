@@ -34,7 +34,7 @@ class Paths:
     # GENERAL
     COOKIES_LINK = '//a[contains(@heref, "cookies") or contains(text(), "Cookie")]'
     ACCEPT_COOKIES = '//button[@class="aOOlW  bIiDR  "]'
-    SETTINGS_BTN = '//button[@class="Q46SR"]//descendant::svg'
+    SETTINGS_BTN = '//button[@class="Q46SR"]'
     BUTTON = '//button[text()="{}"]'
     NOT_NOW_BTN = '//button[@class="aOOlW   HoLwm "]'
     # SETTINGS OPTIONS
