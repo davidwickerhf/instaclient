@@ -658,6 +658,8 @@ class InstaClient:
             self.driver.get(ClientUrls.NAV_USER.format(user))
 
         print('INSTACLIENT: Url: ', self.driver.current_url)
+        if self.driver.current_url == ClientUrls.LOGIN_THEN_USER.format(user):
+            raise NotLoggedInError()
 
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
             self.__dismiss_cookies()
