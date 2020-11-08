@@ -20,7 +20,7 @@ class InstaClient:
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
-    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, error_callback=None):
+    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, debug=False, error_callback=None):
         """
         Create an `InstaClient` object to access the instagram website.
 
@@ -29,6 +29,7 @@ class InstaClient:
             driver_type (int, optional): The type of browser driver to run instagram on. Defaults to CHROMEDRIVER.
             host_type (int, optional): Whether the code is run locally or on a server. Defaults to LOCAHOST.
             driver_path (str): The path where you saved the c`hromedriver.exe` file. This is required if you are running the client locally. Defaults to None
+            debug (bool): If set to True, the `error_callback` will be called multiple times for debugging or when an error occures. Defaults to Falses
             error_callback (callback): A callback method to be called when an error occures within the InstaClient. Your custom error_callbak must require only one argument named `driver`: a driver like object (The InstaClient will pass itself to the method as `driver` argument)
 
         Raises:
@@ -51,6 +52,7 @@ class InstaClient:
         self.driver = None
         self.username = None
         self.password = None
+        self.debug = debug
         self.__init_driver()
 
 
@@ -133,9 +135,13 @@ class InstaClient:
             password_input.send_keys(password)
             time.sleep(1)
             print('INSTACLIENT: Filled in form')
+            if self.debug:
+                self.error_callback(self.driver)
             login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)), url=ClientUrls.LOGIN_URL)# login button xpath changes after text is entered, find first
             login_btn.click()
             print('INSTACLIENT: Sent form')
+            if self.debug:
+                self.error_callback(self.driver)
         except ElementClickInterceptedException as error:
             self.password = None
             self.driver.get(ClientUrls.LOGIN_URL)
@@ -196,6 +202,8 @@ class InstaClient:
             self.logged_in = True
 
         print('INSTACLIENT: Credentials are Correct')
+        if self.debug:
+            self.error_callback(self.driver)
         # Discard Driver or complete login
         if discard_driver:
             self.__discard_driver()
