@@ -7,7 +7,7 @@ from selenium.webdriver.support.expected_conditions import presence_of_element_l
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException        
+from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException, TimeoutException        
 import time, os
 
 from instaclient.utilities.utilities import *
@@ -136,6 +136,10 @@ class InstaClient:
             login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)), url=ClientUrls.LOGIN_URL)# login button xpath changes after text is entered, find first
             login_btn.click()
             print('INSTACLIENT: Sent form')
+        except ElementClickInterceptedException as error:
+            self.password = None
+            self.driver.get(ClientUrls.LOGIN_URL)
+            raise InvaildPasswordError(password)
         except Exception as error:
             # User already logged in ?
             result = self.check_status()
