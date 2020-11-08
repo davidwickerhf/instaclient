@@ -652,10 +652,14 @@ class InstaClient:
             nav_to_user = True
         if nav_to_user:
             self.driver.get(ClientUrls.NAV_USER.format(user))
-        element = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=8)
+
+        if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
+            cookies = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
+            cookies.click()
+
+        element = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=3)
         if element:
             # User does not exist
-            self.driver.get(ClientUrls.HOME_URL)
             if discard_driver:
                 self.__discard_driver()
             raise InvalidUserError(username=user)
