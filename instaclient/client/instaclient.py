@@ -126,7 +126,6 @@ class InstaClient:
             # Get Form elements
             username_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)), url=ClientUrls.LOGIN_URL)
             password_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.PASSWORD_INPUT)), url=ClientUrls.LOGIN_URL)
-            login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)), url=ClientUrls.LOGIN_URL)# login button xpath changes after text is entered, find first
             print('INSTACLIENT: Found elements')
             # Fill out form
             username_input.send_keys(username)
@@ -134,6 +133,7 @@ class InstaClient:
             password_input.send_keys(password)
             time.sleep(1)
             print('INSTACLIENT: Filled in form')
+            login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)), url=ClientUrls.LOGIN_URL)# login button xpath changes after text is entered, find first
             login_btn.click()
             print('INSTACLIENT: Sent form')
         except Exception as error:
