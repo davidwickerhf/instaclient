@@ -1,6 +1,6 @@
 """This module contains the InstaClient class"""
 from logging import log
-from os import waitpid
+from os import error, waitpid
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
@@ -20,7 +20,7 @@ class InstaClient:
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
-    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None):
+    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, error_callback=None):
         """
         Create an `InstaClient` object to access the instagram website.
 
@@ -29,11 +29,13 @@ class InstaClient:
             driver_type (int, optional): The type of browser driver to run instagram on. Defaults to CHROMEDRIVER.
             host_type (int, optional): Whether the code is run locally or on a server. Defaults to LOCAHOST.
             driver_path (str): The path where you saved the c`hromedriver.exe` file. This is required if you are running the client locally. Defaults to None
+            error_callback (callback): A callback method to be called when an error occures within the InstaClient. Your custom error_callbak must require only one argument named `driver`: a driver like object (The InstaClient will pass itself to the method as `driver` argument)
 
         Raises:
             InvaildHostError: Raised if host int does not correspond to any host type
             InvaildDriverError: Raised if driver int does not correspond to any driver type.
             error: Normal Exception, raised if anything fails when creating the client.
+            InvalidErrorCallbackError: Raised if the `error_callback` is not callable
         """
         
         self.driver_type = driver_type
@@ -41,6 +43,10 @@ class InstaClient:
         if host_type == self.LOCAHOST and driver_path is None:
             raise InvalidDriverPathError(driver_path)
         self.driver_path = driver_path
+        if error_callback:
+            if not callable(error_callback):
+                raise InvalidErrorCallbackError()
+        self.error_callback = error_callback
         self.logged_in = False
         self.driver = None
         self.username = None
@@ -577,6 +583,7 @@ class InstaClient:
         if result:
             if discard_driver:
                 self.__discard_driver()
+                print('INSTACLIENT: Logged Out')
             else:
                 self.driver.get(ClientUrls.NAV_USER.format(self.username))
                 time.sleep(1)
@@ -586,6 +593,7 @@ class InstaClient:
                 logout_btn.click()
                 confirm_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_LOGOUT_BTN)), wait_time=4)
                 confirm_btn.click()
+                print('INSTACLIENT: Logged Out')
             return True
         else:
             return True
@@ -733,6 +741,10 @@ class InstaClient:
                 if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
                     self.__dismiss_cookies()
                 if not self.check_status():
+                    if url in self.driver.current_url:
+                        self.driver.get(url)
+                        self.__find_element(expectation, url, wait_time, attempt+1)
+                        time.sleep(1)
                     # Not Logged In!
                     raise NotLoggedInError()
                 else:
@@ -740,6 +752,8 @@ class InstaClient:
                         self.driver.get(url)
                         self.__find_element(expectation, url, wait_time, attempt+1)
                     else:
+                        if self.error_callback:
+                            self.error_callback(self.driver)
                         raise NoSuchElementException()
             else:
                 raise NoSuchElementException()
@@ -808,6 +822,7 @@ class InstaClient:
         accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
         accept_btn.click()
         print('INSTACLIENT: Dismissed Cookies')
+
 
     def __dismiss_dialogue(self):
         """

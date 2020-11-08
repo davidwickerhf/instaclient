@@ -37,6 +37,12 @@ class InvaildHostError(InstaClientError):
     Args:
         host_int:int: The driver int variable passed to InstaClient()
     """
+    def __init__(self, host_int:int):
+        self.host_int = host_int
+        super().__init__(message='This integer does not refer to any host type')
+
+    def __str__(self):
+        return f'{self.host_int} -> {self.message}'
     
 
 
@@ -52,6 +58,13 @@ class InvaildDriverError(InstaClientError):
 
     def __str__(self):
         return f'{self.driver_int} -> {self.message}'
+
+
+class InvalidErrorCallbackError(InstaClientError):
+    """Raised when initiating an InstaClient object if the `error_callback` argument is provided but is not a callable object.
+    """
+    def __init__(self):
+        super().__init__(message='The error callback you provided is not a callable.')
 
 
 class InvalidUserError(InstaClientError):
