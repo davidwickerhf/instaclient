@@ -44,7 +44,8 @@ class InstaClient:
         if host_type == self.LOCAHOST and driver_path is None:
             raise InvalidDriverPathError(driver_path)
         self.driver_path = driver_path
-        if error_callback:
+        self.debug = debug
+        if error_callback or debug:
             if not callable(error_callback):
                 raise InvalidErrorCallbackError()
         self.error_callback = error_callback
@@ -52,7 +53,7 @@ class InstaClient:
         self.driver = None
         self.username = None
         self.password = None
-        self.debug = debug
+        
         self.__init_driver()
 
 
@@ -824,7 +825,7 @@ class InstaClient:
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
                     chrome_options.add_argument("--window-size=343,915")
-                    #chrome_options.add_argument("--headless")
+                    chrome_options.add_argument("--headless") #TODO
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
                     print('Path: ', self.driver_path)
