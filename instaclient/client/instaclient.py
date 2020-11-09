@@ -659,7 +659,7 @@ class InstaClient:
         
 
     @insta_method
-    def is_valid_user(self, user, nav_to_user=True, discard_driver:bool=False):
+    def is_valid_user(self, user:str, nav_to_user:bool=True, discard_driver:bool=False):
         print('INSTACLIENT: Checking user vadility')
         if not self.driver:
             self.__init_driver(login=True)
@@ -673,6 +673,13 @@ class InstaClient:
         print('INSTACLIENT: Url: ', self.driver.current_url)
         if self.driver.current_url == ClientUrls.LOGIN_THEN_USER.format(user):
             raise NotLoggedInError()
+        elif self.driver.current_url != ClientUrls.NAV_USER.format(user):
+            self.error_callback(self.driver)
+            time.sleep(1)
+            self.driver.get(ClientUrls.NAV_USER.format(user))
+            time.sleep(1)
+            self.error_callback(self.driver)
+
 
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
             self.__dismiss_cookies()
@@ -766,14 +773,8 @@ class InstaClient:
             if attempt < 1:
                 if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
                     self.__dismiss_cookies()
-                if not self.check_status():
-                    if url in self.driver.current_url:
-                        self.driver.get(url)
-                        self.__find_element(expectation, url, wait_time, attempt+1)
-                        time.sleep(1)
-                    # Not Logged In!
-                    raise NotLoggedInError()
-                else:
+                
+                if ClientUrls.LOGIN_URL in self.driver.current_url:
                     if attempt < 1 and url is not None:
                         self.driver.get(url)
                         self.__find_element(expectation, url, wait_time, attempt+1)
@@ -781,7 +782,18 @@ class InstaClient:
                         if self.error_callback:
                             self.error_callback(self.driver)
                         raise NoSuchElementException()
+                elif not self.check_status():
+                    if url in self.driver.current_url:
+                        self.driver.get(url)
+                        self.__find_element(expectation, url, wait_time, attempt+1)
+                        time.sleep(1)
+                    # Not Logged In!
+                    if self.error_callback:
+                            self.error_callback(self.driver)
+                    raise NotLoggedInError()   
             else:
+                if self.error_callback:
+                        self.error_callback(self.driver)
                 raise NoSuchElementException()
 
 
