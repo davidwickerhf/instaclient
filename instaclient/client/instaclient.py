@@ -20,7 +20,7 @@ class InstaClient:
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
-    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, debug=False, error_callback=None):
+    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, debug=False, error_callback=None, localhost_headless=False):
         """
         Create an `InstaClient` object to access the instagram website.
 
@@ -31,6 +31,7 @@ class InstaClient:
             driver_path (str): The path where you saved the c`hromedriver.exe` file. This is required if you are running the client locally. Defaults to None
             debug (bool): If set to True, the `error_callback` will be called multiple times for debugging or when an error occures. Defaults to Falses
             error_callback (callback): A callback method to be called when an error occures within the InstaClient. Your custom error_callbak must require only one argument named `driver`: a driver like object (The InstaClient will pass itself to the method as `driver` argument)
+            localhost_headless (bool): If set to True, the localhost chromedriver will be set to --headless, meaning it will run without showing the Chrome window. Defaults to true.
 
         Raises:
             InvaildHostError: Raised if host int does not correspond to any host type
@@ -49,6 +50,7 @@ class InstaClient:
             if not callable(error_callback):
                 raise InvalidErrorCallbackError()
         self.error_callback = error_callback
+        self.localhost_headless = localhost_headless
         self.logged_in = False
         self.driver = None
         self.username = None
@@ -211,10 +213,17 @@ class InstaClient:
         else:
             # Detect and dismiss save info Dialog
             self.driver.get(ClientUrls.HOME_URL)
-
-            # Detect 'Turn On Notifications' Box
-            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NO_NOTIFICATIONS_BTN))):
+            
+            # Detect 'Save to Home Screen' Dialogue
+            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.DISMISS_DIALOGUE))):
                 self.__dismiss_dialogue()
+            
+            # Detect 'Turn On Notifications' Box
+            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.DISMISS_DIALOGUE))):
+                self.__dismiss_dialogue()
+                
+            if self.debug:
+                self.error_callback(self.driver)
         return self.logged_in
 
 
@@ -478,13 +487,19 @@ class InstaClient:
         if not self.driver:
             self.__init_driver(login=True)
         # Navigate to User's dm page
+
         try:
+            if self.debug:
+                self.error_callback(self.driver)
             self.nav_user_dm(user)
             text_area = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.DM_TEXT_AREA)))
             text_area.send_keys(message)
             send_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_DM_BTN)))
             send_btn.click()
         except Exception as error: 
+            if self.debug:
+                self.error_callback(self.driver)
+            print('INSTACLIENT: An error occured when sending a DM to the user <{}>'.format(user))
             if discard_driver:
                 self.__discard_driver()
             raise error
@@ -561,6 +576,40 @@ class InstaClient:
         if discard_driver:
             self.__discard_driver()
         return followers
+
+
+    """ @insta_method # TODO
+    def scrape_dms(self, discard_driver:bool=False):
+        if not self.driver:
+            self.__init_driver()
+
+        # Navigate to DMs
+        if self.username:
+            self.nav_user_dm(self.username)
+        else:
+            raise NotLoggedInError()
+
+        # Infinite Scroll & Loading
+        for i in range(1,count+1):
+            try:
+                div:WebElement = self.driver.find_element_by_xpath(Paths.FOLLOWER_USER_DIV % i)
+                time.sleep(1)
+                username = div.text.split('\n')[0]
+                if  username not in followers:
+                    followers.append(username)
+                if i%callback_frequency==0:
+                    if callback is None:
+                        print('Got another {} followers...'.format(callback_frequency))
+                    else:
+                        callback(*args, **kwargs)
+                self.driver.execute_script("arguments[0].scrollIntoView();", div)
+                # TODO OPTIMIZE ALGORITHM (scroll by more than one account only)
+            except Exception as error:
+                raise error
+
+        
+        if discard_driver:
+            self.__discard_driver() """
 
                 
     # IG UTILITY METHODS
@@ -820,6 +869,7 @@ class InstaClient:
 
 
     def __init_driver(self, login=False):
+        print('INSTACLIENT: Initiating Driver...')
         try:
             if self.driver_type == self.CHROMEDRIVER:
                 if self.host_type == self.WEB_SERVER:
@@ -837,7 +887,7 @@ class InstaClient:
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
                     chrome_options.add_argument("--window-size=343,915")
-                    chrome_options.add_argument("--headless") #TODO
+                    chrome_options.add_argument("--headless") if self.localhost_headless else None
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
                     print('Path: ', self.driver_path)
