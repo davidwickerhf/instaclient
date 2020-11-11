@@ -1,7 +1,5 @@
 class Paths:
-    #TODO Traslate texts in German
     # Login Procedue
-    
     LOGIN_BTN = '//button[@class="sqdOP  L3NKy   y3zKF     "]/div'
     USERNAME_INPUT = '//input[@name="username"]'
     PASSWORD_INPUT = '//input[@name="password"]'
@@ -18,7 +16,8 @@ class Paths:
     # 2FA Verification
     VERIFICATION_CODE = '//input[@name="verificationCode"]'
     VERIFICATION_CODE_BTN = '//button[@class="sqdOP  L3NKy   y3zKF     "]'
-    NO_NOTIFICATIONS_BTN = '/html/body/div[4]/div/div/div/div[3]/button[2]'
+    # Pop-Ups
+    DISMISS_DIALOGUE = '//button[@class="aOOlW   HoLwm "]'
     # Nav to User Procedure
     INCORRECT_USERNAME_ALERT = '//p[@role="alert" and @id="slfErrorAlert"]'
     INCORRECT_PASSWORD_ALERT = '//div[@class="piCib"]'
@@ -55,3 +54,6 @@ class Paths:
     'Y2E37'
     REQUESTED_BTN = '//dic[@class=" ffKix "]//descendant::button'
     MESSAGE_USER_BTN = '//button[@class="sqdOP  L3NKy _4pI4F   _8A5w5    "]'
+    # USER ACCOUNT DMs PAGE
+    DM_LIST_DIV = '//div[@class="N9abW"]//descendant::div'
+    DM_USERNAME_DIV = '//div[@class="_7UhW9   xLCgt      MMzan  KV-D4              fDxYl     "]'
