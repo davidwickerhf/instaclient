@@ -695,9 +695,14 @@ class InstaClient:
         Returns:
             True if operation was successful
         """
-        self.nav_user(user, check_user=check_user)
+        try:
+            self.nav_user(user, check_user=check_user)
+        except PrivateAccountError:
+            pass
+
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN))):
             self.follow_user(user, nav_to_user=False)
+
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
             raise FollowRequestSentError(user)
         else:
@@ -862,6 +867,7 @@ class InstaClient:
 
 
     def __discard_driver(self):
+        print('INSTACLIENT: Discarding driver...')
         if self.driver:
             self.driver.quit()
             self.logged_in = False
@@ -900,7 +906,8 @@ class InstaClient:
                 raise InvaildDriverError(self.driver_type)
         except WebDriverException as error:
             try: self.driver.quit()
-            except: raise error
+            except: self.__init_driver()
+            finally: raise error
 
         if login:
             try:
