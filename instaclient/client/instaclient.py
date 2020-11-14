@@ -20,7 +20,7 @@ class InstaClient:
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
-    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, debug=False, error_callback=None, localhost_headless=False):
+    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, init_driver=True, debug=False, error_callback=None, localhost_headless=False):
         """
         Create an `InstaClient` object to access the instagram website.
 
@@ -55,9 +55,8 @@ class InstaClient:
         self.driver = None
         self.username = None
         self.password = None
-        
-        self.__init_driver()
-
+        if init_driver:
+            self.__init_driver()
 
     @insta_method
     def check_status(self, discard_driver:bool=False):
@@ -88,8 +87,6 @@ class InstaClient:
         else:
             self.logged_in = False
             result = False
-        if discard_driver:
-            self.__discard_driver()
         return result
 
 
@@ -152,8 +149,6 @@ class InstaClient:
         except Exception as error:
             # User already logged in ?
             result = self.check_status()
-            if discard_driver:
-                self.__discard_driver()
             if not result:
                 raise error
             else:
@@ -208,8 +203,7 @@ class InstaClient:
         if self.debug:
             self.error_callback(self.driver)
         # Discard Driver or complete login
-        if discard_driver:
-            self.__discard_driver()
+
         else:
             # Detect and dismiss save info Dialog
             self.driver.get(ClientUrls.HOME_URL)
@@ -295,10 +289,7 @@ class InstaClient:
             raise InvalidSecurityCodeError()
 
         self.logged_in = True
-        if discard_driver:
-            self.__discard_driver()
-        else:
-            self.__dismiss_dialogue()
+        self.__dismiss_dialogue()
         return self.logged_in
 
 
@@ -332,8 +323,6 @@ class InstaClient:
             # Auth Correct
             self.logged_in = True
             self.__dismiss_dialogue()
-            if discard_driver:
-                self.__discard_driver()
             return self.logged_in
 
 
@@ -378,9 +367,6 @@ class InstaClient:
             follow_button = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)), url=ClientUrls.NAV_USER.format(user))
             follow_button.click()
 
-        if discard_driver:
-            self.__discard_driver()
-
         if private:
             raise FollowRequestSentError(user)
 
@@ -409,8 +395,6 @@ class InstaClient:
             confirm_unfollow.click()
             print('INSTACLIENT: Unfollowed user <{}>'.format(user))
 
-        if discard_driver:
-            self.__discard_driver()
     
 
     @insta_method
@@ -500,8 +484,6 @@ class InstaClient:
             if self.debug:
                 self.error_callback(self.driver)
             print('INSTACLIENT: An error occured when sending a DM to the user <{}>'.format(user))
-            if discard_driver:
-                self.__discard_driver()
             raise error
 
 
@@ -573,8 +555,6 @@ class InstaClient:
                     followers.append(username)
             except:
                 pass
-        if discard_driver:
-            self.__discard_driver()
         return followers
 
 
@@ -644,8 +624,8 @@ class InstaClient:
         result = self.check_status()
         if result:
             if discard_driver:
-                self.__discard_driver()
                 print('INSTACLIENT: Logged Out')
+                return True
             else:
                 self.driver.get(ClientUrls.NAV_USER.format(self.username))
                 time.sleep(1)
@@ -737,8 +717,6 @@ class InstaClient:
         if element:
             # User does not exist
             print('INSTACLIENT: {} does not exist.'.format(user))
-            if discard_driver:
-                self.__discard_driver()
             raise InvalidUserError(username=user)
         else: 
             print('INSTACLIENT: {} is a valid user.'.format(user))
@@ -746,12 +724,8 @@ class InstaClient:
             paccount_alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PRIVATE_ACCOUNT_ALERT)), wait_time=3)
             if paccount_alert:
                 # navigate back to home page
-                if discard_driver:
-                    self.__discard_driver()
                 raise PrivateAccountError(user)
             else:
-                if discard_driver:
-                    self.__discard_driver()
                 return True
 
 
@@ -861,7 +835,12 @@ class InstaClient:
             return False
 
 
+<<<<<<< Updated upstream
     def __discard_driver(self):
+=======
+    """ def __discard_driver(self):
+        print('INSTACLIENT: Discarding driver...')
+>>>>>>> Stashed changes
         if self.driver:
             self.driver.quit()
             self.logged_in = False
@@ -903,7 +882,7 @@ class InstaClient:
             try:
                 self.login(self.username, self.password)
             except:
-                raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.')
+                raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.') """
 
 
     def __dismiss_cookies(self):

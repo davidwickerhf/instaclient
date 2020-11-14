@@ -70,3 +70,31 @@ def insta_method(func):
         time.sleep(random.randint(1, 2))
         return output
     return wrapper
+
+
+def manage_driver(func):
+    @wraps(func)
+    def wrapper(self, login=False, *args, **kwargs):
+        if not self.driver:
+            print('INSTACLIENT: Initiating Driver...')
+            self.__init_driver(login)
+            print('INSTACLIENT: Driver initiated.')
+        
+        error = False
+        result = None
+        try:
+            result = func(*args, *kwargs)
+        except Exception as exception:
+            error = exception
+
+        discard = kwargs.get('discard_driver')
+        if discard:
+            print('INSTACLIENT: Discarding driver...')
+            self.__discard_driver()
+            print('INSTACLIENT: Driver discarded.')
+        if error:
+            raise error
+        else:
+            return result
+    return wrapper
+
