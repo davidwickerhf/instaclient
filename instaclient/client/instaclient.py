@@ -35,17 +35,16 @@ class InstaClient:
             result = None
             try:
                 result = func(self, *args, **kwargs)
+                time.sleep(1)
             except Exception as exception:
                 error = exception
             
             discard = kwargs.get('discard_driver')
             if discard is not None:
                 if discard:
-                    input()
                     self.__discard_driver()
             elif len(args) > 0 and isinstance(args[-1], bool):
                 if args[-1]:
-                    input()
                     self.__discard_driver()
             
             time.sleep(random.randint(1, 2))
@@ -712,19 +711,23 @@ class InstaClient:
         """
         try:
             self.nav_user(user, check_user=check_user)
-            message_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN)))
-            # Open User DM Page
-            message_btn.click()
-            return True
-
+            private = False
         except PrivateAccountError:
-            # Follow User
-            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN))):
-                self.follow_user(user, nav_to_user=False)
+            private = True
+            pass
+            
+        if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN))):
+            follow_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)))
+            follow_btn.click()
 
-            # Follow User Request Sent
-            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
-                raise FollowRequestSentError(user)
+
+        if private and self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
+            raise FollowRequestSentError(user)
+
+        message_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN)))
+        # Open User DM Page
+        message_btn.click()
+        return True
             
         
 
