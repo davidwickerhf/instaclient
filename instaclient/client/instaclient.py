@@ -939,6 +939,8 @@ class InstaClient:
                     chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
+                    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+                    chrome_options.add_experimental_option('useAutomationExtension', False)
                     self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
                 elif self.host_type == self.LOCAHOST:
                     # Running locally
@@ -954,8 +956,10 @@ class InstaClient:
                     raise InvaildHostError(self.host_type)
             else:
                 raise InvaildDriverError(self.driver_type)
-        except Exception as error:
-            raise error
+        except WebDriverException as error:
+            try: self.driver.quit()
+            except: self.__init_driver()
+            finally: raise error
 
         if login:
             try:
