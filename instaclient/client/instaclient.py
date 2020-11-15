@@ -20,7 +20,42 @@ class InstaClient:
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
-    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, debug=False, error_callback=None, localhost_headless=False):
+    # INSTACLIENT DECORATOR
+    def __manage_driver(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            time.sleep(random.randint(1, 2))
+            if not self.driver:
+                login = True
+                if func.__name__ == 'login':
+                    login = False
+                self.__init_driver(login)
+            
+            error = False
+            result = None
+            try:
+                result = func(self, *args, **kwargs)
+                time.sleep(1)
+            except Exception as exception:
+                error = exception
+            
+            discard = kwargs.get('discard_driver')
+            if discard is not None:
+                if discard:
+                    self.__discard_driver()
+            elif len(args) > 0 and isinstance(args[-1], bool):
+                if args[-1]:
+                    self.__discard_driver()
+            
+            time.sleep(random.randint(1, 2))
+            if error:
+                raise error
+            else:
+                return result
+        return wrapper
+    
+    # INIT
+    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, init_driver=True, debug=False, error_callback=None, localhost_headless=False):
         """
         Create an `InstaClient` object to access the instagram website.
 
@@ -55,11 +90,11 @@ class InstaClient:
         self.driver = None
         self.username = None
         self.password = None
-        
-        self.__init_driver()
+        if init_driver:
+            self.__init_driver()
 
-
-    @insta_method
+    # INSTAGRAM FUNCTIONS
+    @__manage_driver
     def check_status(self, discard_driver:bool=False):
         """
         Check if account is currently logged in. Returns True if account is logged in. Sets the `instaclient.logged_in` variable accordingly.
@@ -88,12 +123,10 @@ class InstaClient:
         else:
             self.logged_in = False
             result = False
-        if discard_driver:
-            self.__discard_driver()
         return result
 
 
-    @insta_method
+    @__manage_driver
     def login(self, username:str, password:str, check_user:bool=True, discard_driver:bool=False):
         """
         Sign Into Instagram with credentials. Go through 2FA if necessary. Sets the InstaClient variable `InstaClient.logged_in` to True if login was successful.
@@ -152,8 +185,6 @@ class InstaClient:
         except Exception as error:
             # User already logged in ?
             result = self.check_status()
-            if discard_driver:
-                self.__discard_driver()
             if not result:
                 raise error
             else:
@@ -208,8 +239,7 @@ class InstaClient:
         if self.debug:
             self.error_callback(self.driver)
         # Discard Driver or complete login
-        if discard_driver:
-            self.__discard_driver()
+
         else:
             # Detect and dismiss save info Dialog
             self.driver.get(ClientUrls.HOME_URL)
@@ -227,7 +257,7 @@ class InstaClient:
         return self.logged_in
 
 
-    @insta_method
+    @__manage_driver
     def resend_security_code(self):
         """
         Resend security code if code hasn't been sent successfully. The code is used to verify the login attempt if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised.
@@ -261,7 +291,7 @@ class InstaClient:
             return False
 
 
-    @insta_method
+    @__manage_driver
     def input_security_code(self, code:int or str, discard_driver:bool=False):
         """
         Complete login procedure started with `InstaClient.login()` and insert security code required if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised. Sets `InstaClient.logged_in` attribute to True if login was successful.
@@ -295,14 +325,11 @@ class InstaClient:
             raise InvalidSecurityCodeError()
 
         self.logged_in = True
-        if discard_driver:
-            self.__discard_driver()
-        else:
-            self.__dismiss_dialogue()
+        self.__dismiss_dialogue()
         return self.logged_in
 
 
-    @insta_method
+    @__manage_driver
     def input_verification_code(self, code:int or str, discard_driver:bool=False):
         """
         Complete login procedure started with `InstaClient.login()` and insert 2FA security code. Sets `instaclient.logged_in` to True if login was successful.
@@ -332,12 +359,10 @@ class InstaClient:
             # Auth Correct
             self.logged_in = True
             self.__dismiss_dialogue()
-            if discard_driver:
-                self.__discard_driver()
             return self.logged_in
 
 
-    @insta_method
+    @__manage_driver
     def follow_user(self, user:str, nav_to_user:bool=True, discard_driver:bool=False):
         """
         follow_user follows the instagram user that matches the username in the `user` attribute.
@@ -353,6 +378,7 @@ class InstaClient:
         """
         if not self.driver:
             self.__init_driver(login=True)
+            nav_to_user = True
         
         # Navigate to User Page
         if nav_to_user:
@@ -361,7 +387,7 @@ class InstaClient:
         # Check User Vadility
         try:
             result = self.is_valid_user(user, nav_to_user=False)
-            print('User <{}> is valid'.format(user))
+            print('INSTACLIENT: User <{}> is valid'.format(user))
             private = False
             
         # User is private
@@ -378,14 +404,11 @@ class InstaClient:
             follow_button = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)), url=ClientUrls.NAV_USER.format(user))
             follow_button.click()
 
-        if discard_driver:
-            self.__discard_driver()
-
         if private:
             raise FollowRequestSentError(user)
 
     
-    @insta_method
+    @__manage_driver
     def unfollow_user(self, user:str, nav_to_user=True, check_user=True, discard_driver:bool=False):
         """
         Unfollows user(s)
@@ -399,7 +422,7 @@ class InstaClient:
             self.nav_user(user, check_user)
         elif check_user:
             self.is_valid_user(user, nav_to_user=False)
-            print('User <{}> is valid'-format(user))
+            print('INSTACLIENT: User <{}> is valid'.format(user))
 
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN))):
             unfollow_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN)))
@@ -409,11 +432,8 @@ class InstaClient:
             confirm_unfollow.click()
             print('INSTACLIENT: Unfollowed user <{}>'.format(user))
 
-        if discard_driver:
-            self.__discard_driver()
-    
 
-    @insta_method
+    @__manage_driver
     def get_user_images(self, user:str, discard_driver:bool=False):
         """
         Get all images from a users profile.
@@ -441,7 +461,7 @@ class InstaClient:
         return img_srcs
     
 
-    @insta_method
+    @__manage_driver
     def like_latest_posts(self, user:str, n_posts:int, like:bool=True, discard_driver:bool=False):
         """
         Likes a number of a users latest posts, specified by n_posts.
@@ -474,7 +494,7 @@ class InstaClient:
             self.driver.find_elements_by_class_name('ckWGn')[0].click()
 
 
-    @insta_method
+    @__manage_driver
     def send_dm(self, user:str, message:str, discard_driver:bool=False):
         """
         Send an Instagram Direct Message to a user. if `check_user` is set to True, the `user` argument will be checked to validate whether it is a real instagram username.
@@ -484,10 +504,7 @@ class InstaClient:
             message (str): Message to send to the user via DMs
             check_user (bool, optional): If set to False, the `InstaClient` will assume that `user` is a valid instagram username. Defaults to True.
         """
-        if not self.driver:
-            self.__init_driver(login=True)
         # Navigate to User's dm page
-
         try:
             if self.debug:
                 self.error_callback(self.driver)
@@ -496,16 +513,15 @@ class InstaClient:
             text_area.send_keys(message)
             send_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_DM_BTN)))
             send_btn.click()
+            time.sleep(1.5)
         except Exception as error: 
             if self.debug:
                 self.error_callback(self.driver)
             print('INSTACLIENT: An error occured when sending a DM to the user <{}>'.format(user))
-            if discard_driver:
-                self.__discard_driver()
             raise error
 
 
-    #@insta_method
+    #@__manage_driver
     #def comment_post(self, text):
         #"""
         #Comments on a post that is in modal form
@@ -519,7 +535,7 @@ class InstaClient:
         #print('Commentd.')
 
 
-    @insta_method
+    @__manage_driver
     def scrape_followers(self, user:str, check_user=True, discard_driver:bool=False):
         """
         scrape_followers Scrape an instagram user's followers and return them as a list of strings.
@@ -573,12 +589,10 @@ class InstaClient:
                     followers.append(username)
             except:
                 pass
-        if discard_driver:
-            self.__discard_driver()
         return followers
 
 
-    """ @insta_method # TODO
+    """ @__manage_driver # TODO
     def scrape_dms(self, discard_driver:bool=False):
         if not self.driver:
             self.__init_driver()
@@ -613,7 +627,7 @@ class InstaClient:
 
                 
     # IG UTILITY METHODS
-    @insta_method
+    @__manage_driver
     def search_tag(self, tag:str, discard_driver:bool=False):
         """
         Naviagtes to a search for posts with a specific tag on IG.
@@ -632,7 +646,7 @@ class InstaClient:
             return True
 
 
-    @insta_method
+    @__manage_driver
     def logout(self, discard_driver:bool=False):
         """
         Check if the client is currently connected to Instagram and logs of the current InstaClient session.
@@ -644,8 +658,8 @@ class InstaClient:
         result = self.check_status()
         if result:
             if discard_driver:
-                self.__discard_driver()
                 print('INSTACLIENT: Logged Out')
+                return True
             else:
                 self.driver.get(ClientUrls.NAV_USER.format(self.username))
                 time.sleep(1)
@@ -661,7 +675,7 @@ class InstaClient:
             return True
 
 
-    @insta_method
+    @__manage_driver
     def nav_user(self, user:str, check_user:bool=True):
         """
         Navigates to a users profile page
@@ -681,7 +695,7 @@ class InstaClient:
             return self.is_valid_user(user=user, nav_to_user=False)
         
 
-    @insta_method
+    @__manage_driver
     def nav_user_dm(self, user:str, check_user:bool=True):
         """
         Open DM page with a specific user
@@ -697,23 +711,44 @@ class InstaClient:
         """
         try:
             self.nav_user(user, check_user=check_user)
+            private = False
         except PrivateAccountError:
+            private = True
             pass
-
+            
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN))):
-            self.follow_user(user, nav_to_user=False)
+            follow_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)))
+            follow_btn.click()
 
-        if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
+
+        if private and self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
             raise FollowRequestSentError(user)
-        else:
-            message_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN)))
-            # Open User DM Page
-            message_btn.click()
-            return True
+
+        message_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN)))
+        # Open User DM Page
+        message_btn.click()
+        return True
+            
         
 
-    @insta_method
+    @__manage_driver
     def is_valid_user(self, user:str, nav_to_user:bool=True, discard_driver:bool=False):
+        """
+        is_valid_user Checks if a given username is a valid Instagram user.
+
+        Args:
+            user (str): Instagram username to check
+            nav_to_user (bool, optional): Whether the driver shouldnavigate to the user page or not. Defaults to True.
+            discard_driver (bool, optional): Whether the driver should be closed after the method finishes. Defaults to False.
+
+        Raises:
+            NotLoggedInError: Raised if you are not logged into any account
+            InvalidUserError: Raised if the user is invalid
+            PrivateAccountError: Raised if the user is a private account
+
+        Returns:
+            bool: True if the user is valid
+        """
         print('INSTACLIENT: Checking user vadility')
         if not self.driver:
             self.__init_driver(login=True)
@@ -742,8 +777,6 @@ class InstaClient:
         if element:
             # User does not exist
             print('INSTACLIENT: {} does not exist.'.format(user))
-            if discard_driver:
-                self.__discard_driver()
             raise InvalidUserError(username=user)
         else: 
             print('INSTACLIENT: {} is a valid user.'.format(user))
@@ -751,16 +784,12 @@ class InstaClient:
             paccount_alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PRIVATE_ACCOUNT_ALERT)), wait_time=3)
             if paccount_alert:
                 # navigate back to home page
-                if discard_driver:
-                    self.__discard_driver()
                 raise PrivateAccountError(user)
             else:
-                if discard_driver:
-                    self.__discard_driver()
                 return True
 
 
-    # IG PRIVATE UTILITIES
+    # IG PRIVATE UTILITIES (The client is considered initiated)
     def __infinite_scroll(self):
         """
         Scrolls to the bottom of a users page to load all of their media
@@ -866,12 +895,35 @@ class InstaClient:
             return False
 
 
+    def __dismiss_cookies(self):
+        accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
+        accept_btn.click()
+        print('INSTACLIENT: Dismissed Cookies')
+
+
+    def __dismiss_dialogue(self):
+        """
+        Dismiss an eventual Instagram dialogue with button text containing either 'Cancel' or 'Not Now'.
+        """
+        try:
+            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
+                dialogue = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)), wait_time=2)
+                dialogue.click()
+        except:
+            try:
+                dialogue = self.__find_buttons(button_text='Cancel') # TODO add this to translation docs
+                dialogue.click()
+            except:
+                pass
+
+
     def __discard_driver(self):
         print('INSTACLIENT: Discarding driver...')
         if self.driver:
             self.driver.quit()
             self.logged_in = False
             self.driver = None
+        print('INSTACLIENT: Driver Discarded')
 
 
     def __init_driver(self, login=False):
@@ -913,26 +965,4 @@ class InstaClient:
             try:
                 self.login(self.username, self.password)
             except:
-                raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.')
-
-
-    def __dismiss_cookies(self):
-        accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
-        accept_btn.click()
-        print('INSTACLIENT: Dismissed Cookies')
-
-
-    def __dismiss_dialogue(self):
-        """
-        Dismiss an eventual Instagram dialogue with button text containing either 'Cancel' or 'Not Now'.
-        """
-        try:
-            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
-                dialogue = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)), wait_time=2)
-                dialogue.click()
-        except:
-            try:
-                dialogue = self.__find_buttons(button_text='Cancel') # TODO add this to translation docs
-                dialogue.click()
-            except:
-                pass
+                raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.') 

@@ -49,24 +49,3 @@ def exception(func):
             logger.exception(msg)
  
     return wrapper
-
-
-def insta_method(func):
-    """
-    Instagram method decorator. Sleeps for around 2 seconds before and after calling any methods that interact with Instagram.
-
-    Args:
-        func:function: Function to wrap
-
-    Returns:
-        wrapper:function: Wrapper function
-    """
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        # Call function
-        time.sleep(random.randint(1, 2))
-        output = func(*args, **kwargs)
-        # Post Processing
-        time.sleep(random.randint(1, 2))
-        return output
-    return wrapper

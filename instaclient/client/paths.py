@@ -50,8 +50,6 @@ class Paths:
     FOLLOW_BTN = '//button[@class="sqdOP  L3NKy _4pI4F  y3zKF     " or @class="_5f5mN       jIbKX  _6VtSN     yZn4P   "]'
     UNFOLLOW_BTN = '//button[@class="_5f5mN    -fzfL     _6VtSN     yZn4P   "]//descendant::span'
     CONFIRM_UNFOLLOW_BTN = '//button[@class="aOOlW -Cab_   "]'
-    ' ffKix '
-    'Y2E37'
     REQUESTED_BTN = '//dic[@class=" ffKix "]//descendant::button'
     MESSAGE_USER_BTN = '//button[@class="sqdOP  L3NKy _4pI4F   _8A5w5    "]'
     # USER ACCOUNT DMs PAGE
