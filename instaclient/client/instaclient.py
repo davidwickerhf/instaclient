@@ -1,6 +1,8 @@
 """This module contains the InstaClient class"""
+from io import SEEK_END
 from logging import log
 from os import error, waitpid
+from random import randrange
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
@@ -114,7 +116,7 @@ class InstaClient:
             self.__dismiss_cookies()
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
             btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)))
-            btn.click()
+            self.__press_button(btn)
             print('INSTACLIENT: Dismissed dialogue')
 
         icon = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NAV_BAR)), wait_time=4)
@@ -171,7 +173,7 @@ class InstaClient:
             if self.debug:
                 self.error_callback(self.driver)
             login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)), url=ClientUrls.LOGIN_URL)# login button xpath changes after text is entered, find first
-            login_btn.click()
+            self.__press_button(login_btn)
             print('INSTACLIENT: Sent form')
             if self.debug:
                 self.error_callback(self.driver)
@@ -209,16 +211,16 @@ class InstaClient:
         if send_code:
             print('INSTACLIENT: Suspicious Login Attempt.')
             send_code = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=4)
-            send_code.click()
+            self.__press_button(send_code)
             print('INSTACLIENT: Sent Security Code')
             # Detect Error
             alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.ERROR_SENDING_CODE)), wait_time=2)
             if alert:
                 # Error in sending code, send via email
                 email = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SELECT_EMAIL_BTN)), wait_time=4)
-                email.click()
+                self.__press_button(email)
                 time.sleep(0.5)
-                send_code.click()
+                self.__press_button(send_code)
                 print('INSTACLIENT: Sending code via email')
                 raise SuspisciousLoginAttemptError(mode=SuspisciousLoginAttemptError.EMAIL)
             raise SuspisciousLoginAttemptError(mode=SuspisciousLoginAttemptError.PHONE)
@@ -268,18 +270,18 @@ class InstaClient:
         if ClientUrls.SECURITY_CODE_URL in url:
             print('INSTACLIENT: Resending code')
             resend_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.RESEND_CODE_BTN)), wait_time=4)
-            resend_btn.click()
+            self.__press_button(resend_btn)
 
             alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.ERROR_SENDING_CODE)), wait_time=3)
             if alert:
                 back_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.BACK_BTN)), wait_time=4)
-                back_btn.click()
+                self.__press_button(back_btn)
                 time.sleep(1)
                 email = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SELECT_EMAIL_BTN)), wait_time=4)
-                email.click()
+                self.__press_button(email)
                 time.sleep(0.5)
                 send_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=4)
-                send_btn.click()
+                self.__press_button(send_btn)
                 mode = SuspisciousLoginAttemptError.EMAIL
                 raise SuspisciousLoginAttemptError(mode)
             raise SuspisciousLoginAttemptError()
@@ -312,7 +314,7 @@ class InstaClient:
         scode_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SECURITY_CODE_BTN)), wait_time=4)
         scode_input.send_keys(code)
         time.sleep(0.5)
-        scode_btn.click()
+        self.__press_button(scode_btn)
 
         # Detect Error
         form_error = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.INVALID_CODE)), wait_time=3)
@@ -344,7 +346,7 @@ class InstaClient:
         scode_input.send_keys(code)
         scode_btn: WebElement = self.__find_element(EC.element_to_be_clickable((By.XPATH, Paths.VERIFICATION_CODE_BTN)), wait_time=5)
         time.sleep(1)
-        scode_btn.click()
+        self.__press_button(scode_btn)
 
         alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.ALERT)))
         if alert:
@@ -395,7 +397,7 @@ class InstaClient:
             pass
         else:
             follow_button = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)), url=ClientUrls.NAV_USER.format(user))
-            follow_button.click()
+            self.__press_button(follow_button)
 
         if private:
             raise FollowRequestSentError(user)
@@ -417,10 +419,10 @@ class InstaClient:
 
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN))):
             unfollow_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN)))
-            unfollow_btn.click()
+            self.__press_button(unfollow_btn)
             time.sleep(1)
             confirm_unfollow = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_UNFOLLOW_BTN)))
-            confirm_unfollow.click()
+            self.__press_button(confirm_unfollow)
             print('INSTACLIENT: Unfollowed user <{}>'.format(user))
 
 
@@ -503,7 +505,7 @@ class InstaClient:
             text_area = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.DM_TEXT_AREA)))
             text_area.send_keys(message)
             send_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_DM_BTN)))
-            send_btn.click()
+            self.__press_button(send_btn)
             time.sleep(1.5)
         except Exception as error: 
             if self.debug:
@@ -546,7 +548,7 @@ class InstaClient:
         # Start scraping
         followers = []
         # Click followers btn
-        followers_btn.click()
+        self.__press_button(followers_btn)
         time.sleep(2)
         # Load all followers
         followers = []
@@ -652,11 +654,11 @@ class InstaClient:
                 self.driver.get(ClientUrls.NAV_USER.format(self.username))
                 time.sleep(1)
                 settings_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SETTINGS_BTN)), wait_time=4)
-                settings_btn.click()
+                self.__press_button(settings_btn)
                 logout_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.LOG_OUT_BTN)), wait_time=4)
-                logout_btn.click()
+                self.__press_button(logout_btn)
                 confirm_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_LOGOUT_BTN)), wait_time=4)
-                confirm_btn.click()
+                self.__press_button(confirm_btn)
                 print('INSTACLIENT: Logged Out')
             return True
         else:
@@ -700,22 +702,28 @@ class InstaClient:
         try:
             self.nav_user(user, check_user=check_user)
             private = False
+            print('INSTACLIENT: User <{}> is valid and public (or followed)'.format(user))
         except PrivateAccountError:
             private = True
+            print('INSTACLIENT: User <{}> is private'.format(user))
             pass
             
-        if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN))):
+        print('INSTACLIENT: Checking follow button...')
+        if private:
+            print('INSTACLIENT: Account is private')
+            raise PrivateAccountError(user)
+
+        elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN))):
+            print('INSTACLIENT: Follow button found')
             follow_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)))
-            follow_btn.click()
-
-
-        if private and self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
-            raise FollowRequestSentError(user)
-
-        message_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN)))
-        # Open User DM Page
-        message_btn.click()
-        return True
+            self.__press_button(follow_btn)
+            
+        else:
+            print('INSTACLIENT: Message button found')
+            message_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN)))
+            # Open User DM Page
+            self.__press_button(message_btn)
+            return True
             
         
 
@@ -813,7 +821,7 @@ class InstaClient:
         return buttons
 
 
-    def __find_element(self, expectation, url:str=None, wait_time:int=8, attempt=0):
+    def __find_element(self, expectation, url:str=None, wait_time:int=5, retry=True, attempt=0):
         """
         __find_element finds and returns the `WebElement`(s) that match the expectation's XPATH.
 
@@ -841,7 +849,7 @@ class InstaClient:
         except TimeoutException:
             # Element was not found in time
             print('INSTACLIENT: Element Not Found...')
-            if attempt < 1:
+            if retry and attempt < 1:
                 if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
                     self.__dismiss_cookies()
                 
@@ -885,7 +893,7 @@ class InstaClient:
 
     def __dismiss_cookies(self):
         accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
-        accept_btn.click()
+        self.__press_button(accept_btn)
         print('INSTACLIENT: Dismissed Cookies')
 
 
@@ -896,13 +904,41 @@ class InstaClient:
         try:
             if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
                 dialogue = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)), wait_time=2)
-                dialogue.click()
+                self.__press_button(dialogue)
         except:
             try:
                 dialogue = self.__find_buttons(button_text='Cancel') # TODO add this to translation docs
-                dialogue.click()
+                self.__press_button(dialogue)
             except:
                 pass
+
+
+    def __press_button(self, button):
+        button.click()
+        time.sleep(randrange(0,2))
+        self.__detect_restriction()
+        return True
+
+
+    def __detect_restriction(self):
+        """
+        __detect_restriction detects wheter instagram has restricted the current account
+
+        Raises:
+            RestrictedAccountError: Raised if the account is restricted
+        """
+        restriction = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.RESTRICTION_DIALOG)), wait_time=1.2)
+        if restriction:
+            print('INSTACLIENT: WARNING: ACCOUNT <{}> HAS BEEN RESTRICTED'.format(self.username))
+            buttons = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.RESTRICTION_DIALOGUE_BTNS)), retry=False)
+            buttons.click()
+            time.sleep(randrange(2,4))
+            raise RestrictedAccountError(self.username)
+
+        block = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.BLOCK_DIV)), wait_time=1.2)
+        if block:
+            print('INSTACLIENT: WARNING: ACCOUNT <{}> HAS BEEN BLOCKED - Log in Manually'.format(self.username))
+            raise BlockedAccountError(self.username)
 
 
     def __discard_driver(self):

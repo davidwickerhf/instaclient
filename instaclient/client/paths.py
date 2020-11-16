@@ -36,6 +36,9 @@ class Paths:
     SETTINGS_BTN = '//button[@class="Q46SR"]'
     BUTTON = '//button[text()="{}"]'
     NOT_NOW_BTN = '//button[@class="aOOlW   HoLwm "]'
+    RESTRICTION_DIALOG = '//div[@class="_7UhW9   xLCgt      MMzan   _0PwGv         uL8Hv         " and contains(text(), "restrict")]'
+    RESTRICTION_DIALOGUE_BTNS = '//div[@class="pbNvD  fPMEg    " and @role="dialog"]//descendant::button'
+    BLOCK_DIV = '//div[@class="_7UhW9    vy6Bb     MMzan  KV-D4          uL8Hv     l4b0S    " and contains(text(), "unusual activity")]'
     # SETTINGS OPTIONS
     LOG_OUT_BTN = '//a[@class="_34G9B H0ovd"]'
     CONFIRM_LOGOUT_BTN = '//button[@class="aOOlW  bIiDR  "]'
