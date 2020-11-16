@@ -950,7 +950,7 @@ class InstaClient:
         print('INSTACLIENT: Driver Discarded')
 
 
-    def __init_driver(self, login=False):
+    def __init_driver(self, login=False, retries=0):
         print('INSTACLIENT: Initiating Driver...')
         try:
             if self.driver_type == self.CHROMEDRIVER:
@@ -982,8 +982,13 @@ class InstaClient:
                 raise InvaildDriverError(self.driver_type)
         except WebDriverException as error:
             try: self.driver.quit()
-            except: self.__init_driver(login=login)
-            finally: raise error
+            except: 
+                print('INSTACLIENT: Error when initiating driver... Trying again')
+                time.sleep(3.5)
+                if retries < 3:
+                    self.__init_driver(login=login, retries=retries+1)
+                else:
+                    raise error
 
         if login:
             try:
