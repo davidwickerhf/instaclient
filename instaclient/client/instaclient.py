@@ -25,6 +25,7 @@ class InstaClient:
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             time.sleep(random.randint(1, 2))
+            print('INSTACLIENT: Mangage Driver, func: ', func.__name__)
             if not self.driver:
                 login = True
                 if func.__name__ == 'login':
@@ -146,10 +147,6 @@ class InstaClient:
         """
         self.username = username
         self.password = password
-        
-        # Initiate Driver
-        if not self.driver:
-            self.__init_driver()
 
         # Get Elements
         try:
@@ -376,10 +373,6 @@ class InstaClient:
             PrivateAccountError: Raised if the `user` is a private account - A request to follow the user will be sent eitherway.
             InvalidUserError: Raised if the `user` is invalid
         """
-        if not self.driver:
-            self.__init_driver(login=True)
-            nav_to_user = True
-        
         # Navigate to User Page
         if nav_to_user:
             self.nav_user(user, check_user=False)
@@ -416,8 +409,6 @@ class InstaClient:
         Args:
             user:str: Username of user to unfollow
         """
-        if not self.driver:
-            self.__init_driver(login=True)
         if nav_to_user:
             self.nav_user(user, check_user)
         elif check_user:
@@ -548,9 +539,6 @@ class InstaClient:
         Returns:
             list: List of instagram usernames
         """
-        
-        if not self.driver:
-            self.__init_driver(login=True)
         # Nav to user page
         self.nav_user(user, check_user=check_user)
         # Find Followers button/link
@@ -750,9 +738,6 @@ class InstaClient:
             bool: True if the user is valid
         """
         print('INSTACLIENT: Checking user vadility')
-        if not self.driver:
-            self.__init_driver(login=True)
-            nav_to_user = True
         if nav_to_user:
             self.driver.get(ClientUrls.NAV_USER.format(user))
 
@@ -781,7 +766,7 @@ class InstaClient:
         else: 
             print('INSTACLIENT: {} is a valid user.'.format(user))
             # Operation Successful
-            paccount_alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PRIVATE_ACCOUNT_ALERT)), wait_time=3)
+            paccount_alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PRIVATE_ACCOUNT_ALERT)))
             if paccount_alert:
                 # navigate back to home page
                 raise PrivateAccountError(user)
@@ -849,7 +834,10 @@ class InstaClient:
         try:
             wait = WebDriverWait(self.driver, wait_time)
             widgets = wait.until(expectation)
-            return widgets
+            if widgets is not None:
+                return widgets
+            else:
+                raise NoSuchElementException()
         except TimeoutException:
             # Element was not found in time
             print('INSTACLIENT: Element Not Found...')
@@ -958,7 +946,7 @@ class InstaClient:
                 raise InvaildDriverError(self.driver_type)
         except WebDriverException as error:
             try: self.driver.quit()
-            except: self.__init_driver()
+            except: self.__init_driver(login=login)
             finally: raise error
 
         if login:
