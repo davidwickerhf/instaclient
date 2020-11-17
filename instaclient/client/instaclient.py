@@ -18,7 +18,6 @@ from instaclient.client.paths import Paths
 from instaclient.client.urls import ClientUrls, GraphUrls
 from instaclient.client.scraper import Scraper
 
-
 class InstaClient(Scraper):
     CHROMEDRIVER=1
     LOCAHOST=1
@@ -94,6 +93,8 @@ class InstaClient(Scraper):
         self.error_callback = error_callback
         self.localhost_headless = localhost_headless
         self.logger = logging.getLogger(__name__)
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
         self.logged_in = False
         self.driver = None
         self.username = None
@@ -167,6 +168,8 @@ class InstaClient(Scraper):
                 self.__dismiss_cookies()
 
             # Get Form elements
+            if self.debug:
+                self.error_callback(self.driver)
             username_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)), url=ClientUrls.LOGIN_URL)
             password_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.PASSWORD_INPUT)), url=ClientUrls.LOGIN_URL)
             self.logger.debug('INSTACLIENT: Found elements')
