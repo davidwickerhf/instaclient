@@ -5,7 +5,7 @@ import logging
 import time
 import random
 
-def get_logger(logger_file_path):
+def get_logger():
     """
     Creates a logging object and returns it
 
@@ -13,17 +13,15 @@ def get_logger(logger_file_path):
         logger:logging.Log: Log object
     """
 
-    logger = logging.getLogger('instaclientLogger')
+    logger = logging.getLogger('INSTACLIENT')
     logger.setLevel(logging.DEBUG)
- 
-    # log file handler
-    fh = logging.FileHandler(logger_file_path)
+    c_handler = logging.StreamHandler()
+    c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
  
     # log format
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
+    c_handler.setFormatter(c_format)
  
-    logger.addHandler(fh)
+    logger.addHandler(c_handler)
     return logger
  
  

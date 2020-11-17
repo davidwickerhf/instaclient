@@ -30,6 +30,9 @@ class Paths:
     SEND_DM_BTN = '//div[@class="X3a-9"]//descendant::button'
     # Check Login Status Procedure
     NAV_BAR = '//div[@data-testid="mobile-nav-logged-in" and @class="BvyAW"]'
+    # ENGAGEMENT PROCEDURES
+    # Like Feed Posts
+    LIKE_BTN = ''
     # GENERAL
     COOKIES_LINK = '//a[contains(@heref, "cookies") or contains(text(), "Cookie")]'
     ACCEPT_COOKIES = '//button[@class="aOOlW  bIiDR  "]'
