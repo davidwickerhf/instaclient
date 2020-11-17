@@ -808,18 +808,27 @@ class InstaClient(Scraper):
         if private:
             self.logger.debug('INSTACLIENT: Account is private')
             raise PrivateAccountError(user)
-
-        elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN))):
-            self.logger.debug('INSTACLIENT: Follow button found')
-            follow_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)))
-            self.__press_button(follow_btn)
             
-        else:
+        elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN))):
             self.logger.debug('INSTACLIENT: Message button found')
             message_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN)))
             # Open User DM Page
             self.__press_button(message_btn)
             return True
+
+        elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN))):
+            self.logger.debug('INSTACLIENT: Follow button found')
+            follow_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)))
+            self.__press_button(follow_btn)
+
+            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN))):
+                self.logger.debug('INSTACLIENT: Message button found')
+                message_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN)))
+                # Open User DM Page
+                self.__press_button(message_btn)
+                return True
+
+        raise InstaClientError('There was an error when navigating to <{}>\'s DMs'.format(user))
             
         
     # IG PRIVATE UTILITIES (The client is considered initiated)
@@ -869,28 +878,29 @@ class InstaClient(Scraper):
 
                     if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.DISMISS_DIALOGUE))):
                         self.__dismiss_dialogue()
-                    self.__find_element(expectation, url, wait_time=1.5, attempt=attempt+1)
-            elif retry:
-                if ClientUrls.LOGIN_URL in self.driver.current_url:
-                    if attempt < 1 and url is not None:
-                        self.driver.get(url)
-                        self.__find_element(expectation, url, wait_time=1.5, attempt=attempt+1)
-                    else:
+                    return self.__find_element(expectation, url, wait_time=1.5, attempt=attempt+1)
+                elif retry:
+                    if ClientUrls.LOGIN_URL in self.driver.current_url:
+                        if attempt < 1 and url is not None:
+                            self.driver.get(url)
+                            return self.__find_element(expectation, url, wait_time=1.5, attempt=attempt+1)
+                        else:
+                            if self.error_callback:
+                                self.error_callback(self.driver)
+                            self.logger.exception('The element with locator {} was not found'.format(expectation.locator))
+                            raise NoSuchElementException()
+                    elif not self.logged_in:
+                        if url in self.driver.current_url:
+                            self.driver.get(url)
+                            return self.__find_element(expectation, url, wait_time, attempt+1)
+                        # Not Logged In!
                         if self.error_callback:
-                            self.error_callback(self.driver)
-                        raise NoSuchElementException()
-                elif not self.check_status():
-                    if url in self.driver.current_url:
-                        self.driver.get(url)
-                        self.__find_element(expectation, url, wait_time, attempt+1)
-                        time.sleep(1)
-                    # Not Logged In!
-                    if self.error_callback:
-                            self.error_callback(self.driver)
-                    raise NotLoggedInError()   
+                                self.error_callback(self.driver)
+                        raise NotLoggedInError()   
             else:
                 if self.error_callback:
                         self.error_callback(self.driver)
+                self.logger.exception('The element with locator {} was not found'.format(expectation.locator))
                 raise NoSuchElementException()
 
 
@@ -1000,14 +1010,11 @@ class InstaClient(Scraper):
             else:
                 raise InvaildDriverError(self.driver_type)
         except WebDriverException as error:
-            try: self.driver.quit()
-            except: 
-                time.sleep(3.5)
-                if retries < 2:
-                    self.logger.debug('INSTACLIENT: Error when initiating driver... Trying again')
-                    self.__init_driver(login=login, retries=retries+1, func='__init_driver')
-                else:
-                    raise error
+            if retries < 2:
+                self.logger.debug('INSTACLIENT: Error when initiating driver... Trying again')
+                self.__init_driver(login=login, retries=retries+1, func='__init_driver')
+            else:
+                raise error
 
         if login:
             try:

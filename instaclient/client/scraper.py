@@ -1,7 +1,17 @@
-import json
+import json, requests
+from instaclient.client.urls import GraphUrls
 
 class Scraper:
-    def __iterate_nodes(self, source, target_nodes=None, count=None):
+    def __init__(self, logger):
+        self.logger = logger
+
+    def scrape(self, url):
+        response = requests.get(url)
+        source = response.json
+        nodes = self.__scrape_nodes(source, )
+
+
+    def __scrape_nodes(self, source, target_nodes=[], count=None):
         data = json.loads(source)
         nodes = self.__iterate(data, ['node'])
         self.logger.debug('NODES:\n{}'.format(nodes))
@@ -9,7 +19,7 @@ class Scraper:
         for node in nodes:
             if node.get('__typename') and node.get('__typename') in target_nodes:
                 selected_nodes.append(node)
-
+        return selected_nodes
 
     def __iterate(self, target_dict:dict, keys:list):
         for i, j in target_dict.items(): 
