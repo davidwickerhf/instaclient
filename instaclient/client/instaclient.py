@@ -62,7 +62,7 @@ class InstaClient(Scraper):
         return wrapper
     
     # INIT
-    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, init_driver=True, debug=False, error_callback=None, localhost_headless=False):
+    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, init_driver=False, debug=False, error_callback=None, localhost_headless=False):
         """
         Create an `InstaClient` object to access the instagram website.
 
@@ -215,10 +215,10 @@ class InstaClient(Scraper):
         # Detect Suspicious Login Attempt Dialogue
         send_code = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)))
         if send_code:
-            self.logger.debug('INSTACLIENT: Suspicious Login Attempt.')
+            self.logger.warn('INSTACLIENT: Suspicious Login Attempt.')
             send_code = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)), wait_time=4)
             self.__press_button(send_code)
-            self.logger.debug('INSTACLIENT: Sent Security Code')
+            self.logger.warn('INSTACLIENT: Sent Security Code')
             # Detect Error
             alert = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.ERROR_SENDING_CODE)), wait_time=2)
             if alert:
@@ -227,7 +227,7 @@ class InstaClient(Scraper):
                 self.__press_button(email)
                 time.sleep(0.5)
                 self.__press_button(send_code)
-                self.logger.debug('INSTACLIENT: Sending code via email')
+                self.logger.warn('INSTACLIENT: Sending code via email')
                 raise SuspisciousLoginAttemptError(mode=SuspisciousLoginAttemptError.EMAIL)
             raise SuspisciousLoginAttemptError(mode=SuspisciousLoginAttemptError.PHONE)
 
@@ -235,7 +235,7 @@ class InstaClient(Scraper):
         scode_input = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.VERIFICATION_CODE)))
         if scode_input:
             # 2F Auth is enabled, request security code
-            self.logger.debug('INSTACLIENT: 2FA Required. Check Auth App')
+            self.logger.warn('INSTACLIENT: 2FA Required. Check Auth App')
             raise VerificationCodeNecessary()
         else:
             self.logged_in = True
@@ -292,7 +292,7 @@ class InstaClient(Scraper):
                 raise SuspisciousLoginAttemptError(mode)
             raise SuspisciousLoginAttemptError()
         else:
-            self.logger.debug('Wrong Url when resending code')
+            self.logger.warn('Wrong Url when resending code')
             return False
 
 
@@ -421,7 +421,7 @@ class InstaClient(Scraper):
         if self.driver.current_url != ClientUrls.NAV_USER.format(user):
             self.driver.get(ClientUrls.NAV_USER.format(user))
 
-        self.logger.debug('INSTACLIENT: Url: ', self.driver.current_url)
+        self.logger.debug('INSTACLIENT: Url: {}'.format(self.driver.current_url))
         if self.driver.current_url == ClientUrls.LOGIN_THEN_USER.format(user):
             raise NotLoggedInError()
         elif self.driver.current_url != ClientUrls.NAV_USER.format(user):
@@ -669,7 +669,7 @@ class InstaClient(Scraper):
             try:
                 self.driver.find_element_by_xpath("//*[@aria-label='{}']".format(action)).click()
             except Exception as e:
-                self.logger.debug(e)
+                self.logger.error(e)
 
             self.driver.find_elements_by_class_name('ckWGn')[0].click()
 
@@ -697,7 +697,7 @@ class InstaClient(Scraper):
         except Exception as error: 
             if self.debug:
                 self.error_callback(self.driver)
-            self.logger.debug('INSTACLIENT: An error occured when sending a DM to the user <{}>'.format(user))
+            self.logger.error('INSTACLIENT: An error occured when sending a DM to the user <{}>'.format(user))
             raise error
 
 
@@ -956,7 +956,7 @@ class InstaClient(Scraper):
         """
         restriction = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.RESTRICTION_DIALOG)), wait_time=1.2)
         if restriction:
-            self.logger.debug('INSTACLIENT: WARNING: ACCOUNT <{}> HAS BEEN RESTRICTED'.format(self.username))
+            self.logger.warn('INSTACLIENT: WARNING: ACCOUNT <{}> HAS BEEN RESTRICTED'.format(self.username))
             buttons = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.RESTRICTION_DIALOGUE_BTNS)), retry=False)
             buttons.click()
             time.sleep(randrange(2,4))
@@ -964,7 +964,7 @@ class InstaClient(Scraper):
 
         block = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.BLOCK_DIV)), wait_time=1.2)
         if block:
-            self.logger.debug('INSTACLIENT: WARNING: ACCOUNT <{}> HAS BEEN BLOCKED - Log in Manually'.format(self.username))
+            self.logger.warn('INSTACLIENT: WARNING: ACCOUNT <{}> HAS BEEN BLOCKED - Log in Manually'.format(self.username))
             raise BlockedAccountError(self.username)
 
 
@@ -1021,4 +1021,4 @@ class InstaClient(Scraper):
             try:
                 self.login(self.username, self.password)
             except:
-                raise InstaClientError(message='Tried self.logger in when initiating driver, but username and password are not defined.') 
+                raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.') 

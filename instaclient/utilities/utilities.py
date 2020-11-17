@@ -13,16 +13,17 @@ def get_logger():
         logger:logging.Log: Log object
     """
 
-    logger = logging.getLogger('INSTACLIENT')
-    logger.setLevel(logging.DEBUG)
-    c_handler = logging.StreamHandler()
-    c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
- 
-    # log format
-    c_handler.setFormatter(c_format)
- 
-    logger.addHandler(c_handler)
-    return logger
+    loglevel = logging.INFO
+    l = logging.getLogger(__name__)
+    if not getattr(l, 'handler_set', None):
+        l.setLevel(loglevel)
+        h = logging.StreamHandler()
+        f = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        h.setFormatter(f)
+        l.addHandler(h)
+        l.setLevel(loglevel)
+        l.handler_set = True
+    return l  
  
  
 def exception(func):
