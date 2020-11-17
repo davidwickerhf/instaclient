@@ -93,7 +93,7 @@ class InstaClient(Scraper):
                 raise InvalidErrorCallbackError()
         self.error_callback = error_callback
         self.localhost_headless = localhost_headless
-        self.logger = get_logger()
+        self.logger = logging.getLogger(__name__)
         self.logged_in = False
         self.driver = None
         self.username = None
@@ -176,13 +176,9 @@ class InstaClient(Scraper):
             password_input.send_keys(password)
             time.sleep(1)
             self.logger.debug('INSTACLIENT: Filled in form')
-            if self.debug:
-                self.error_callback(self.driver)
             login_btn = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)), url=ClientUrls.LOGIN_URL)# login button xpath changes after text is entered, find first
             self.__press_button(login_btn)
             self.logger.debug('INSTACLIENT: Sent form')
-            if self.debug:
-                self.error_callback(self.driver)
         except ElementClickInterceptedException as error:
             self.password = None
             self.driver.get(ClientUrls.LOGIN_URL)
@@ -241,10 +237,10 @@ class InstaClient(Scraper):
             self.logged_in = True
 
         self.logger.debug('INSTACLIENT: Credentials are Correct')
-        if self.debug:
-            self.error_callback(self.driver)
-        # Discard Driver or complete login
 
+        # Discard Driver or complete login
+        if discard_driver:
+            self.__discard_driver()
         else:
             # Detect and dismiss save info Dialog
             self.driver.get(ClientUrls.HOME_URL)
@@ -256,9 +252,6 @@ class InstaClient(Scraper):
             # Detect 'Turn On Notifications' Box
             if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.DISMISS_DIALOGUE))):
                 self.__dismiss_dialogue()
-                
-            if self.debug:
-                self.error_callback(self.driver)
         return self.logged_in
 
 
@@ -425,11 +418,9 @@ class InstaClient(Scraper):
         if self.driver.current_url == ClientUrls.LOGIN_THEN_USER.format(user):
             raise NotLoggedInError()
         elif self.driver.current_url != ClientUrls.NAV_USER.format(user):
-            self.error_callback(self.driver)
             time.sleep(1)
             self.driver.get(ClientUrls.NAV_USER.format(user))
             time.sleep(1)
-            self.error_callback(self.driver)
 
 
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
@@ -686,8 +677,6 @@ class InstaClient(Scraper):
         """
         # Navigate to User's dm page
         try:
-            if self.debug:
-                self.error_callback(self.driver)
             self.nav_user_dm(user)
             text_area = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.DM_TEXT_AREA)))
             text_area.send_keys(message)

@@ -5,7 +5,7 @@ import logging
 import time
 import random
 
-def get_logger():
+def get_logger(debug=False):
     """
     Creates a logging object and returns it
 
@@ -13,7 +13,7 @@ def get_logger():
         logger:logging.Log: Log object
     """
 
-    loglevel = logging.DEBUG
+    loglevel = logging.DEBUG if debug else logging.INFO
     l = logging.getLogger(__name__)
     if not getattr(l, 'handler_set', None):
         l.setLevel(loglevel)
