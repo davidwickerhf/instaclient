@@ -13,7 +13,7 @@ def get_logger():
         logger:logging.Log: Log object
     """
 
-    loglevel = logging.INFO
+    loglevel = logging.DEBUG
     l = logging.getLogger(__name__)
     if not getattr(l, 'handler_set', None):
         l.setLevel(loglevel)
