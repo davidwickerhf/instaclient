@@ -9,4 +9,6 @@ class ClientUrls:
 
 
 class GraphUrls:
-    NOTIFICATIONS_GURL = 'https://www.instagram.com/accounts/activity/?__a=1'
+    GRAPH_USER='https://www.instagram.com/{}/?__a=1'
+    GRAPH_TAGS='https://www.instagram.com/explore/tags/{}/?__a=1'
+    GRAPH_ACTIVITY = 'https://www.instagram.com/accounts/activity/?__a=1'

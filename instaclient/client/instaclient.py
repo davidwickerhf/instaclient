@@ -92,13 +92,20 @@ class InstaClient(Scraper):
                 raise InvalidErrorCallbackError()
         self.error_callback = error_callback
         self.localhost_headless = localhost_headless
-        self.logger = logging.getLogger(__name__)
-        if debug:
-            self.logger.setLevel(logging.DEBUG)
         self.logged_in = False
         self.driver = None
         self.username = None
         self.password = None
+
+        self.logger = logging.getLogger(__name__)
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.INFO)
+
+        NotificationScraper.__init__(self, self.logger)
+        TagScraper.__init__(self, self.logger)
+
         if init_driver:
             self.__init_driver(func='__init__')
 
@@ -628,11 +635,13 @@ class InstaClient(Scraper):
 
     
     @__manage_driver
-    def check_notifications(self):
+    def check_notifications(self, types:list=None, count:int=None):
         self.logger.debug('INSTACLIENT: check_notifications')
-        self.driver.get(GraphUrls.NOTIFICATIONS_GURL)
-        source = request
-        notifications = self.__iterate_nodes()
+        self.driver.get(GraphUrls.GRAPH_ACTIVITY)
+        element:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.QUERY_ELEMENT)))
+        source = element.text        
+        notifications = self._scrape_notifications(source, viewer=self.username, types=types, count=count)
+        return notifications
 
 
     @__manage_driver
