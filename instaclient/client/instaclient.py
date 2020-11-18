@@ -1,6 +1,4 @@
 """This module contains the InstaClient class"""
-import json
-from random import randrange
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
@@ -9,56 +7,23 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException, TimeoutException        
 import time, os
-
-from urllib3 import request
+from random import randrange
 
 from instaclient.utilities.utilities import *
 from instaclient.errors import *
 from instaclient.client.paths import Paths
 from instaclient.client.urls import ClientUrls, GraphUrls
-from instaclient.client.scraper import Scraper
+from instaclient.client.notiscraper import NotificationScraper
+from instaclient.client.tagscraper import TagScraper
 
-class InstaClient(Scraper):
+
+class InstaClient(NotificationScraper, TagScraper):
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
     PIXEL_SCROLL=3
     END_PAGE_SCROLL=4
     PAGE_DOWN_SCROLL=5
-    # INSTACLIENT DECORATOR
-    def __manage_driver(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            time.sleep(random.randint(1, 2))
-            self.logger.debug('INSTACLIENT: Mangage Driver, func: {}'.format(func.__name__))
-            if not self.driver:
-                login = True
-                if func.__name__ in ('login', 'resend_verification_code', 'input_security_code', 'input_verification_code', 'logout'):
-                    login = False
-                self.__init_driver(login, func=func.__name__)
-
-            error = False
-            result = None
-            try:
-                result = func(self, *args, **kwargs)
-                time.sleep(1)
-            except Exception as exception:
-                error = exception
-            
-            discard = kwargs.get('discard_driver')
-            if discard is not None:
-                if discard:
-                    self.__discard_driver()
-            elif len(args) > 0 and isinstance(args[-1], bool):
-                if args[-1]:
-                    self.__discard_driver()
-            
-            time.sleep(random.randint(1, 2))
-            if error:
-                raise error
-            else:
-                return result
-        return wrapper
     
     # INIT
     def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, init_driver=False, debug=False, error_callback=None, localhost_headless=False):
@@ -109,6 +74,42 @@ class InstaClient(Scraper):
         if init_driver:
             self.__init_driver(func='__init__')
 
+
+    # INSTACLIENT DECORATOR
+    def __manage_driver(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            time.sleep(random.randint(1, 2))
+            self.logger.debug('INSTACLIENT: Mangage Driver, func: {}'.format(func.__name__))
+            if not self.driver:
+                login = True
+                if func.__name__ in ('login', 'resend_verification_code', 'input_security_code', 'input_verification_code', 'logout'):
+                    login = False
+                self.__init_driver(login, func=func.__name__)
+
+            error = False
+            result = None
+            try:
+                result = func(self, *args, **kwargs)
+                time.sleep(1)
+            except Exception as exception:
+                error = exception
+            
+            discard = kwargs.get('discard_driver')
+            if discard is not None:
+                if discard:
+                    self.__discard_driver()
+            elif len(args) > 0 and isinstance(args[-1], bool):
+                if args[-1]:
+                    self.__discard_driver()
+            
+            time.sleep(random.randint(1, 2))
+            if error:
+                raise error
+            else:
+                return result
+        return wrapper
+    
     # INSTAGRAM FUNCTIONS
     # LOGIN PROCEDURE
     @__manage_driver
@@ -702,6 +703,12 @@ class InstaClient(Scraper):
             raise error
 
 
+    @__manage_driver
+    def get_tag_posts(self):
+        """"""
+        # TODO
+    
+    
     #@__manage_driver
     #def comment_post(self, text):
         #"""
@@ -752,7 +759,7 @@ class InstaClient(Scraper):
                 
     # NAVIGATION PROCEDURES
     @__manage_driver
-    def search_tag(self, tag:str, discard_driver:bool=False):
+    def nav_tag(self, tag:str, discard_driver:bool=False):
         """
         Naviagtes to a search for posts with a specific tag on IG.
 

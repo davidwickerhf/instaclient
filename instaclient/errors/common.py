@@ -186,3 +186,14 @@ class BlockedAccountError(InstaClientError):
     def __str__(self):
         return f'{self.username} -> {self.message}'
 
+
+class InvalidNotificationTypeError(InstaClientError):
+    """ 
+    Raised when scraping notifications with an invalid notification type
+    """
+    def __init__(self, type):
+        self.type = type
+        super().__init__(message="Trying to scrape notifications with an invalid notification type.")
+
+    def __str__(self):
+        return f'{self.type} -> {self.message}'

@@ -25,6 +25,7 @@ wheels/
 *.egg
 MANIFEST
 admintest.py
+research
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
