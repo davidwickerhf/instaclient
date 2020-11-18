@@ -1,9 +1,6 @@
 """This module contains the InstaClient class"""
-from logging import log
-from os import error, waitpid
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -63,6 +60,12 @@ class InstaClient(NotificationScraper, TagScraper):
         self.driver = None
         self.username = None
         self.password = None
+
+        self.logger = logging.getLogger(__name__)
+        if debug:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.INFO)
 
         NotificationScraper.__init__(self, self.logger)
         TagScraper.__init__(self, self.logger)
@@ -564,7 +567,7 @@ class InstaClient(NotificationScraper, TagScraper):
     @__manage_driver
     def check_notifications(self, types:list=None, count:int=None):
         self.logger.debug('INSTACLIENT: check_notifications')
-        self.driver.get(GraphUrls.NOTIFICATIONS_GURL)
+        self.driver.get(GraphUrls.GRAPH_ACTIVITY)
         element:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.QUERY_ELEMENT)))
         source = element.text        
         notifications = self._scrape_notifications(source, viewer=self.username, types=types, count=count)
