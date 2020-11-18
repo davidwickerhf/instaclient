@@ -40,11 +40,11 @@ class TestClient(unittest.TestCase):
         """
         # Test existing tag
         tag = input('Enter an existing IG Tag: ')
-        response = self.client.search_tag(tag) 
+        response = self.client.nav_tag(tag) 
         self.assertEqual(response, True, 'Response is false, should be True. Search Existing Tag not Successful')
         # Test inexisting tag
         tag = input('Enter an inexisting IG Tag: ')
-        response = self.client.search_tag(tag)
+        response = self.client.nav_tag(tag)
         self.assertEqual(response, True,  'Response is false, should be True. Search NonExisting Tag not Successful')
 
     def test_nav_user(self):

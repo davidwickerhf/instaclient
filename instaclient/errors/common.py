@@ -161,3 +161,39 @@ class NotLoggedInError(InstaClientError):
     """Raised when trying to use a client method without being logged into instagram"""
     def __init__(self):
         super().__init__(message="InstaClient is not logged in.")
+
+
+class RestrictedAccountError(InstaClientError):
+    """
+    Raised when instagram restricts the current account
+    """
+    def __init__(self, username):
+        self.username = username
+        super().__init__(message="The account has been restricted by instagram. Use your account normally and wait at least 24 hours before trying again.")
+
+    def __str__(self):
+        return f'{self.username} -> {self.message}'
+
+
+class BlockedAccountError(InstaClientError):
+    """
+    Raised when instagram restricts the current account
+    """
+    def __init__(self, username):
+        self.username = username
+        super().__init__(message="The account has been blocked by instagram. Log into your account manually to unblock it")
+
+    def __str__(self):
+        return f'{self.username} -> {self.message}'
+
+
+class InvalidNotificationTypeError(InstaClientError):
+    """ 
+    Raised when scraping notifications with an invalid notification type
+    """
+    def __init__(self, type):
+        self.type = type
+        super().__init__(message="Trying to scrape notifications with an invalid notification type.")
+
+    def __str__(self):
+        return f'{self.type} -> {self.message}'

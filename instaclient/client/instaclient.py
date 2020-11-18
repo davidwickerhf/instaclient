@@ -6,6 +6,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException, TimeoutException        
 import time, os
@@ -13,46 +14,18 @@ import time, os
 from instaclient.utilities.utilities import *
 from instaclient.errors import *
 from instaclient.client.paths import Paths
-from instaclient.client.urls import ClientUrls
+from instaclient.client.urls import ClientUrls, GraphUrls
+from instaclient.client.notiscraper import NotificationScraper
+from instaclient.client.tagscraper import TagScraper
 
 
-class InstaClient:
+class InstaClient(NotificationScraper, TagScraper):
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
-    # INSTACLIENT DECORATOR
-    def __manage_driver(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            time.sleep(random.randint(1, 2))
-            if not self.driver:
-                login = True
-                if func.__name__ == 'login':
-                    login = False
-                self.__init_driver(login)
-            
-            error = False
-            result = None
-            try:
-                result = func(self, *args, **kwargs)
-                time.sleep(1)
-            except Exception as exception:
-                error = exception
-            
-            discard = kwargs.get('discard_driver')
-            if discard is not None:
-                if discard:
-                    self.__discard_driver()
-            elif len(args) > 0 and isinstance(args[-1], bool):
-                if args[-1]:
-                    self.__discard_driver()
-            
-            time.sleep(random.randint(1, 2))
-            if error:
-                raise error
-            else:
-                return result
-        return wrapper
+    PIXEL_SCROLL=3
+    END_PAGE_SCROLL=4
+    PAGE_DOWN_SCROLL=5
     
     # INIT
     def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, init_driver=True, debug=False, error_callback=None, localhost_headless=False):
@@ -90,9 +63,49 @@ class InstaClient:
         self.driver = None
         self.username = None
         self.password = None
+
+        NotificationScraper.__init__(self, self.logger)
+        TagScraper.__init__(self, self.logger)
+
         if init_driver:
             self.__init_driver()
 
+
+    # INSTACLIENT DECORATOR
+    def __manage_driver(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            time.sleep(random.randint(1, 2))
+            self.logger.debug('INSTACLIENT: Mangage Driver, func: {}'.format(func.__name__))
+            if not self.driver:
+                login = True
+                if func.__name__ in ('login', 'resend_verification_code', 'input_security_code', 'input_verification_code', 'logout'):
+                    login = False
+                self.__init_driver(login, func=func.__name__)
+
+            error = False
+            result = None
+            try:
+                result = func(self, *args, **kwargs)
+                time.sleep(1)
+            except Exception as exception:
+                error = exception
+            
+            discard = kwargs.get('discard_driver')
+            if discard is not None:
+                if discard:
+                    self.__discard_driver()
+            elif len(args) > 0 and isinstance(args[-1], bool):
+                if args[-1]:
+                    self.__discard_driver()
+            
+            time.sleep(random.randint(1, 2))
+            if error:
+                raise error
+            else:
+                return result
+        return wrapper
+    
     # INSTAGRAM FUNCTIONS
     @__manage_driver
     def check_status(self, discard_driver:bool=False):
@@ -462,6 +475,103 @@ class InstaClient:
     
 
     @__manage_driver
+    def scrape_followers(self, user:str, check_user=True, discard_driver:bool=False):
+        """
+        scrape_followers Scrape an instagram user's followers and return them as a list of strings.
+
+        Args:
+            user (str): User to scrape
+            check_user (bool, optional): If set to True, checks if the `user` is a valid instagram username. Defaults to True.
+            discard_driver (bool, optional): If set to True, the `driver` will be discarded at the end of the method. Defaults to False.
+
+        Returns:
+            list: List of instagram usernames
+        """
+        # Nav to user page
+        self.nav_user(user, check_user=check_user)
+        # Find Followers button/link
+        followers_btn:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), url=ClientUrls.NAV_USER.format(user))
+        # Start scraping
+        followers = []
+        # Click followers btn
+        self.__press_button(followers_btn)
+        time.sleep(2)
+        # Load all followers
+        followers = []
+        main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)))
+        size = main.size.get('height')
+        time.sleep(15)
+        while True:
+            main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)), wait_time=3)
+            new_size = main.size.get('height')
+            if new_size > 60000:
+                break
+            if new_size > size:
+                size = new_size
+                time.sleep(15)
+                continue
+            else:
+                break
+        try:
+            followers_list:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST)), wait_time=3)
+        except NoSuchElementException:
+            return self.scrape_followers(user, check_user, discard_driver)
+
+        divs = followers_list.find_elements_by_xpath(Paths.FOLLOWER_USER_DIV)
+        for div in divs:
+            try:
+                username = div.text.split('\n')[0]
+                if username not in followers and username not in ('Follow',):
+                    followers.append(username)
+            except:
+                pass
+        return followers
+
+
+    # ENGAGEMENT PROCEDURES
+    @__manage_driver
+    def scroll(self, mode=PAGE_DOWN_SCROLL, size=500, times=1, interval=3):
+        """
+        Scrolls to the bottom of a users page to load all of their media
+
+        Returns:
+            bool: True if the bottom of the page has been reached, else false
+
+        """
+        for n in range(0, times):
+            self.__dismiss_dialogue()
+            self.logger.debug('INSTACLIENT: Scrolling')
+            if mode == self.PIXEL_SCROLL:
+                self.driver.execute_script("window.scrollBy(0, {});".format(size))
+            elif mode == self.PAGE_DOWN_SCROLL:
+                url = self.driver.current_url
+                body = self.__find_element(EC.presence_of_element_located((By.TAG_NAME, 'body')), retry=True, url=url)
+                body.send_keys(Keys.PAGE_DOWN)
+            elif mode == self.END_PAGE_SCROLL:
+                url = self.driver.current_url
+                body = self.__find_element(EC.presence_of_element_located((By.TAG_NAME, 'body')), retry=True, url=url)
+                body.send_keys(Keys.END)
+
+            time.sleep(interval)
+        return False
+
+
+    @__manage_driver
+    def like_feed_posts(self, count):
+        self.logger.debug('INSTACLIENT: like_feed_posts')
+
+    
+    @__manage_driver
+    def check_notifications(self, types:list=None, count:int=None):
+        self.logger.debug('INSTACLIENT: check_notifications')
+        self.driver.get(GraphUrls.NOTIFICATIONS_GURL)
+        element:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.QUERY_ELEMENT)))
+        source = element.text        
+        notifications = self._scrape_notifications(source, viewer=self.username, types=types, count=count)
+        return notifications
+
+
+    @__manage_driver
     def like_latest_posts(self, user:str, n_posts:int, like:bool=True, discard_driver:bool=False):
         """
         Likes a number of a users latest posts, specified by n_posts.
@@ -521,6 +631,12 @@ class InstaClient:
             raise error
 
 
+    @__manage_driver
+    def get_tag_posts(self):
+        """"""
+        # TODO
+    
+    
     #@__manage_driver
     #def comment_post(self, text):
         #"""
@@ -628,7 +744,7 @@ class InstaClient:
                 
     # IG UTILITY METHODS
     @__manage_driver
-    def search_tag(self, tag:str, discard_driver:bool=False):
+    def nav_tag(self, tag:str, discard_driver:bool=False):
         """
         Naviagtes to a search for posts with a specific tag on IG.
 
