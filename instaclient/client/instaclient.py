@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException, TimeoutException        
-import time, os, requests
+import time, os, requests, concurrent.futures
 from random import randrange
 
 from instaclient.utilities.utilities import *
@@ -62,6 +62,7 @@ class InstaClient(NotificationScraper, TagScraper):
         self.driver = None
         self.username = None
         self.password = None
+        self.threads = []
 
         self.logger = logging.getLogger(__name__)
         if debug:
@@ -549,24 +550,63 @@ class InstaClient(NotificationScraper, TagScraper):
 
         img_srcs = list(set(img_srcs)) # clean up duplicates
         return img_srcs
-    
 
-    @__manage_driver()
-    def scrape_followers(self, user:str, check_user=True, discard_driver:bool=False):
+    
+    def scrape_followers(self, user:str, check_user=True, max_wait_time:int=300, callback_frequency:int=25, callback=None):
         """
         scrape_followers Scrape an instagram user's followers and return them as a list of strings.
 
         Args:
             user (str): User to scrape
             check_user (bool, optional): If set to True, checks if the `user` is a valid instagram username. Defaults to True.
-            discard_driver (bool, optional): If set to True, the `driver` will be discarded at the end of the method. Defaults to False.
+            max_wait_time (int, optional): Time to wait (in seconds) while loading before stopping the method and returning the results. Defaults to 300 (seconds)
+            callback_frequency (int, optional): Time (in seconds) between updates
+            callback (function): Function with no parameters that gets called with the frequency set by ``callback_frequency``
 
         Returns:
             list: List of instagram usernames
         """
+        if callback and not callable(callback):
+            raise InvalidErrorCallbackError()
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(self.__scrape_followers, user, check_user, max_wait_time)
+            if not callback:
+                self.logger.info('Initiating scrape...'.format(callback_frequency))
+            else:
+                callback()
+            while True:
+                if not future.running():
+                    break
+                time.sleep(callback_frequency)
+                if not callback:
+                    self.logger.info('Scraping followers... waited {} seconds'.format(callback_frequency))
+                else:
+                    callback()
+            result = future.result()
+            return result
+
+        
+    @__manage_driver()
+    def __scrape_followers(self, user:str, check_user=True, max_waiting_time:int=300, discard_driver:bool=True):
+        """
+        __scrape_followers Scrape an instagram user's followers and return them as a list of strings.
+
+        Args:
+            user (str): User to scrape
+            check_user (bool, optional): If set to True, checks if the `user` is a valid instagram username. Defaults to True.
+            discard_driver (bool, optional): If set to True, the `driver` will be discarded at the end of the method. Defaults to True.
+
+        Returns:
+            list: List of instagram usernames
+        """
+        # Set starting time:
+        tic = time.perf_counter()
         # Nav to user page
         self.nav_user(user, check_user=check_user)
+        self.logger.debug('Navigated to User Page')
         # Find Followers button/link
+        self.logger.debug('Found Followers Button')
         followers_btn:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), url=ClientUrls.NAV_USER.format(user))
         # Start scraping
         followers = []
@@ -577,23 +617,30 @@ class InstaClient(NotificationScraper, TagScraper):
         followers = []
         main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)))
         size = main.size.get('height')
+        self.logger.debug('Loading... Waiting 15 seconds')
         time.sleep(15)
         while True:
             main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)), wait_time=3)
             new_size = main.size.get('height')
-            if new_size > 60000:
-                break
             if new_size > size:
                 size = new_size
+                self.logger.debug('Loading... Waiting 15 seconds')
+                toc = time.perf_counter()
+                if (toc-tic) > max_waiting_time:
+                    break
+                tic = toc
                 time.sleep(15)
                 continue
             else:
                 break
+        self.logger.debug('Out of the loop. Loading followers div...')
         try:
             followers_list:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST)), wait_time=3)
         except NoSuchElementException:
+            self.logger.warn('Followers List not found... Retrying method')
             return self.scrape_followers(user, check_user, discard_driver)
 
+        self.logger.info('Followers loaded. Saving and returing')
         divs = followers_list.find_elements_by_xpath(Paths.FOLLOWER_USER_DIV)
         for div in divs:
             try:
@@ -1019,13 +1066,14 @@ class InstaClient(NotificationScraper, TagScraper):
                     self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
                 elif self.host_type == self.LOCAHOST:
                     # Running locally
-                    capabilities = {'chromeOptions': {'androidPackage': 'com.android.chrome',}}
                     chrome_options = webdriver.ChromeOptions()
+                    chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
+                    chrome_options.add_argument("--window-size=343,915")
                     chrome_options.add_argument("--headless") if self.localhost_headless else None
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
                     self.logger.debug('Path: {}'.format(self.driver_path))
-                    self.driver = webdriver.Remote('http://localhost:9515', capabilities)
+                    self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options)
                 else:
                     raise InvaildHostError(self.host_type)
             else:

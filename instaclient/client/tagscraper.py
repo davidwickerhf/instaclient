@@ -6,7 +6,6 @@ import requests
 from instaclient.client.urls import GraphUrls
 from instaclient.classes.instaobject import InstaBaseObject
 from instaclient.classes.baseprofile import BaseProfile
-from instaclient.classes.notification import Notification
 
 class TagScraper: # TODO
     TYPES = [InstaBaseObject.GRAPH_IMAGE, InstaBaseObject.GRAPH_VIDEO, InstaBaseObject.GRAPH_SIDECAR]
