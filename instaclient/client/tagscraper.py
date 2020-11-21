@@ -1,23 +1,32 @@
+from instaclient.client.scraper import Scraper
 import json
+
+import requests
 from instaclient.client.urls import GraphUrls
 from instaclient.classes.instaobject import InstaBaseObject
 from instaclient.classes.baseprofile import BaseProfile
 from instaclient.classes.notification import Notification
 
-class TagScraper: # TODO
+class TagScraper(Scraper): # TODO
+    TYPES = [InstaBaseObject.GRAPH_IMAGE, InstaBaseObject.GRAPH_VIDEO, InstaBaseObject.GRAPH_SIDECAR]
+
     def __init__(self, logger):
         self.logger = logger
 
 
-    def _scrape_tag(self, source:int, viewer:int, types:list=None, count:int=None):
+    def _scrape_tag(self, tag:str, viewer:int, types:list=None, count:int=None):
 
         if types is None or len(types) == 0:
-            types = [InstaBaseObject.GRAPH_FOLLOW, InstaBaseObject.GRAPH_LIKE, InstaBaseObject.GRAPTH_TAGGED, InstaBaseObject.GRAPH_COMMENT, InstaBaseObject.GRAPH_MENTION]
+            types = self.TYPES
         else:
             for type in types:
-                if type not in [InstaBaseObject.GRAPH_FOLLOW, InstaBaseObject.GRAPH_LIKE, InstaBaseObject.GRAPTH_TAGGED, InstaBaseObject.GRAPH_COMMENT, InstaBaseObject.GRAPH_MENTION]:
+                if type not in self.TYPES:
                     raise InvalidNotificationTypeError(type)
         
+        try:
+            source = requests.get(GraphUrls.GRAPH_TAGS.format(tag)).json()
+        except ValueError:
+            print('No Data Found')
         nodes = self.__scrape_nodes(source, types, count)
         notifications = []
 
@@ -39,24 +48,17 @@ class TagScraper: # TODO
         return notifications
 
 
-    def __scrape_nodes(self, source:str, types:list, count:int=None):
-        data = json.loads(source)
-        nodes = self.__parse_notifications(data)
-        self.logger.debug('NODE COUNT:\n{}'.format(len(nodes)))
-
-        selected_nodes = []
-        for node in nodes:
-            if count is not None and len(selected_nodes) >= count:
-                break
-            else:
-                if node.get('__typename') in types:
-                    selected_nodes.append(node)
-        return selected_nodes
-
-
     def __parse_notifications(self, data):
         edges = data['graphql']['user']['activity_feed']['edge_web_activity_feed']['edges']
         nodes = []
+        for edge in edges:
+            if edge.get('node') is not None:
+                nodes.append(edge.get('node'))
+        return nodes
+
+    def __parse_posts(self, data):
+        edges = data[]
+        node = []
         for edge in edges:
             if edge.get('node') is not None:
                 nodes.append(edge.get('node'))

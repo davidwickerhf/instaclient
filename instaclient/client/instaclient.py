@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException, TimeoutException        
-import time, os
+import time, os, requests
 from random import randrange
 
 from instaclient.utilities.utilities import *
@@ -704,9 +704,11 @@ class InstaClient(NotificationScraper, TagScraper):
 
 
     @__manage_driver
-    def get_tag_posts(self):
-        """"""
-        # TODO
+    def get_tag_posts(self, tag, count):
+        self.logger.debug('INSTACLIENT: check_notifications')
+        
+        posts = self._scrape_notifications(source, viewer=self.username, types=types, count=count)
+        return posts
     
     
     #@__manage_driver
@@ -1008,6 +1010,8 @@ class InstaClient(NotificationScraper, TagScraper):
                     chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
+                    chrome_options.add_argument("--disable-setuid-sandbox") 
+                    chrome_options.add_argument("--remote-debugging-port=9222")
                     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
                     chrome_options.add_experimental_option('useAutomationExtension', False)
                     self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)

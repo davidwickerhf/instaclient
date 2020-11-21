@@ -25,6 +25,7 @@ class NotificationScraper:
         notifications = []
 
         # Map nodes into Notification Objects
+        viewer = BaseProfile.from_username(viewer)
         for node in nodes:
             user = BaseProfile(
                 id=node['user']['id'],
@@ -35,9 +36,9 @@ class NotificationScraper:
             notifications.append(Notification(
                 id=node['id'],
                 viewer=viewer,
-                user=user,
+                from_user=user,
                 type=node['__typename'],
-                timestamp=node['timestamp']
+                timestamp=node['timestamp'],
             ))
         return notifications
 
@@ -58,12 +59,15 @@ class NotificationScraper:
 
 
     def __parse_notifications(self, data):
-        edges = data['graphql']['user']['activity_feed']['edge_web_activity_feed']['edges']
-        nodes = []
-        for edge in edges:
-            if edge.get('node') is not None:
-                nodes.append(edge.get('node'))
-        return nodes
+        try:
+            edges = data['graphql']['user']['activity_feed']['edge_web_activity_feed']['edges']
+            nodes = []
+            for edge in edges:
+                if edge.get('node') is not None:
+                    nodes.append(edge.get('node'))
+            return nodes
+        except:
+            raise InvalidInstaSchemaError(__name__)
     
     """ def __get_url(self, url):
         payload = {'api_key': API_KEY, 'url': url}
