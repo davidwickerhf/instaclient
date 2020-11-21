@@ -1,5 +1,6 @@
 """This module contains the InstaClient class"""
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
