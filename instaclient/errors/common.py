@@ -1,5 +1,4 @@
 """This module contains common errors and exceptions raised by the InstaClient"""
-from selenium.common.exceptions import WebDriverException
 
 class InstaClientError(Exception):
     """Base InstaClient Exception
@@ -197,3 +196,27 @@ class InvalidNotificationTypeError(InstaClientError):
 
     def __str__(self):
         return f'{self.type} -> {self.message}'
+
+
+class InvalidInstaRequestError(InstaClientError):
+    """ 
+    Raised when scraping a request returns an error
+    """
+    def __init__(self, request):
+        self.request = request
+        super().__init__(message="Instagram request failed.")
+
+    def __str__(self):
+        return f'{self.request} -> {self.message}'
+
+
+class InvalidInstaSchemaError(InstaClientError):
+    """ 
+    Raised when a response json doesn't match the schema
+    """
+    def __init__(self, func):
+        self.func = func
+        super().__init__(message="Instagram schema failed.")
+
+    def __str__(self):
+        return f'{self.func} -> {self.message}'

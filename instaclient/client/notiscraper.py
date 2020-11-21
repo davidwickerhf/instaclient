@@ -1,4 +1,4 @@
-from instaclient.errors.common import InvalidNotificationTypeError
+from instaclient.errors.common import InvalidNotificationTypeError, InvalidInstaSchemaError
 import json, requests
 import types
 from instaclient.client.urls import GraphUrls

@@ -1,3 +1,4 @@
+from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
 from instaclient.classes.baseprofile import BaseProfile
 from requests.models import InvalidURL
 from instaclient.client.urls import GraphUrls

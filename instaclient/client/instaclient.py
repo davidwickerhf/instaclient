@@ -76,39 +76,43 @@ class InstaClient(NotificationScraper, TagScraper):
 
 
     # INSTACLIENT DECORATOR
-    def __manage_driver(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            time.sleep(random.randint(1, 2))
-            self.logger.debug('INSTACLIENT: Mangage Driver, func: {}'.format(func.__name__))
-            if not self.driver:
-                login = True
-                if func.__name__ in ('login', 'resend_verification_code', 'input_security_code', 'input_verification_code', 'logout'):
-                    login = False
-                self.__init_driver(login, func=func.__name__)
+    def __manage_driver(init_driver=True, login=True):
+        def outer(func):
+            @wraps(func)
+            def wrapper(self, *args, **kwargs):
+                time.sleep(random.randint(1, 2))
+                self.logger.debug('INSTACLIENT: Mangage Driver, func: {}'.format(func.__name__))
+                if init_driver:
+                    if not self.driver:
+                        if func.__name__ in ('login', 'resend_verification_code', 'input_security_code', 'input_verification_code', 'logout'):
+                            login = False
+                        else:
+                            login = True
+                        self.__init_driver(login, func=func.__name__)
 
-            error = False
-            result = None
-            try:
-                result = func(self, *args, **kwargs)
-                time.sleep(1)
-            except Exception as exception:
-                error = exception
-            
-            discard = kwargs.get('discard_driver')
-            if discard is not None:
-                if discard:
-                    self.__discard_driver()
-            elif len(args) > 0 and isinstance(args[-1], bool):
-                if args[-1]:
-                    self.__discard_driver()
-            
-            time.sleep(random.randint(1, 2))
-            if error:
-                raise error
-            else:
-                return result
-        return wrapper
+                error = False
+                result = None
+                try:
+                    result = func(self, *args, **kwargs)
+                    time.sleep(1)
+                except Exception as exception:
+                    error = exception
+                
+                discard = kwargs.get('discard_driver')
+                if discard is not None:
+                    if discard:
+                        self.__discard_driver()
+                elif len(args) > 0 and isinstance(args[-1], bool):
+                    if args[-1]:
+                        self.__discard_driver()
+                
+                time.sleep(random.randint(1, 2))
+                if error:
+                    raise error
+                else:
+                    return result
+            return wrapper
+        return outer
     
     # INSTAGRAM FUNCTIONS
     # LOGIN PROCEDURE
@@ -704,11 +708,10 @@ class InstaClient(NotificationScraper, TagScraper):
 
 
     @__manage_driver
-    def get_tag_posts(self, tag, count):
+    def get_hashtag(self, tag, count):
         self.logger.debug('INSTACLIENT: check_notifications')
-        
-        posts = self._scrape_notifications(source, viewer=self.username, types=types, count=count)
-        return posts
+        tag = self._scrape_tag(tag, None)
+        return tag
     
     
     #@__manage_driver

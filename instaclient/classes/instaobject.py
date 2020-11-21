@@ -1,5 +1,4 @@
 import abc
-from instaclient.classes.baseprofile import BaseProfile
 
 class InstaBaseObject(abc.ABC):
     GRAPH_IMAGE = 'GraphImage'
@@ -14,7 +13,7 @@ class InstaBaseObject(abc.ABC):
     GRAPH_MENTION = 'GraphMentionStory'
     GRAPH_COMMENT = 'GraphCommentMediaStory'
 
-    def __init__(self, id:str, viewer:str or BaseProfile, type:str):
+    def __init__(self, id:str, viewer, type:str):
         self.id = id
         self.viewer = viewer
         self.type = type

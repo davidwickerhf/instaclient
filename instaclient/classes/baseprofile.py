@@ -1,3 +1,5 @@
+import requests
+from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
 from instaclient.client.urls import GraphUrls
 from instaclient.classes.instaobject import InstaBaseObject
 
@@ -14,7 +16,7 @@ class BaseProfile(InstaBaseObject):
 
     def from_username(username:str):
         request = GraphUrls.GRAPH_USER.format(username)
-        result = request.get(request)
+        result = requests.get(request)
         try:
             data = result.json()
         except:
@@ -26,7 +28,7 @@ class BaseProfile(InstaBaseObject):
                 id=user['id'],
                 viewer=None,
                 username=user['username'],
-                name=user['name']
+                name=user['full_name']
             )
             return profile
         except:

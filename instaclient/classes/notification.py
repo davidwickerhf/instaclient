@@ -9,7 +9,7 @@ class Notification(InstaBaseObject):
         self.timestamp = timestamp
 
     def __repr__(self) -> str:
-        return f'Notification<{self.type}, {self.viewer}>'
+        return f'Notification<{self.type}, {self.from_user}>'
 
     def get_timestamp(self):
         return self.timestamp
