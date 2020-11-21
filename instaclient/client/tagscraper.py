@@ -19,6 +19,7 @@ class TagScraper: # TODO
         request = GraphUrls.GRAPH_TAGS.format(tag)
         try:
             result = requests.get(request).json()
+            print(result)
         except:
             raise InvalidInstaRequestError(request)
 

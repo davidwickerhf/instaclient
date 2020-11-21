@@ -85,10 +85,8 @@ class InstaClient(NotificationScraper, TagScraper):
                 self.logger.debug('INSTACLIENT: Mangage Driver, func: {}'.format(func.__name__))
                 if init_driver:
                     if not self.driver:
-                        if func.__name__ in ('login', 'resend_verification_code', 'input_security_code', 'input_verification_code', 'logout'):
-                            login = False
-                        else:
-                            login = True
+                        if login and (self.username is None or self.password is None):
+                            raise NotLoggedInError()
                         self.__init_driver(login, func=func.__name__)
 
                 error = False
@@ -117,7 +115,7 @@ class InstaClient(NotificationScraper, TagScraper):
     
     # INSTAGRAM FUNCTIONS
     # LOGIN PROCEDURE
-    @__manage_driver
+    @__manage_driver(login=False)
     def check_status(self, discard_driver:bool=False):
         """
         Check if account is currently logged in. Returns True if account is logged in. Sets the `instaclient.logged_in` variable accordingly.
@@ -149,7 +147,7 @@ class InstaClient(NotificationScraper, TagScraper):
         return result
 
 
-    @__manage_driver
+    @__manage_driver(login=False)
     def login(self, username:str, password:str, check_user:bool=True, discard_driver:bool=False):
         """
         Sign Into Instagram with credentials. Go through 2FA if necessary. Sets the InstaClient variable `InstaClient.logged_in` to True if login was successful.
@@ -271,7 +269,7 @@ class InstaClient(NotificationScraper, TagScraper):
         return self.logged_in
 
 
-    @__manage_driver
+    @__manage_driver(login=False)
     def resend_security_code(self):
         """
         Resend security code if code hasn't been sent successfully. The code is used to verify the login attempt if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised.
@@ -305,7 +303,7 @@ class InstaClient(NotificationScraper, TagScraper):
             return False
 
 
-    @__manage_driver
+    @__manage_driver(login=False)
     def input_security_code(self, code:int or str, discard_driver:bool=False):
         """
         Complete login procedure started with `InstaClient.login()` and insert security code required if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised. Sets `InstaClient.logged_in` attribute to True if login was successful.
@@ -343,7 +341,7 @@ class InstaClient(NotificationScraper, TagScraper):
         return self.logged_in
 
 
-    @__manage_driver
+    @__manage_driver(login=False)
     def input_verification_code(self, code:int or str, discard_driver:bool=False):
         """
         Complete login procedure started with `InstaClient.login()` and insert 2FA security code. Sets `instaclient.logged_in` to True if login was successful.
@@ -376,7 +374,7 @@ class InstaClient(NotificationScraper, TagScraper):
             return self.logged_in
 
 
-    @__manage_driver
+    @__manage_driver(login=False)
     def logout(self, discard_driver:bool=False):
         """
         Check if the client is currently connected to Instagram and logs of the current InstaClient session.
@@ -405,7 +403,7 @@ class InstaClient(NotificationScraper, TagScraper):
             return True
 
 
-    @__manage_driver
+    @__manage_driver(login=False)
     def is_valid_user(self, user:str, nav_to_user:bool=True, discard_driver:bool=False):
         """
         is_valid_user Checks if a given username is a valid Instagram user.
@@ -459,7 +457,7 @@ class InstaClient(NotificationScraper, TagScraper):
 
 
     # FOLLOW PROCEDURE
-    @__manage_driver
+    @__manage_driver()
     def follow_user(self, user:str, nav_to_user:bool=True, discard_driver:bool=False):
         """
         follow_user follows the instagram user that matches the username in the `user` attribute.
@@ -501,7 +499,7 @@ class InstaClient(NotificationScraper, TagScraper):
             raise FollowRequestSentError(user)
 
     
-    @__manage_driver
+    @__manage_driver()
     def unfollow_user(self, user:str, nav_to_user=True, check_user=True, discard_driver:bool=False):
         """
         Unfollows user(s)
@@ -525,7 +523,7 @@ class InstaClient(NotificationScraper, TagScraper):
 
 
     # USER DATA PRODECURES
-    @__manage_driver
+    @__manage_driver()
     def get_user_images(self, user:str, discard_driver:bool=False):
         """
         Get all images from a users profile.
@@ -553,7 +551,7 @@ class InstaClient(NotificationScraper, TagScraper):
         return img_srcs
     
 
-    @__manage_driver
+    @__manage_driver()
     def scrape_followers(self, user:str, check_user=True, discard_driver:bool=False):
         """
         scrape_followers Scrape an instagram user's followers and return them as a list of strings.
@@ -608,7 +606,7 @@ class InstaClient(NotificationScraper, TagScraper):
 
 
     # ENGAGEMENT PROCEDURES
-    @__manage_driver
+    @__manage_driver()
     def scroll(self, mode=PAGE_DOWN_SCROLL, size=500, times=1, interval=3):
         """
         Scrolls to the bottom of a users page to load all of their media
@@ -635,12 +633,12 @@ class InstaClient(NotificationScraper, TagScraper):
         return False
 
 
-    @__manage_driver
+    @__manage_driver()
     def like_feed_posts(self, count):
         self.logger.debug('INSTACLIENT: like_feed_posts')
 
     
-    @__manage_driver
+    @__manage_driver()
     def check_notifications(self, types:list=None, count:int=None):
         self.logger.debug('INSTACLIENT: check_notifications')
         self.driver.get(GraphUrls.GRAPH_ACTIVITY)
@@ -650,7 +648,7 @@ class InstaClient(NotificationScraper, TagScraper):
         return notifications
 
 
-    @__manage_driver
+    @__manage_driver()
     def like_latest_posts(self, user:str, n_posts:int, like:bool=True, discard_driver:bool=False):
         """
         Likes a number of a users latest posts, specified by n_posts.
@@ -683,7 +681,7 @@ class InstaClient(NotificationScraper, TagScraper):
             self.driver.find_elements_by_class_name('ckWGn')[0].click()
 
 
-    @__manage_driver
+    @__manage_driver()
     def send_dm(self, user:str, message:str, discard_driver:bool=False):
         """
         Send an Instagram Direct Message to a user. if `check_user` is set to True, the `user` argument will be checked to validate whether it is a real instagram username.
@@ -708,14 +706,14 @@ class InstaClient(NotificationScraper, TagScraper):
             raise error
 
 
-    @__manage_driver
+    @__manage_driver()
     def get_hashtag(self, tag, count):
         self.logger.debug('INSTACLIENT: check_notifications')
         tag = self._scrape_tag(tag, None)
         return tag
     
     
-    #@__manage_driver
+    #@__manage_driver()
     #def comment_post(self, text):
         #"""
         #Comments on a post that is in modal form
@@ -729,7 +727,7 @@ class InstaClient(NotificationScraper, TagScraper):
         #self.logger.debug('Commentd.')
 
 
-    """ @__manage_driver # TODO
+    """ @__manage_driver() # TODO
     def scrape_dms(self, discard_driver:bool=False):
         if not self.driver:
             self.__init_driver()
@@ -764,7 +762,7 @@ class InstaClient(NotificationScraper, TagScraper):
 
                 
     # NAVIGATION PROCEDURES
-    @__manage_driver
+    @__manage_driver()
     def nav_tag(self, tag:str, discard_driver:bool=False):
         """
         Naviagtes to a search for posts with a specific tag on IG.
@@ -783,7 +781,7 @@ class InstaClient(NotificationScraper, TagScraper):
             return True
 
 
-    @__manage_driver
+    @__manage_driver()
     def nav_user(self, user:str, check_user:bool=True):
         """
         Navigates to a users profile page
@@ -803,7 +801,7 @@ class InstaClient(NotificationScraper, TagScraper):
             return self.is_valid_user(user=user, nav_to_user=False)
         
 
-    @__manage_driver
+    @__manage_driver()
     def nav_user_dm(self, user:str, check_user:bool=True):
         """
         Open DM page with a specific user
@@ -1021,14 +1019,13 @@ class InstaClient(NotificationScraper, TagScraper):
                     self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
                 elif self.host_type == self.LOCAHOST:
                     # Running locally
+                    capabilities = {'chromeOptions': {'androidPackage': 'com.android.chrome',}}
                     chrome_options = webdriver.ChromeOptions()
-                    chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
-                    chrome_options.add_argument("--window-size=343,915")
                     chrome_options.add_argument("--headless") if self.localhost_headless else None
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
                     self.logger.debug('Path: {}'.format(self.driver_path))
-                    self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options)
+                    self.driver = webdriver.Remote('http://localhost:9515', capabilities)
                 else:
                     raise InvaildHostError(self.host_type)
             else:
