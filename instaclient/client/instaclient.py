@@ -552,7 +552,8 @@ class InstaClient(NotificationScraper, TagScraper):
         return img_srcs
 
     
-    def scrape_followers(self, user:str, check_user=True, max_wait_time:int=300, callback_frequency:int=25, callback=None):
+    @__manage_driver(login=False)
+    def scrape_followers(self, user:str, check_user=True, max_wait_time:int=250, callback_frequency:int=20, callback=None, discard_driver=False):
         """
         scrape_followers Scrape an instagram user's followers and return them as a list of strings.
 
@@ -569,39 +570,49 @@ class InstaClient(NotificationScraper, TagScraper):
         if callback and not callable(callback):
             raise InvalidErrorCallbackError()
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(self.__scrape_followers, user, check_user, max_wait_time)
-            if not callback:
-                self.logger.info('Initiating scrape...'.format(callback_frequency))
-            else:
-                callback()
-            while True:
-                if not future.running():
-                    break
-                time.sleep(callback_frequency)
-                if not callback:
-                    self.logger.info('Scraping followers... waited {} seconds'.format(callback_frequency))
-                else:
-                    callback()
-            result = future.result()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix='scrape') as executor:
+            scrape_future = executor.submit(self.__scrape_followers, user, check_user, max_wait_time)
+            timer_future = executor.submit(self.__scrape_timer, max_wait_time, callback_frequency, callback)
+            result = scrape_future.result()
             return result
 
+    
+    def __scrape_timer(self, max_wait_time:int, callback_frequency:int, callback=None):
+        tic = time.time()
+        final_time = tic + max_wait_time
+        self.logger.info('Initiating scrape...'.format(callback_frequency))
+        while True:
+            
+            self.logger.info('Scraping followers... waited {} seconds'.format(callback_frequency))
+            if callback:
+                callback()
+            toc = time.time()
+            print('TIMER: {} | Difference: {} | Total Difference: {}'.format(toc, (toc - tic), (final_time - toc)))
+            if toc > final_time:
+                break
+            elif (final_time - toc) < 0:
+                time.sleep(final_time - toc)
+            else:
+                tic = toc
+                time.sleep(callback_frequency)
+        print('Finished Timer')
+        return True
+
         
-    @__manage_driver()
-    def __scrape_followers(self, user:str, check_user=True, max_waiting_time:int=300, discard_driver:bool=True):
+    def __scrape_followers(self, user:str, check_user=True, max_waiting_time:int=250):
         """
         __scrape_followers Scrape an instagram user's followers and return them as a list of strings.
 
         Args:
             user (str): User to scrape
             check_user (bool, optional): If set to True, checks if the `user` is a valid instagram username. Defaults to True.
-            discard_driver (bool, optional): If set to True, the `driver` will be discarded at the end of the method. Defaults to True.
 
         Returns:
             list: List of instagram usernames
         """
         # Set starting time:
-        tic = time.perf_counter()
+        tic = time.time()
+        final_time = tic + max_waiting_time
         # Nav to user page
         self.nav_user(user, check_user=check_user)
         self.logger.debug('Navigated to User Page')
@@ -616,29 +627,38 @@ class InstaClient(NotificationScraper, TagScraper):
         # Load all followers
         followers = []
         main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)))
+        self.scroll(self.END_PAGE_SCROLL, times=10, interval=0)
+        main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)))
         size = main.size.get('height')
-        self.logger.debug('Loading... Waiting 15 seconds')
-        time.sleep(15)
         while True:
+            print('INSTACLIENT: Loop')
             main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)), wait_time=3)
             new_size = main.size.get('height')
             if new_size > size:
                 size = new_size
-                self.logger.debug('Loading... Waiting 15 seconds')
-                toc = time.perf_counter()
-                if (toc-tic) > max_waiting_time:
+                toc = time.time()
+                print('SCRAPER: {} | Difference: {} | Total Difference: {}'.format(toc, (toc - tic), (final_time - toc)))
+                if toc > final_time:
+                    print('BREAKING')
                     break
                 tic = toc
-                time.sleep(15)
+                self.scroll(self.END_PAGE_SCROLL, times=10, interval=0)
                 continue
             else:
-                break
-        self.logger.debug('Out of the loop. Loading followers div...')
+                self.scroll(self.PAGE_DOWN_SCROLL)
+                main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)), wait_time=3)
+                new_size = main.size.get('height')
+                if new_size > size:
+                    continue
+                else:
+                    print('BREAKING')
+                    break
+        self.logger.debug('Finished Scrolling. Loading followers div...')
         try:
             followers_list:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST)), wait_time=3)
         except NoSuchElementException:
             self.logger.warn('Followers List not found... Retrying method')
-            return self.scrape_followers(user, check_user, discard_driver)
+            return self.scrape_followers(user, check_user)
 
         self.logger.info('Followers loaded. Saving and returing')
         divs = followers_list.find_elements_by_xpath(Paths.FOLLOWER_USER_DIV)
