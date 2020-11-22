@@ -21,7 +21,6 @@ The only thing you need to worry about is to spread your requests throughout the
 - Follow a user
 - Unfollow a user
 - Send DMs to users
-- Search posts by tag
 - Like a users latest posts (max 15 for now - not working yet)
 - Get a users image media (not working yet)
 
@@ -81,7 +80,6 @@ result = client.send_dm('<username>', '<Message to send>') # send a DM to a user
 #### GET A USER'S FOLLOWERS
 ```python
 followers = client.scrape_followers(user='<username>') # replace with the target username
-# Get first 2000 followers of the user, returning a callback every 15 followers (default callback is a terminal print statement)
 ```
 > The client.scrape_followers() method can take a lot of time depending on the amount of followers you want to scrape.
 
