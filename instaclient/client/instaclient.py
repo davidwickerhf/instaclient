@@ -587,7 +587,7 @@ class InstaClient(NotificationScraper, TagScraper):
             if callback:
                 callback()
             toc = time.time()
-            print('TIMER: {} | Difference: {} | Total Difference: {}'.format(toc, (toc - tic), (final_time - toc)))
+            self.logger.debug('TIMER: {} | Difference: {} | Total Difference: {}'.format(toc, (toc - tic), (final_time - toc)))
             if toc > final_time:
                 break
             elif (final_time - toc) < 0:
@@ -595,7 +595,7 @@ class InstaClient(NotificationScraper, TagScraper):
             else:
                 tic = toc
                 time.sleep(callback_frequency)
-        print('Finished Timer')
+        self.logger.debug('Finished Timer')
         return True
 
         
@@ -631,15 +631,15 @@ class InstaClient(NotificationScraper, TagScraper):
         main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)))
         size = main.size.get('height')
         while True:
-            print('INSTACLIENT: Loop')
+            self.logger.debug('INSTACLIENT: Loop')
             main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)), wait_time=3)
             new_size = main.size.get('height')
             if new_size > size:
                 size = new_size
                 toc = time.time()
-                print('SCRAPER: {} | Difference: {} | Total Difference: {}'.format(toc, (toc - tic), (final_time - toc)))
+                self.logger.debug('SCRAPER: {} | Difference: {} | Total Difference: {}'.format(toc, (toc - tic), (final_time - toc)))
                 if toc > final_time:
-                    print('BREAKING')
+                    self.logger.debug('BREAKING LOOP')
                     break
                 tic = toc
                 self.scroll(self.END_PAGE_SCROLL, times=10, interval=0)
@@ -651,7 +651,7 @@ class InstaClient(NotificationScraper, TagScraper):
                 if new_size > size:
                     continue
                 else:
-                    print('BREAKING')
+                    self.logger.debug('BREAKING LOOP')
                     break
         self.logger.debug('Finished Scrolling. Loading followers div...')
         try:

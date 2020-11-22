@@ -41,7 +41,7 @@ class BasePost(InstaBaseObject):
         try:
             data = result.json()
         except:
-            print('No result')
+            self.logger.debug('No result')
             raise InvalidInstaRequestError(request)
 
         # Process Result Json

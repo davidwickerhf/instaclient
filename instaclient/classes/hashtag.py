@@ -14,7 +14,7 @@ class Hashtag(InstaBaseObject):
     def __repr__(self) -> str:
         return f'Hashtag<{self.name}: {self.count}>'
 
-    def load_posts(self, count:int, types:list=None):
-        print()
+    """ def load_posts(self, count:int, types:list=None):
+        print() """
 
 
