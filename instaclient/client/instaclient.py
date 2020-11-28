@@ -553,7 +553,7 @@ class InstaClient(NotificationScraper, TagScraper):
 
     
     @__manage_driver(login=False)
-    def scrape_followers(self, user:str, check_user=True, max_wait_time:int=250, callback_frequency:int=20, callback=None, discard_driver=False):
+    def scrape_followers(self, user:str, check_user=True, max_wait_time:int=250, callback_frequency:int=20, callback=None, discard_driver=False, **callback_args):
         """
         scrape_followers Scrape an instagram user's followers and return them as a list of strings.
 
@@ -566,18 +566,25 @@ class InstaClient(NotificationScraper, TagScraper):
 
         Returns:
             list: List of instagram usernames
+
+        Raises:
+            NotLoggedInError: Raised if you are not logged into any account
+            InvalidUserError: Raised if the user is invalid
+            PrivateAccountError: Raised if the user is a private account
+            NoSuchElementException: Raised if an element is not found when compiling operation.
+
         """
         if callback and not callable(callback):
             raise InvalidErrorCallbackError()
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=2, thread_name_prefix='scrape') as executor:
             scrape_future = executor.submit(self.__scrape_followers, user, check_user, max_wait_time)
-            timer_future = executor.submit(self.__scrape_timer, max_wait_time, callback_frequency, callback)
+            timer_future = executor.submit(self.__scrape_timer, max_wait_time, callback_frequency, callback, **callback_args)
             result = scrape_future.result()
             return result
 
     
-    def __scrape_timer(self, max_wait_time:int, callback_frequency:int, callback=None):
+    def __scrape_timer(self, max_wait_time:int, callback_frequency:int, callback=None, **callback_args):
         tic = time.time()
         final_time = tic + max_wait_time
         self.logger.info('Initiating scrape...'.format(callback_frequency))
@@ -585,7 +592,7 @@ class InstaClient(NotificationScraper, TagScraper):
             
             self.logger.info('Scraping followers... waited {} seconds'.format(callback_frequency))
             if callback:
-                callback()
+                callback(**callback_args)
             toc = time.time()
             self.logger.debug('TIMER: {} | Difference: {} | Total Difference: {}'.format(toc, (toc - tic), (final_time - toc)))
             if toc > final_time:
