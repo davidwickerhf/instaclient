@@ -503,15 +503,24 @@ class InstaClient(NotificationScraper, TagScraper):
     @__manage_driver()
     def unfollow_user(self, user:str, nav_to_user=True, check_user=True, discard_driver:bool=False):
         """
-        Unfollows user(s)
+        Unfollows a given user.
 
         Args:
-            user:str: Username of user to unfollow
+            user (str): User to unfollow
+            nav_to_user (bool, optional): Navigate to user profile page. Defaults to True.
+            check_user (bool, optional): Check user vadility. Defaults to True.
+            discard_driver (bool, optional): Discard driver when completed. Defaults to False.
+
+        Raises:
+            InvalidUserError: raised if the user specified by the `user` argument is invalid.
         """
         if nav_to_user:
             self.nav_user(user, check_user)
         elif check_user:
-            self.is_valid_user(user, nav_to_user=False)
+            try:
+                self.is_valid_user(user, nav_to_user=False)
+            except PrivateAccountError:
+                pass
             self.logger.debug('INSTACLIENT: User <{}> is valid'.format(user))
 
         if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN))):
@@ -521,7 +530,10 @@ class InstaClient(NotificationScraper, TagScraper):
             confirm_unfollow = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_UNFOLLOW_BTN)))
             self.__press_button(confirm_unfollow)
             self.logger.debug('INSTACLIENT: Unfollowed user <{}>'.format(user))
-
+        elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
+            requested_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN)))
+            self.__press_button(requested_btn)
+            self.logger.debug(f'Cancelled Follow Request for user <{user}>')
 
     # USER DATA PRODECURES
     @__manage_driver()
