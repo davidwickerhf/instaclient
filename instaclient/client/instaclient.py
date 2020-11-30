@@ -101,10 +101,10 @@ class InstaClient(NotificationScraper, TagScraper):
                 discard = kwargs.get('discard_driver')
                 if discard is not None:
                     if discard:
-                        self.__discard_driver()
+                        self.discard_driver()
                 elif len(args) > 0 and isinstance(args[-1], bool):
                     if args[-1]:
-                        self.__discard_driver()
+                        self.discard_driver()
                 
                 time.sleep(random.randint(1, 2))
                 if error:
@@ -255,7 +255,7 @@ class InstaClient(NotificationScraper, TagScraper):
 
         # Discard Driver or complete login
         if discard_driver:
-            self.__discard_driver()
+            self.discard_driver()
         else:
             # Detect and dismiss save info Dialog
             self.driver.get(ClientUrls.HOME_URL)
@@ -844,7 +844,7 @@ class InstaClient(NotificationScraper, TagScraper):
 
         
         if discard_driver:
-            self.__discard_driver() """
+            self.discard_driver() """
 
                 
     # NAVIGATION PROCEDURES
@@ -1076,7 +1076,7 @@ class InstaClient(NotificationScraper, TagScraper):
             raise BlockedAccountError(self.username)
 
 
-    def __discard_driver(self):
+    def discard_driver(self):
         self.logger.debug('INSTACLIENT: Discarding driver...')
         if self.driver:
             self.driver.quit()
