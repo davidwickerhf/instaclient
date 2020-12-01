@@ -404,6 +404,13 @@ class InstaClient(NotificationScraper, TagScraper):
             return True
 
 
+    """ def is_valid(user):
+        pass
+
+    def is_private(user):
+        pass """
+
+
     @__manage_driver(login=False)
     def is_valid_user(self, user:str, nav_to_user:bool=True, discard_driver:bool=False):
         """
@@ -661,10 +668,15 @@ class InstaClient(NotificationScraper, TagScraper):
                     self.logger.debug('BREAKING LOOP')
                     break
                 tic = toc
-                self.scroll(self.END_PAGE_SCROLL, times=10, interval=0)
+                for n in range(10):
+                    self.scroll(self.END_PAGE_SCROLL, interval=0)
+                    toc = time.time()
+                    if toc > final_time:
+                        self.logger.debug('BREAKING LOOP')
+                        break
                 continue
             else:
-                self.scroll(self.PAGE_DOWN_SCROLL)
+                self.scroll(self.PAGE_DOWN_SCROLL, interval=0)
                 main:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_LIST_MAIN)), wait_time=3)
                 new_size = main.size.get('height')
                 if new_size > size:
@@ -702,7 +714,7 @@ class InstaClient(NotificationScraper, TagScraper):
 
         """
         for n in range(0, times):
-            self.__dismiss_dialogue()
+            self.__dismiss_dialogue(wait_time=1)
             self.logger.debug('INSTACLIENT: Scrolling')
             if mode == self.PIXEL_SCROLL:
                 self.driver.execute_script("window.scrollBy(0, {});".format(size))
@@ -725,7 +737,7 @@ class InstaClient(NotificationScraper, TagScraper):
 
     
     @__manage_driver()
-    def check_notifications(self, types:list=None, count:int=None):
+    def check_notifications(self, types:list=None, count:int=None, discard_driver=False):
         self.logger.debug('INSTACLIENT: check_notifications')
         self.driver.get(GraphUrls.GRAPH_ACTIVITY)
         element:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.QUERY_ELEMENT)))
@@ -1010,7 +1022,7 @@ class InstaClient(NotificationScraper, TagScraper):
                 raise NoSuchElementException()
 
 
-    def __check_existence(self, expectation, wait_time:int=2.5):
+    def __check_existence(self, expectation, wait_time:int=2):
         """
         Checks if an element exists.
         Args:
@@ -1032,7 +1044,7 @@ class InstaClient(NotificationScraper, TagScraper):
         self.logger.debug('INSTACLIENT: Dismissed Cookies')
 
 
-    def __dismiss_dialogue(self):
+    def __dismiss_dialogue(self, wait_time:float=2.5):
         """
         Dismiss an eventual Instagram dialogue with button text containing either 'Cancel' or 'Not Now'.
         """

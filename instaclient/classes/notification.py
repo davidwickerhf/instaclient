@@ -8,7 +8,15 @@ class Notification(InstaBaseObject):
         self.from_user = from_user
         self.timestamp = timestamp
 
-    def __str__(self) -> str:
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, Notification):
+            if self.from_user == o.from_user:
+                if self.timestamp == o.timestamp:
+                    if self.type == o.type:
+                        return True
+        return False
+
+    def __repr__(self) -> str:
         return f'Notification<{self.type}, {self.from_user}>'
 
     def __lt__(self, o) -> bool:
