@@ -20,7 +20,7 @@ class BaseProfile(InstaBaseObject):
         try:
             data = result.json()
         except:
-            raise InvalidInstaRequestError()
+            raise InvalidInstaRequestError(request)
 
         try:
             user = data['graphql']['user']
