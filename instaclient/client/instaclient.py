@@ -180,8 +180,6 @@ class InstaClient(NotificationScraper, TagScraper):
                 self.__dismiss_cookies()
 
             # Get Form elements
-            if self.debug:
-                self.error_callback(self.driver)
             username_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)), url=ClientUrls.LOGIN_URL)
             password_input = self.__find_element(EC.presence_of_element_located((By.XPATH,Paths.PASSWORD_INPUT)), url=ClientUrls.LOGIN_URL)
             self.logger.debug('INSTACLIENT: Found elements')

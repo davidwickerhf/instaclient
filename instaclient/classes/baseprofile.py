@@ -18,6 +18,16 @@ class BaseProfile(InstaBaseObject):
     def __repr__(self) -> str:
         return f'BaseProfile<{self.username}>'
 
+    def __eq__(self, o: object) -> bool:
+        if not isinstance(o, BaseProfile):
+            return False
+        try:
+            self_id = self.get_id()
+            o_id = o.get_id()
+            return self_id == o_id
+        except:
+            return self.username == o.username
+
     def from_username(username:str):
         request = GraphUrls.GRAPH_USER.format(username)
         result = requests.get(request)
