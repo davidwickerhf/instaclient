@@ -7,11 +7,13 @@ logger = logging.getLogger(__name__)
 
 class BaseProfile(InstaBaseObject):
     def __init__(self, id:str, viewer:str, username:str, name:str):
-        id = id.replace('profilePage_', '')
+        try:id = id.replace('profilePage_', '')
+        except: pass
         
         super().__init__(id=id, viewer=viewer, type=self.GRAPH_PROFILE)
         self.username = username
-        self.name = name.split('\\')[0]
+        try: self.name = name.split('\\')[0]
+        except: self.name = name
 
     def __repr__(self) -> str:
         return f'BaseProfile<{self.username}>'
