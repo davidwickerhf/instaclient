@@ -1,4 +1,4 @@
-from instaclient.errors.common import InvalidNotificationTypeError, InvalidInstaSchemaError
+from instaclient.errors.common import InvalidInstaRequestError, InvalidNotificationTypeError, InvalidInstaSchemaError
 import json, requests
 import types
 from instaclient.client.urls import GraphUrls
@@ -25,7 +25,11 @@ class NotificationScraper:
         notifications = []
 
         # Map nodes into Notification Objects
-        viewer = BaseProfile.from_username(viewer)
+        try:
+            viewer = BaseProfile.from_username(viewer)
+        except InvalidInstaRequestError as error:
+            self.logger.error(f'InvalidInstaRequestError intercepted. Creating {viewer} profile with username.', exc_info=error)
+            viewer = BaseProfile.username_profile(viewer)
         for node in nodes:
             user = BaseProfile(
                 id=node['user']['id'],
@@ -46,7 +50,7 @@ class NotificationScraper:
     def __scrape_nodes(self, source:str, types:list, count:int=None):
         data = json.loads(source)
         nodes = self.__parse_notifications(data)
-        self.logger.debug('NODE COUNT:\n{}'.format(len(nodes)))
+        self.logger.info('NODE COUNT: {}'.format(len(nodes)))
 
         selected_nodes = []
         for node in nodes:

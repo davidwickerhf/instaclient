@@ -1,7 +1,9 @@
-import requests
+import requests, logging
 from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
 from instaclient.client.urls import GraphUrls
 from instaclient.classes.instaobject import InstaBaseObject
+
+logger = logging.getLogger(__name__)
 
 class BaseProfile(InstaBaseObject):
     def __init__(self, id:str, viewer:str, username:str, name:str):
@@ -19,20 +21,30 @@ class BaseProfile(InstaBaseObject):
         result = requests.get(request)
         try:
             data = result.json()
+            try:
+                user = data['graphql']['user']
+                profile = BaseProfile(
+                    id=user['id'],
+                    viewer=None,
+                    username=user['username'],
+                    name=user['full_name']
+                )
+                return profile
+            except:
+                raise InvalidInstaSchemaError(__name__)
         except:
+            logger.error(f'Invalid request. Data: {result.raw}')
             raise InvalidInstaRequestError(request)
 
-        try:
-            user = data['graphql']['user']
-            profile = BaseProfile(
-                id=user['id'],
-                viewer=None,
-                username=user['username'],
-                name=user['full_name']
-            )
-            return profile
-        except:
-            raise InvalidInstaSchemaError(__name__)
+    
+    def username_profile(username:str):
+        return BaseProfile(
+            id=None,
+            viewer=None,
+            username=username,
+            name=None
+        )
+        
 
     def get_username(self):
         return self.username
