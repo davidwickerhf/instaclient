@@ -34,6 +34,7 @@ class Paths:
     # Like Feed Posts
     LIKE_BTN = ''
     # GENERAL
+    X = '//div[@class="_7UhW9   xLCgt      MMzan  KV-D4          uL8Hv         "]'
     COOKIES_LINK = '//a[contains(@heref, "cookies") or contains(text(), "Cookie")]'
     ACCEPT_COOKIES = '//button[@class="aOOlW  bIiDR  "]'
     SETTINGS_BTN = '//button[@class="Q46SR"]'

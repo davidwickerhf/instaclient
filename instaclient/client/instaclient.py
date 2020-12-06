@@ -1059,10 +1059,19 @@ class InstaClient(NotificationScraper, TagScraper):
 
 
     def __press_button(self, button):
-        button.click()
-        time.sleep(randrange(0,2))
-        self.__detect_restriction()
-        return True
+        try:
+            button.click()
+            time.sleep(randrange(0,2))
+            self.__detect_restriction()
+            return True
+        except:
+            x = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.X)), wait_time=3)
+            x.click()
+            time.sleep(1)
+            button.click()
+            time.sleep(randrange(0,2))
+            self.__detect_restriction()
+            return True
 
 
     def __detect_restriction(self):
@@ -1104,7 +1113,7 @@ class InstaClient(NotificationScraper, TagScraper):
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
                     chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
-                    chrome_options.add_argument("--window-size=343,915")
+                    chrome_options.add_argument("--window-size=414,896")
                     chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
