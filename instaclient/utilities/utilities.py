@@ -48,3 +48,10 @@ def exception(func):
             logger.exception(msg)
  
     return wrapper
+
+
+def get_url(url, scraperapi_key:str=None):
+    if scraperapi_key:
+        return f'http://api.scraperapi.com?api_key={scraperapi_key}&url={url}'
+    else:
+        return url

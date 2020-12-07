@@ -5,11 +5,14 @@ from instaclient.client.urls import GraphUrls
 from instaclient.classes.instaobject import InstaBaseObject
 from instaclient.classes.baseprofile import BaseProfile
 from instaclient.classes.notification import Notification
+from instaclient.utilities import get_url
 
 class NotificationScraper:
 
-    def __init__(self, logger):
+    def __init__(self, logger, proxy:str=None, scraperapi_key:str=None):
         self.logger = logger
+        self.proxy=proxy
+        self.scraperapi_key=scraperapi_key
 
 
     def _scrape_notifications(self, source:int, viewer:int, types:list=None, count:int=None):
@@ -26,10 +29,11 @@ class NotificationScraper:
 
         # Map nodes into Notification Objects
         try:
-            viewer = BaseProfile.from_username(viewer)
+            viewer = BaseProfile.from_username(viewer, proxy=self.proxy, scraperapi_key=self.scraperapi_key)
         except InvalidInstaRequestError as error:
             self.logger.error(f'InvalidInstaRequestError intercepted. Creating {viewer} profile with username.', exc_info=error)
             viewer = BaseProfile.username_profile(viewer)
+            
         for node in nodes:
             user = BaseProfile(
                 id=node['user']['id'],
@@ -72,8 +76,6 @@ class NotificationScraper:
             return nodes
         except:
             raise InvalidInstaSchemaError(__name__)
-    
-    """ def __get_url(self, url):
-        payload = {'api_key': API_KEY, 'url': url}
-        proxy_url = 'http://api.scraperapi.com/?' + urlencode(payload)
-        return proxy_url  """
+
+    def _get_url(self, url):
+        return get_url(url, self.scraperapi_key)

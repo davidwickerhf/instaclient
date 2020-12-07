@@ -1,4 +1,6 @@
 """This module contains the InstaClient class"""
+from instaclient.classes.hashtag import Hashtag
+from instaclient.classes.notification import Notification
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webelement import WebElement
@@ -27,7 +29,7 @@ class InstaClient(NotificationScraper, TagScraper):
     PAGE_DOWN_SCROLL=5
     
     # INIT
-    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, init_driver=False, debug=False, error_callback=None, localhost_headless=False):
+    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, init_driver=False, debug=False, error_callback=None, localhost_headless=False, proxy=None, scraperapi_key=None):
         """
         Create an `InstaClient` object to access the instagram website.
 
@@ -46,7 +48,6 @@ class InstaClient(NotificationScraper, TagScraper):
             error: Normal Exception, raised if anything fails when creating the client.
             InvalidErrorCallbackError: Raised if the `error_callback` is not callable
         """
-        
         self.driver_type = driver_type
         self.host_type = host_type
         if host_type == self.LOCAHOST and driver_path is None:
@@ -58,6 +59,8 @@ class InstaClient(NotificationScraper, TagScraper):
                 raise InvalidErrorCallbackError()
         self.error_callback = error_callback
         self.localhost_headless = localhost_headless
+        self.proxy = proxy
+        self.scraperapi_key = scraperapi_key
         self.logged_in = False
         self.driver = None
         self.username = None
@@ -70,8 +73,8 @@ class InstaClient(NotificationScraper, TagScraper):
         else:
             self.logger.setLevel(logging.INFO)
 
-        NotificationScraper.__init__(self, self.logger)
-        TagScraper.__init__(self, self.logger)
+        NotificationScraper.__init__(self, self.logger, proxy, scraperapi_key)
+        TagScraper.__init__(self, self.logger, proxy, scraperapi_key)
 
         if init_driver:
             self.__init_driver(func='__init__')
@@ -802,10 +805,10 @@ class InstaClient(NotificationScraper, TagScraper):
             raise error
 
 
-    @__manage_driver()
-    def get_hashtag(self, tag, count):
+    @__manage_driver(login=False)
+    def get_hashtag(self, tag:str):
         self.logger.debug('INSTACLIENT: check_notifications')
-        tag = self._scrape_tag(tag, None)
+        tag:Hashtag = self._scrape_tag(tag, None)
         return tag
     
     
@@ -1121,6 +1124,8 @@ class InstaClient(NotificationScraper, TagScraper):
                     chrome_options.add_argument("--remote-debugging-port=9222")
                     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
                     chrome_options.add_experimental_option('useAutomationExtension', False)
+                    if self.proxy:
+                        chrome_options.add_argument('--proxy-server=%s' % self.proxy)
                     self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
                 elif self.host_type == self.LOCAHOST:
                     # Running locally
@@ -1131,6 +1136,8 @@ class InstaClient(NotificationScraper, TagScraper):
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
                     self.logger.debug('Path: {}'.format(self.driver_path))
+                    if self.proxy:
+                        chrome_options.add_argument('--proxy-server=%s' % self.proxy)
                     self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options)
                 else:
                     raise InvaildHostError(self.host_type)
@@ -1147,4 +1154,4 @@ class InstaClient(NotificationScraper, TagScraper):
             try:
                 self.login(self.username, self.password)
             except:
-                raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.') 
+                raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.')

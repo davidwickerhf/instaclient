@@ -2,6 +2,7 @@ import requests, logging
 from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
 from instaclient.client.urls import GraphUrls
 from instaclient.classes.instaobject import InstaBaseObject
+from instaclient.utilities import get_url
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +29,19 @@ class BaseProfile(InstaBaseObject):
         except:
             return self.username == o.username
 
-    def from_username(username:str):
-        request = GraphUrls.GRAPH_USER.format(username)
-        result = requests.get(request)
+    def from_username(username:str, proxy:str=None, scraperapi_key:str=None):
+        url = GraphUrls.GRAPH_USER.format(username)
+        request = get_url(url, scraperapi_key)
+        if proxy:
+            proxyDict = { 
+              "http"  : proxy, 
+              "https" : proxy, 
+              "ftp"   : proxy
+            }
+            result = requests.get(request, proxies=proxyDict)
+        else:
+            result = requests.get(request)
+            
         try:
             data = result.json()
             try:

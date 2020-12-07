@@ -12,11 +12,13 @@ class BasePost(InstaBaseObject):
     viewer:str, 
     type:str,
     text:str,
-    shortcode:str):
+    shortcode:str,
+    proxy:str=None,
+    scraperapi_key:str=None):
         id = id
         type = self.index_type(type)
         
-        super().__init__(id=id, viewer=viewer, type=type)
+        super().__init__(id=id, viewer=viewer, type=type, proxy=proxy, scraperapi_key=scraperapi_key)
         self.text = text
         self.shortcode = shortcode
 
@@ -36,8 +38,17 @@ class BasePost(InstaBaseObject):
         """
 
         # Send Request
-        request = GraphUrls.GRAPH_POST.format(self.shortcode)
-        result = requests.get(request)
+        request = self._get_url(GraphUrls.GRAPH_POST.format(self.shortcode))
+        if self.proxy:
+            proxyDict = { 
+              "http"  : self.proxy, 
+              "https" : self.proxy, 
+              "ftp"   : self.proxy
+            }
+            result = requests.get(request, proxies=proxyDict)
+        else:
+            result = requests.get(request, ) #TODO
+
         try:
             data = result.json()
         except:
