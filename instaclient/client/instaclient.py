@@ -29,7 +29,7 @@ class InstaClient(NotificationScraper, TagScraper):
     PAGE_DOWN_SCROLL=5
     
     # INIT
-    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, init_driver=False, debug=False, error_callback=None, localhost_headless=False, proxy=None, scraperapi_key=None):
+    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, init_driver=False, logger:logging.Logger=None, debug=False, error_callback=None, localhost_headless=False, proxy=None, scraperapi_key=None):
         """
         Create an `InstaClient` object to access the instagram website.
 
@@ -67,7 +67,15 @@ class InstaClient(NotificationScraper, TagScraper):
         self.password = None
         self.threads = []
 
-        self.logger = logging.getLogger(__name__)
+        if logger:
+            self.logger = logger
+        else:
+            self.logger = logging.getLogger(__name__)
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+
         if debug:
             self.logger.setLevel(logging.DEBUG)
         else:
@@ -783,21 +791,25 @@ class InstaClient(NotificationScraper, TagScraper):
     @__manage_driver()
     def send_dm(self, user:str, message:str, discard_driver:bool=False):
         """
-        Send an Instagram Direct Message to a user. if `check_user` is set to True, the `user` argument will be checked to validate whether it is a real instagram username.
+        Send an Instagram Direct Message to a user. 
 
         Args:
             user (str): Instagram username of the account to send the DM to
             message (str): Message to send to the user via DMs
-            check_user (bool, optional): If set to False, the `InstaClient` will assume that `user` is a valid instagram username. Defaults to True.
+            discard_driver (bool): Discard driver when operation is done.
+
+        Raises:
+            InvalidUserError: if the user is invalid.
         """
         # Navigate to User's dm page
         try:
             self.nav_user_dm(user)
             text_area = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.DM_TEXT_AREA)))
             text_area.send_keys(message)
+            time.sleep(1)
             send_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_DM_BTN)))
             self.__press_button(send_btn)
-            time.sleep(1.5)
+            time.sleep(1)
         except Exception as error: 
             if self.debug:
                 self.error_callback(self.driver)
@@ -921,33 +933,37 @@ class InstaClient(NotificationScraper, TagScraper):
         except PrivateAccountError:
             private = True
             self.logger.debug('INSTACLIENT: User <{}> is private'.format(user))
-            pass
-            
-        self.logger.debug('INSTACLIENT: Checking follow button...')
-        if private:
-            self.logger.debug('INSTACLIENT: Account is private')
-            raise PrivateAccountError(user)
-            
-        elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN))):
-            self.logger.debug('INSTACLIENT: Message button found')
-            message_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN)))
-            # Open User DM Page
-            self.__press_button(message_btn)
+
+        # TODO NEW VERSION: Opens DM page and creates new DM
+        try:
+            # LOAD PAGE
+            self.logger.debug('\n\nLOADING PAGE')
+            self.driver.get(ClientUrls.NEW_DM)
+            user_div:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.USER_DIV)), wait_time=10)
+            self.logger.debug('Page Loaded')
+
+            # INPUT USERNAME 
+            input_div:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEARCH_USER_INPUT)), wait_time=15)
+            self.logger.debug(f'INPUT: {input_div}')
+            input_div.send_keys(user)
+            self.logger.debug('Sent Username to Search Field')
+            time.sleep(1)
+
+            # FIND CORRECT USER DIV
+            user_div:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.USER_DIV)))
+            username_div:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.USER_DIV_USERNAME)))
+            self.logger.debug('Found user div')
+
+            self.__press_button(user_div)
+            self.logger.debug('Selected user div')
+            time.sleep(1)
+            next = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NEXT_BUTTON)))
+            self.__press_button(next)
+            self.logger.debug('Next pressed')
             return True
-
-        elif self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN))):
-            self.logger.debug('INSTACLIENT: Follow button found')
-            follow_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)))
-            self.__press_button(follow_btn)
-
-            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN))):
-                self.logger.debug('INSTACLIENT: Message button found')
-                message_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN)))
-                # Open User DM Page
-                self.__press_button(message_btn)
-                return True
-
-        raise InstaClientError('There was an error when navigating to <{}>\'s DMs'.format(user))
+        except Exception as error:
+            self.logger.error('There was error navigating to the user page: ', exc_info=error)
+            raise InstaClientError('There was an error when navigating to <{}>\'s DMs'.format(user))
             
         
     # IG PRIVATE UTILITIES (The client is considered initiated)
@@ -980,42 +996,47 @@ class InstaClient(NotificationScraper, TagScraper):
         Returns:
             WebElement: web element that matches the `expectation` xpath
         """
+        self.logger.debug(f'__find_element(): Attempt {attempt}')
         try:
             wait = WebDriverWait(self.driver, wait_time)
             widgets = wait.until(expectation)
-            if widgets is not None:
-                return widgets
-            else:
+            if widgets == None:
                 raise NoSuchElementException()
+            else:
+                return widgets
         except TimeoutException:
             # Element was not found in time
             self.logger.debug('INSTACLIENT: Element Not Found...')
             if retry and attempt < 2:
+                self.logger.debug('Retrying find element...')
                 if attempt == 0:
+                    self.logger.debug('Checking for cookies/dialogues...')
                     if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
                         self.__dismiss_cookies()
 
                     if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.DISMISS_DIALOGUE))):
                         self.__dismiss_dialogue()
-                    return self.__find_element(expectation, url, wait_time=1.5, attempt=attempt+1)
+                    return self.__find_element(expectation, url, wait_time=2, attempt=attempt+1)
                 elif retry:
+                    self.logger.debug('Checking if user is logged in...')
                     if ClientUrls.LOGIN_URL in self.driver.current_url:
-                        if attempt < 1 and url is not None:
+                        if url is not None:
                             self.driver.get(url)
-                            return self.__find_element(expectation, url, wait_time=1.5, attempt=attempt+1)
+                            return self.__find_element(expectation, url, wait_time=2, attempt=attempt+1)
                         else:
                             if self.error_callback:
                                 self.error_callback(self.driver)
                             self.logger.exception('The element with locator {} was not found'.format(expectation.locator))
                             raise NoSuchElementException()
                     elif not self.logged_in:
-                        if url in self.driver.current_url:
-                            self.driver.get(url)
-                            return self.__find_element(expectation, url, wait_time, attempt+1)
-                        # Not Logged In!
                         if self.error_callback:
                                 self.error_callback(self.driver)
                         raise NotLoggedInError()   
+                    else:
+                        if self.error_callback:
+                            self.error_callback(self.driver)
+                        self.logger.exception('The element with locator {} was not found'.format(expectation.locator))
+                        raise NoSuchElementException()
             else:
                 if self.error_callback:
                         self.error_callback(self.driver)
@@ -1115,7 +1136,8 @@ class InstaClient(NotificationScraper, TagScraper):
                     # Running on web server
                     chrome_options = webdriver.ChromeOptions()
                     chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
-                    chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
+                    mobile_emulation = { "deviceName": "Nexus 5" }
+                    chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
                     chrome_options.add_argument("--window-size=414,896")
                     chrome_options.add_argument("--headless")
                     chrome_options.add_argument("--disable-dev-shm-usage")
@@ -1130,14 +1152,15 @@ class InstaClient(NotificationScraper, TagScraper):
                 elif self.host_type == self.LOCAHOST:
                     # Running locally
                     chrome_options = webdriver.ChromeOptions()
-                    chrome_options.add_argument('--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1')
-                    chrome_options.add_argument("--window-size=343,915")
+                    mobile_emulation = { "deviceName": "Nexus 5" }
+                    chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
                     chrome_options.add_argument("--headless") if self.localhost_headless else None
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument("--no-sandbox")
                     self.logger.debug('Path: {}'.format(self.driver_path))
                     if self.proxy:
                         chrome_options.add_argument('--proxy-server=%s' % self.proxy)
+                    
                     self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options)
                 else:
                     raise InvaildHostError(self.host_type)

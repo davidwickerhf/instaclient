@@ -1,5 +1,5 @@
 class Paths:
-    # Login Procedue
+    # LOGIN PROCEDURE
     LOGIN_BTN = '//button[@class="sqdOP  L3NKy   y3zKF     "]/div'
     USERNAME_INPUT = '//input[@name="username"]'
     PASSWORD_INPUT = '//input[@name="password"]'
@@ -18,23 +18,32 @@ class Paths:
     VERIFICATION_CODE_BTN = '//button[@class="sqdOP  L3NKy   y3zKF     "]'
     # Pop-Ups
     DISMISS_DIALOGUE = '//button[@class="aOOlW   HoLwm "]'
-    # Nav to User Procedure
+
+    # NAV TO USER PROCEDURE 
     INCORRECT_USERNAME_ALERT = '//p[@role="alert" and @id="slfErrorAlert"]'
     INCORRECT_PASSWORD_ALERT = '//div[@class="piCib"]'
     INCORRECT_PASSWORD_ALERT_BTNS = '{}//button[contains(@class, "aOOlW")]'
     ALERT = '//*[@id="slfErrorAlert" or @id="twoFactorErrorAlert"]'
     PAGE_NOT_FOUND = '//h2[@class="_7UhW9      x-6xq    qyrsm KV-D4          uL8Hv     l4b0S    "]'
     PRIVATE_ACCOUNT_ALERT = '//h2[@class="rkEop"]'
-    # Send DM Procedure
+
+    # SEND DM PROCEDURE
+    SEARCH_USER_INPUT = '//input[@name="queryBox"]'
+    USER_DIV = '//div[@class="-qQT3"]'
+    USER_DIV_USERNAME = '//div[@class="_7UhW9   xLCgt       qyrsm KV-D4          uL8Hv         "]'
+    NEXT_BUTTON = '//div[@class="rIacr"]'
+
     DM_TEXT_AREA = '//div[@class="X3a-9"]//descendant::textarea'
     SEND_DM_BTN = '//div[@class="X3a-9"]//descendant::button'
-    # Check Login Status Procedure
+
+    # CHECK LOGIN STATUS
     NAV_BAR = '//div[@data-testid="mobile-nav-logged-in" and @class="BvyAW"]'
+
     # ENGAGEMENT PROCEDURES
     # Like Feed Posts
     LIKE_BTN = ''
     # GENERAL
-    X = '//div[@class="_7UhW9   xLCgt      MMzan  KV-D4          uL8Hv         "]'
+    X = '//div[@class="storiesSpriteX__outline__44 u-__7"]'
     COOKIES_LINK = '//a[contains(@heref, "cookies") or contains(text(), "Cookie")]'
     ACCEPT_COOKIES = '//button[@class="aOOlW  bIiDR  "]'
     SETTINGS_BTN = '//button[@class="Q46SR"]'
