@@ -18,9 +18,12 @@ The only thing you need to worry about is to spread your requests throughout the
 
 ## Current Features
 - Scrape a user's followers
+- Scrape a Hashtag
 - Follow a user
 - Unfollow a user
-- Send DMs to users
+- Send DMs to users (both Private & Public)
+- Check Incoming Notifications
+#### Currently in Development:
 - Like a users latest posts (max 15 for now - not working yet)
 - Get a users image media (not working yet)
 
