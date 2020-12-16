@@ -82,14 +82,14 @@ result = client.send_dm('<username>', '<Message to send>') # send a DM to a user
 > Make sure to distrubute your client.send_dm() requests over a period of time to avoid reaching Instagram's spam limits.
 #### GET A USER'S FOLLOWERS
 ```python
-followers = client.scrape_followers(user='<username>') # replace with the target username
+followers = client.get_followers(user='<username>') # replace with the target username
 ```
 > The client.scrape_followers() method can take a lot of time depending on the amount of followers you want to scrape.
 
 This method might be updated in the near future to cache scraped data in a SQLite database or to scrape the followers in a separate thread with a queue.
 #### SCRAPE NOTIFICATIONS
 ```python
-notifications = client.check_notifications(count=10)
+notifications = client.get_notifications(count=10)
 ```
 > This returns a Notification object, which contains information about the type of notification and the user who caused it.
 #### SCRAPE A HASHTAG
@@ -97,7 +97,7 @@ notifications = client.check_notifications(count=10)
 hashtag = client.get_hashtag(tag='<tag>')
 
 # Load Posts Data:
-posts = hashtag.load_posts(count=50)
+posts = hashtag.load_posts(count=50) # Not Working Yet
 ```
 > This returns a Hashtag object, from which you can get the posts data. Using load_posts(), you get a list of BasePost objects, from which you can get the owner of the post
 ## Contributing
