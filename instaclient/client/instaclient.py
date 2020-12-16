@@ -580,28 +580,9 @@ class InstaClient(NotificationScraper, TagScraper):
         return img_srcs
 
     
-    @__manage_driver(login=False)
+    """ @__manage_driver(login=False)
     def scrape_followers(self, user:str, check_user=True, max_wait_time:int=250, callback_frequency:int=20, callback=None, discard_driver=False, **callback_args):
-        """
-        scrape_followers Scrape an instagram user's followers and return them as a list of strings.
-
-        Args:
-            user (str): User to scrape
-            check_user (bool, optional): If set to True, checks if the `user` is a valid instagram username. Defaults to True.
-            max_wait_time (int, optional): Time to wait (in seconds) while loading before stopping the method and returning the results. Defaults to 300 (seconds)
-            callback_frequency (int, optional): Time (in seconds) between updates
-            callback (function): Function with no parameters that gets called with the frequency set by ``callback_frequency``
-
-        Returns:
-            list: List of instagram usernames
-
-        Raises:
-            NotLoggedInError: Raised if you are not logged into any account
-            InvalidUserError: Raised if the user is invalid
-            PrivateAccountError: Raised if the user is a private account
-            NoSuchElementException: Raised if an element is not found when compiling operation.
-
-        """
+        
         if callback and not callable(callback):
             raise InvalidErrorCallbackError()
 
@@ -609,10 +590,10 @@ class InstaClient(NotificationScraper, TagScraper):
             scrape_future = executor.submit(self.__scrape_followers, user, check_user, max_wait_time)
             timer_future = executor.submit(self.__scrape_timer, max_wait_time, callback_frequency, callback, **callback_args)
             result = scrape_future.result()
-            return result
+            return result """
 
     
-    def __scrape_timer(self, max_wait_time:int, callback_frequency:int, callback=None, **callback_args):
+    """ def __scrape_timer(self, max_wait_time:int, callback_frequency:int, callback=None, **callback_args):
         tic = time.time()
         final_time = tic + max_wait_time
         self.logger.info('Initiating scrape...'.format(callback_frequency))
@@ -631,20 +612,11 @@ class InstaClient(NotificationScraper, TagScraper):
                 tic = toc
                 time.sleep(callback_frequency)
         self.logger.debug('Finished Timer')
-        return True
+        return True """
 
         
-    def __scrape_followers(self, user:str, check_user=True, max_waiting_time:int=250):
-        """
-        __scrape_followers Scrape an instagram user's followers and return them as a list of strings.
-
-        Args:
-            user (str): User to scrape
-            check_user (bool, optional): If set to True, checks if the `user` is a valid instagram username. Defaults to True.
-
-        Returns:
-            list: List of instagram usernames
-        """
+    """ def __scrape_followers(self, user:str, check_user=True, max_waiting_time:int=250):
+        
         # Set starting time:
         tic = time.time()
         final_time = tic + max_waiting_time
@@ -709,8 +681,96 @@ class InstaClient(NotificationScraper, TagScraper):
                     followers.append(username)
             except:
                 pass
-        return followers
+        return followers """
 
+
+    @__manage_driver()
+    def get_followers(self, user:str, count:int, check_user=True, discard_driver=False, callback_frequency:int=100, callback=None, **callback_args):
+        """
+        scrape_followers: Scrape an instagram user's followers and return them as a list of strings.
+
+        Args:
+            user (str): User to scrape
+            count (int): Number of followers to scrape
+            check_user (bool, optional): If set to True, checks if the `user` is a valid instagram username. Defaults to True.
+            callback_frequency (int, optional): Number of scraped followers between updates
+            callback (function): Function with no parameters that gets called with the frequency set by ``callback_frequency``
+
+        Returns:
+            list: List of instagram usernames
+
+        Raises:
+            NotLoggedInError: Raised if you are not logged into any account
+            InvalidUserError: Raised if the user is invalid
+            PrivateAccountError: Raised if the user is a private account
+            NoSuchElementException: Raised if an element is not found when compiling operation.
+        """
+        self.nav_user(user, check_user=check_user)
+        followers_btn:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), url=ClientUrls.NAV_USER.format(user))
+        # Click followers btn
+        self.__press_button(followers_btn)
+        time.sleep(2)
+        self.logger.info(f'Got Followers page for <{user}>')
+
+        followers = list()
+        failed = list()
+        last_callback = 0
+
+        start = time.time() # TODO
+        
+        try:
+            while len(followers) < count:
+                finished_warning = False
+                
+
+                loop = time.time() # TODO
+                self.logger.debug(f'Starting Scrape Loop. Followers: {len(followers)}')
+                
+                scraped_count = len(followers)
+                divs = self.__find_element(EC.presence_of_all_elements_located((By.XPATH, Paths.FOLLOWER_USER_DIV)), wait_time=2)
+
+                got_elements = time.time() # TODO
+                self.logger.debug(f'Got Divs in {got_elements - loop}')
+
+                new = 0
+                for div in divs:
+                    try:
+                        username = div.text.split('\n')[0]
+                        if username not in followers and username not in('Follow',) and len(followers) < count:
+                            followers.append(username)
+                            new += 1
+
+                            if (last_callback + new) % callback_frequency == 0:
+                                if callable(callback):
+                                    self.logger.debug('Called Callback')
+                                    callback(**callback_args)
+
+                    except:
+                        failed.append(div)
+                        pass
+                
+                if len(followers) >= count:
+                    break
+
+                if not finished_warning and len(followers) == scraped_count:
+                    self.logger.info('Detected End of Followers Page')
+                    finished_warning = True
+                    time.sleep(3)
+                elif finished_warning:
+                    self.logger.info('Finished Followers')
+                    break
+
+                self.logger.debug('Scroll')
+                self.scroll(mode=self.END_PAGE_SCROLL, times=2, interval=1)
+        except Exception as error:
+            self.logger.error('ERROR IN SCRAPING FOLLOWERS', exc_info=error)
+                
+
+        end = time.time() # TODO
+        self.logger.debug(f'Finished. Total: {end - start}')
+        self.logger.debug(f'Failed: {len(failed)}')
+        return followers
+        
 
     # ENGAGEMENT PROCEDURES
     @__manage_driver()
@@ -746,7 +806,7 @@ class InstaClient(NotificationScraper, TagScraper):
 
     
     @__manage_driver()
-    def check_notifications(self, types:list=None, count:int=None, discard_driver=False):
+    def get_notifications(self, types:list=None, count:int=None, discard_driver=False):
         self.logger.debug('INSTACLIENT: check_notifications')
         self.driver.get(GraphUrls.GRAPH_ACTIVITY)
         element:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.QUERY_ELEMENT)))
@@ -996,7 +1056,6 @@ class InstaClient(NotificationScraper, TagScraper):
         Returns:
             WebElement: web element that matches the `expectation` xpath
         """
-        self.logger.debug(f'__find_element(): Attempt {attempt}')
         try:
             wait = WebDriverWait(self.driver, wait_time)
             widgets = wait.until(expectation)

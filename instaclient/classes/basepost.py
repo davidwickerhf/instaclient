@@ -47,7 +47,7 @@ class BasePost(InstaBaseObject):
             }
             result = requests.get(request, proxies=proxyDict)
         else:
-            result = requests.get(request, ) #TODO
+            result = requests.get(request) #TODO
 
         try:
             data = result.json()
