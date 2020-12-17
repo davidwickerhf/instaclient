@@ -2,8 +2,8 @@ from typing import Optional
 from instaclient.client.instaclient import InstaClient
 import requests, logging
 from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
-from instaclient.client.urls import GraphUrls
-from instaclient.classes.instaobject import InstaBaseObject
+from instaclient.client.constants import GraphUrls
+from instaclient.instagram.instaobject import InstaBaseObject
 from instaclient.utilities import get_url
 
 logger = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ class Profile(InstaBaseObject):
             data = result.json()
             try:
                 user = data['graphql']['user']
-                profile = BaseProfile(
+                profile = Profile(
                     id=user['id'],
                     viewer=None,
                     username=user['username'],
@@ -140,7 +140,7 @@ class Profile(InstaBaseObject):
 
     
     def username_profile(username:str):
-        return BaseProfile(
+        return Profile(
             id=None,
             viewer=None,
             username=username,
