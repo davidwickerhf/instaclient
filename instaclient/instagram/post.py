@@ -1,24 +1,25 @@
 from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
-from instaclient.classes.baseprofile import BaseProfile
 from requests.models import InvalidURL
-from instaclient.client.urls import GraphUrls
-from instaclient.classes.instaobject import InstaBaseObject
+from instaclient.client.constants import GraphUrls
+from instaclient.instagram.instaobject import InstaBaseObject
+from instaclient.instagram.profile import Profile
 import requests
 
 
-class BasePost(InstaBaseObject):
+class Post(InstaBaseObject):
     def __init__(self, 
+    # Required
     id:str, 
-    viewer:str, 
     type:str,
-    text:str,
-    shortcode:str,
-    proxy:str=None,
-    scraperapi_key:str=None):
+    # Optional
+    viewer:Profile=None, 
+    text:str=None,
+    shortcode:str=None,
+    ):
         id = id
         type = self.index_type(type)
         
-        super().__init__(id=id, viewer=viewer, type=type, proxy=proxy, scraperapi_key=scraperapi_key)
+        super().__init__(id=id, type=type, viewer=viewer)
         self.text = text
         self.shortcode = shortcode
 
@@ -58,7 +59,7 @@ class BasePost(InstaBaseObject):
         # Process Result Json
         try:
             owner = data['graphql']['shortcode_media']['owner']
-            owner:BaseProfile = BaseProfile(
+            owner:Profile = Profile(
                 id=owner['id'],
                 viewer=self.viewer,
                 username=owner['username'],

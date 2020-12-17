@@ -1,4 +1,5 @@
-import abc
+import abc, json
+from instaclient.client.instaclient import InstaClient
 from instaclient.utilities import get_url
 
 class InstaBaseObject(abc.ABC):
@@ -14,7 +15,7 @@ class InstaBaseObject(abc.ABC):
     GRAPH_MENTION = 'GraphMentionStory'
     GRAPH_COMMENT = 'GraphCommentMediaStory'
 
-    def __init__(self, id:str, viewer:str, type:str, proxy:str=None, scraperapi_key:str=None):
+    def __init__(self, id:str, type:str, viewer:str=None, client:'InstaClient'=None):
         """
         Reppresents an abstract instagram object.
 
@@ -22,14 +23,49 @@ class InstaBaseObject(abc.ABC):
             id (str): The ID of the object. Such ID is provided by Instagram.
             viewer (BaseProfile or str): Reppresents the user account that is viewing this content. Can be either a str (username) or a `BaseProfile` object.
             type (str): Instagram object type. Can be `GRAPTH_IMAGE`, `GRAPH_VIDEO`, `GRAPH_SIDECAR`,  `GRAPH_PROFILE`, `GRAPH_HASHTAG`
-            proxy (str, optional): Proxy IP address (which must include the PORT). Defaults to None.
-            scraperapi_key (str, optional): scraperapi API Key. Defaults to None.
         """
+        # Required
         self.id = id
-        self.viewer = viewer
         self.type = type
-        self.proxy=proxy
-        self.scraperapi_key=scraperapi_key
+        # Optional
+        self.viewer = viewer
+        self.client = client
+
+    def __str__(self) -> str:
+        return str(self.to_dict())
+
+    def __getitem__(self, item: str):
+        return self.__dict__[item]
+
+    @classmethod
+    def de_json(cls, data: str, client: 'InstaClient'):
+
+        if not data:
+            return None
+
+        return cls(client=client, **data)  # type: ignore[call-arg]
+
+    def to_json(self) -> str:
+        """
+        Returns:
+            str: Json string reppresentation of the object. Any 'client' attribute will be ignored.
+        """
+        return json.dumps(self.to_dict())
+
+    def to_dict(self) -> str:
+        data = dict()
+
+        for key in iter(self.__dict__):
+            if key == 'client' or key.startswith('_'):
+                continue
+
+            value = self.__dict__[key]
+            if value is not None:
+                if hasattr(value, 'to_dict'):
+                    data[key] = value.to_dict()
+                else:
+                    data[key] = value
+        return data
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, InstaBaseObject):

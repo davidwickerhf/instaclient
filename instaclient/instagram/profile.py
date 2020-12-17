@@ -1,3 +1,5 @@
+from typing import Optional
+from instaclient.client.instaclient import InstaClient
 import requests, logging
 from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
 from instaclient.client.urls import GraphUrls
@@ -6,10 +8,10 @@ from instaclient.utilities import get_url
 
 logger = logging.getLogger(__name__)
 
-class BaseProfile(InstaBaseObject):
+class Profile(InstaBaseObject):
     def __init__(self, 
     username:str,
-    id:str=None, 
+    id:str, 
     viewer:str=None, 
     name:str=None,
     biography:str=None,
@@ -31,13 +33,12 @@ class BaseProfile(InstaBaseObject):
     mutual_followed:bool=None,
     requested_by_viewer:bool=None,
     ):
-        try:id = id.replace('profilePage_', '')
-        except: pass
-        
-        super().__init__(id=id, viewer=viewer, type=self.GRAPH_PROFILE)
+    
+        super().__init__(id=id, type=self.GRAPH_PROFILE, viewer=viewer, )
+        # Required
         self.username = username
-        try: self.name = name.split('\\')[0]
-        except: self.name = name
+        # Optional
+        self.name = name
         self.biography = biography
         self.is_private = is_private
         self.is_verified = is_verified
@@ -63,7 +64,7 @@ class BaseProfile(InstaBaseObject):
         return f'BaseProfile<{self.username}>'
 
     def __eq__(self, o: object) -> bool:
-        if not isinstance(o, BaseProfile):
+        if not isinstance(o, Profile):
             return False
         try:
             self_id = self.get_id()
@@ -71,6 +72,19 @@ class BaseProfile(InstaBaseObject):
             return self_id == o_id
         except:
             return self.username == o.username
+
+    @property
+    def viewer(self) -> Optional['Profile']:
+        if self.viewer:
+            return self.client.get_user(self.viewer)
+        return self.viewer
+
+    @classmethod
+    def de_json(cls, data: str, client: 'InstaClient'):
+
+        if not data:
+            return None
+        return cls(client=client, **data)  # type: ignore[call-arg]
 
     def from_username(username:str, proxy:str=None, scraperapi_key:str=None):
         url = GraphUrls.GRAPH_USER.format(username)

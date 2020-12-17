@@ -1,26 +1,15 @@
 """This module contains the InstaClient class"""
-from instaclient.classes.hashtag import Hashtag
-from instaclient.classes.notification import Notification
-from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException, TimeoutException        
-import time, os, requests, concurrent.futures
-from random import randrange
 
+from instaclient.client import *
 from instaclient.utilities.utilities import *
-from instaclient.errors import *
-from instaclient.client.paths import Paths
-from instaclient.client.urls import ClientUrls, GraphUrls
-from instaclient.client.notiscraper import NotificationScraper
-from instaclient.client.tagscraper import TagScraper
+from instaclient.instagram import (InstaBaseObject, Profile, Post, Hashtag, Notification)
+#Components
+from instaclient.client.scraper import Scraper
+from instaclient.client.component import Component
+from instaclient.client.navigator import Navigator
 
 
-class InstaClient(NotificationScraper, TagScraper):
+class InstaClient(Navigator, Scraper):
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
@@ -80,9 +69,6 @@ class InstaClient(NotificationScraper, TagScraper):
             self.logger.setLevel(logging.DEBUG)
         else:
             self.logger.setLevel(logging.INFO)
-
-        NotificationScraper.__init__(self, self.logger, proxy, scraperapi_key)
-        TagScraper.__init__(self, self.logger, proxy, scraperapi_key)
 
         if init_driver:
             self.__init_driver(func='__init__')
@@ -551,6 +537,7 @@ class InstaClient(NotificationScraper, TagScraper):
             self.__press_button(requested_btn)
             self.logger.debug(f'Cancelled Follow Request for user <{user}>')
 
+
     # USER DATA PRODECURES
     @__manage_driver()
     def get_user_images(self, user:str, discard_driver:bool=False):
@@ -930,252 +917,7 @@ class InstaClient(NotificationScraper, TagScraper):
         
         if discard_driver:
             self.discard_driver() """
-
-                
-    # NAVIGATION PROCEDURES
-    @__manage_driver()
-    def nav_tag(self, tag:str, discard_driver:bool=False):
-        """
-        Naviagtes to a search for posts with a specific tag on IG.
-
-        Args:
-            tag:str: Tag to search for
-        """
-
-        self.driver.get(ClientUrls.SEARCH_TAGS.format(tag))
-        alert: WebElement = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)))
-        if alert:
-            # Tag does not exist
-            raise InvaildTagError(tag=tag)
-        else: 
-            # Operation Successful
-            return True
-
-
-    @__manage_driver()
-    def nav_user(self, user:str, check_user:bool=True):
-        """
-        Navigates to a users profile page
-
-        Args:
-            user:str: Username of the user to navigate to the profile page of
-            check_user:bool: Condition whether to check if a user is valid or not
-
-        Returns:
-            True if operation is successful
-
-        Raises:
-            InvaildUserError if user does not exist
-        """
-        self.driver.get(ClientUrls.NAV_USER.format(user))
-        if check_user:
-            return self.is_valid_user(user=user, nav_to_user=False)
-        
-
-    @__manage_driver()
-    def nav_user_dm(self, user:str, check_user:bool=True):
-        """
-        Open DM page with a specific user
-        
-        Args:
-            user:str: Username of the user to send the dm to
-
-        Raises:
-            InvalidUserError if user does not exist
-
-        Returns:
-            True if operation was successful
-        """
-        try:
-            self.nav_user(user, check_user=check_user)
-            private = False
-            self.logger.debug('INSTACLIENT: User <{}> is valid and public (or followed)'.format(user))
-        except PrivateAccountError:
-            private = True
-            self.logger.debug('INSTACLIENT: User <{}> is private'.format(user))
-
-        # TODO NEW VERSION: Opens DM page and creates new DM
-        try:
-            # LOAD PAGE
-            self.logger.debug('\n\nLOADING PAGE')
-            self.driver.get(ClientUrls.NEW_DM)
-            user_div:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.USER_DIV)), wait_time=10)
-            self.logger.debug('Page Loaded')
-
-            # INPUT USERNAME 
-            input_div:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.SEARCH_USER_INPUT)), wait_time=15)
-            self.logger.debug(f'INPUT: {input_div}')
-            input_div.send_keys(user)
-            self.logger.debug('Sent Username to Search Field')
-            time.sleep(1)
-
-            # FIND CORRECT USER DIV
-            user_div:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.USER_DIV)))
-            username_div:WebElement = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.USER_DIV_USERNAME)))
-            self.logger.debug('Found user div')
-
-            self.__press_button(user_div)
-            self.logger.debug('Selected user div')
-            time.sleep(1)
-            next = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NEXT_BUTTON)))
-            self.__press_button(next)
-            self.logger.debug('Next pressed')
-            return True
-        except Exception as error:
-            self.logger.error('There was error navigating to the user page: ', exc_info=error)
-            raise InstaClientError('There was an error when navigating to <{}>\'s DMs'.format(user))
-            
-        
-    # IG PRIVATE UTILITIES (The client is considered initiated)
-    def __find_buttons(self, button_text:str):
-        """
-        Finds buttons for following and unfollowing users by filtering follow elements for buttons. Defaults to finding follow buttons.
-
-        Args:
-            button_text: Text that the desired button(s) has 
-        """
-        buttons = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.BUTTON.format(button_text))), wait_time=4)
-        return buttons
-
-
-    def __find_element(self, expectation, url:str=None, wait_time:int=5, retry=True, attempt=0):
-        """
-        __find_element finds and returns the `WebElement`(s) that match the expectation's XPATH.
-
-        If a TimeoutException is raised by the driver, this method will take care of finding the reason of the exception and it will call itself another time. If the second attemt fails as well, then the `NoSuchElementException` will be raised.
-
-        Args:
-            expectation (expected_conditions class): Any class defined in ``selenium.webdriver.support.expected_conditions``
-            url (str): The url where the element is expected to be present
-            wait_time (int, optional): Time to wait to find the element. Defaults to 15.
-            attempt (int, optional): Number of attempts. IMPORTANT: don't change this attribute's value. Defaults to 0.
-
-        Raises:
-            NoSuchElementException: Raised if the element is not found after two attempts.
-
-        Returns:
-            WebElement: web element that matches the `expectation` xpath
-        """
-        try:
-            wait = WebDriverWait(self.driver, wait_time)
-            widgets = wait.until(expectation)
-            if widgets == None:
-                raise NoSuchElementException()
-            else:
-                return widgets
-        except TimeoutException:
-            # Element was not found in time
-            self.logger.debug('INSTACLIENT: Element Not Found...')
-            if retry and attempt < 2:
-                self.logger.debug('Retrying find element...')
-                if attempt == 0:
-                    self.logger.debug('Checking for cookies/dialogues...')
-                    if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
-                        self.__dismiss_cookies()
-
-                    if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.DISMISS_DIALOGUE))):
-                        self.__dismiss_dialogue()
-                    return self.__find_element(expectation, url, wait_time=2, attempt=attempt+1)
-                elif retry:
-                    self.logger.debug('Checking if user is logged in...')
-                    if ClientUrls.LOGIN_URL in self.driver.current_url:
-                        if url is not None:
-                            self.driver.get(url)
-                            return self.__find_element(expectation, url, wait_time=2, attempt=attempt+1)
-                        else:
-                            if self.error_callback:
-                                self.error_callback(self.driver)
-                            self.logger.exception('The element with locator {} was not found'.format(expectation.locator))
-                            raise NoSuchElementException()
-                    elif not self.logged_in:
-                        if self.error_callback:
-                                self.error_callback(self.driver)
-                        raise NotLoggedInError()   
-                    else:
-                        if self.error_callback:
-                            self.error_callback(self.driver)
-                        self.logger.exception('The element with locator {} was not found'.format(expectation.locator))
-                        raise NoSuchElementException()
-            else:
-                if self.error_callback:
-                        self.error_callback(self.driver)
-                self.logger.exception('The element with locator {} was not found'.format(expectation.locator))
-                raise NoSuchElementException()
-
-
-    def __check_existence(self, expectation, wait_time:int=2):
-        """
-        Checks if an element exists.
-        Args:
-            expectation: EC.class
-            wait_time:int: (Seconds) retry window before throwing Exception
-        """
-        try: 
-            wait = WebDriverWait(self.driver, wait_time)
-            widgets = wait.until(expectation)
-            return True
-        except:
-            return False
-
-
-    def __dismiss_cookies(self):
-        if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)), wait_time=2.5):
-            accept_btn = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
-            self.__press_button(accept_btn)
-        self.logger.debug('INSTACLIENT: Dismissed Cookies')
-
-
-    def __dismiss_dialogue(self, wait_time:float=2.5):
-        """
-        Dismiss an eventual Instagram dialogue with button text containing either 'Cancel' or 'Not Now'.
-        """
-        try:
-            if self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
-                dialogue = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)), wait_time=2)
-                self.__press_button(dialogue)
-        except:
-            try:
-                dialogue = self.__find_buttons(button_text='Cancel') # TODO add this to translation docs
-                self.__press_button(dialogue)
-            except:
-                pass
-
-
-    def __press_button(self, button):
-        try:
-            button.click()
-            time.sleep(randrange(0,2))
-            self.__detect_restriction()
-            return True
-        except:
-            x = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.X)), wait_time=3)
-            x.click()
-            time.sleep(1)
-            button.click()
-            time.sleep(randrange(0,2))
-            self.__detect_restriction()
-            return True
-
-
-    def __detect_restriction(self):
-        """
-        __detect_restriction detects wheter instagram has restricted the current account
-
-        Raises:
-            RestrictedAccountError: Raised if the account is restricted
-        """
-        restriction = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.RESTRICTION_DIALOG)), wait_time=1.2)
-        if restriction:
-            self.logger.warn('INSTACLIENT: WARNING: ACCOUNT <{}> HAS BEEN RESTRICTED'.format(self.username))
-            buttons = self.__find_element(EC.presence_of_element_located((By.XPATH, Paths.RESTRICTION_DIALOGUE_BTNS)), retry=False)
-            buttons.click()
-            time.sleep(randrange(2,4))
-            raise RestrictedAccountError(self.username)
-
-        block = self.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.BLOCK_DIV)), wait_time=1.2)
-        if block:
-            self.logger.warn('INSTACLIENT: WARNING: ACCOUNT <{}> HAS BEEN BLOCKED - Log in Manually'.format(self.username))
-            raise BlockedAccountError(self.username)
+    
 
 
     def discard_driver(self):
