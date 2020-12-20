@@ -79,7 +79,7 @@ class Profile(InstaBaseObject):
             return self.client.get_user(self.viewer)
         return self.viewer
 
-    @classmethod
+    
     def de_json(cls, data: str, client: 'InstaClient'):
 
         if not data:
@@ -135,7 +135,7 @@ class Profile(InstaBaseObject):
                 logging.error(f'Invalid Schema')
                 raise InvalidInstaSchemaError(__name__)
         except:
-            logger.error(f'Invalid request. Data: {result.raw}')
+            LOGGER.error(f'Invalid request. Data: {result.raw}')
             raise InvalidInstaRequestError(request)
 
     

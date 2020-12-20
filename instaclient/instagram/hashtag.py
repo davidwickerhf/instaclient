@@ -1,12 +1,12 @@
 import json
 from urllib.parse import urlencode
 from instaclient.errors.common import InvalidInstaRequestError
-from instaclient.client.urls import GraphUrls
-from instaclient.classes import InstaBaseObject, BasePost, BaseProfile
+from instaclient.client.constants import GraphUrls
+from instaclient.instagram import InstaBaseObject, Post, Profile
 import requests
 
 class Hashtag(InstaBaseObject):
-    def __init__(self, id:str, viewer:int or BaseProfile, name:str, count:int, posts_data:str or dict, loaded_posts:list=[]):
+    def __init__(self, id:str, viewer:int or Profile, name:str, count:int, posts_data:str or dict, loaded_posts:list=[]):
         super().__init__(id, viewer, InstaBaseObject.GRAPH_HASHTAG)
         self.name = name
         self.count = count
@@ -26,7 +26,7 @@ class Hashtag(InstaBaseObject):
         loaded = list()
         posts_data = self.get_posts_data()
         for index, data in enumerate(posts_data['edges']):
-            post = BasePost(
+            post = Post(
                 id=data[index]['id'],
                 viewer=self.viewer,
                 type=data[index]['__typename'],

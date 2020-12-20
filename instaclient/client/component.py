@@ -1,12 +1,114 @@
 from instaclient.client import *
 
+if TYPE_CHECKING:
+    from instaclient.client.instaclient import InstaClient
+
 class Component:
+    
+    def _manage_driver(init_driver=True, login=True):
+        def outer(func):
+            @wraps(func)
+            def wrapper(self: 'InstaClient', *args, **kwargs):
+                LOGGER.debug('INSTACLIENT: Mangage Driver, func: {}'.format(func.__name__))
+                if init_driver:
+                    if not self.driver:
+                        if login and (self.username is None or self.password is None):
+                            raise NotLoggedInError()
+                        self._init_driver(login, func=func.__name__)
+
+                error = False
+                result = None
+                try:
+                    result = func(*args, **kwargs)
+                    time.sleep(1)
+                except Exception as exception:
+                    error = exception
+                
+                discard = kwargs.get('_discard_driver')
+                if discard is not None:
+                    if discard:
+                        self._discard_driver()
+                elif len(args) > 0 and isinstance(args[-1], bool):
+                    if args[-1]:
+                        self._discard_driver()
+                
+                time.sleep(randint(1, 2))
+                if error:
+                    raise error
+                else:
+                    return result
+            return wrapper
+        return outer
+
+
+    @staticmethod
+    def _discard_driver(self: 'InstaClient'):
+        LOGGER.debug('INSTACLIENT: Discarding driver...')
+        if self.driver:
+            self.driver.quit()
+            self.logged_in = False
+            self.driver = None
+        LOGGER.debug('INSTACLIENT: Driver Discarded')
+
+
+    @staticmethod
+    def _init_driver(self: 'InstaClient', login=False, retries=0, func=None):
+        LOGGER.debug('INSTACLIENT: Initiating Driver | attempt {} | func: {}'.format(retries, func))
+        try:
+            if self.driver_type == self.CHROMEDRIVER:
+                if self.host_type == self.WEB_SERVER:
+                    # Running on web server
+                    chrome_options = webdriver.ChromeOptions()
+                    chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+                    mobile_emulation = { "deviceName": "Nexus 5" }
+                    chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
+                    chrome_options.add_argument("--window-size=414,896")
+                    chrome_options.add_argument("--headless")
+                    chrome_options.add_argument("--disable-dev-shm-usage")
+                    chrome_options.add_argument("--no-sandbox")
+                    chrome_options.add_argument("--disable-setuid-sandbox") 
+                    chrome_options.add_argument("--remote-debugging-port=9222")
+                    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+                    chrome_options.add_experimental_option('useAutomationExtension', False)
+                    if self.proxy:
+                        chrome_options.add_argument('--proxy-server=%s' % self.proxy)
+                    self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
+                elif self.host_type == self.LOCAHOST:
+                    # Running locally
+                    chrome_options = webdriver.ChromeOptions()
+                    mobile_emulation = { "deviceName": "Nexus 5" }
+                    chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
+                    chrome_options.add_argument("--headless") if self.localhost_headless else None
+                    chrome_options.add_argument("--disable-dev-shm-usage")
+                    chrome_options.add_argument("--no-sandbox")
+                    LOGGER.debug('Path: {}'.format(self.driver_path))
+                    if self.proxy:
+                        chrome_options.add_argument('--proxy-server=%s' % self.proxy)
+                    
+                    self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options)
+                else:
+                    raise InvaildHostError(self.host_type)
+            else:
+                raise InvaildDriverError(self.driver_type)
+        except WebDriverException as error:
+            if retries < 2:
+                LOGGER.debug('INSTACLIENT: Error when initiating driver... Trying again')
+                self._init_driver(login=login, retries=retries+1, func='_init_driver')
+            else:
+                raise error
+
+        if login:
+            try:
+                self.login(self.username, self.password)
+            except:
+                raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.')
+
 
     # IG PRIVATE UTILITIES (The client is considered initiated)
-    @classmethod
-    def __find_element(cls, client:'InstaClient', expectation, url:str=None, wait_time:int=5, retry=True, attempt=0):
+    
+    def _find_element(self:'InstaClient', expectation, url:str=None, wait_time:int=5, retry=True, attempt=0):
         """
-        __find_element finds and returns the `WebElement`(s) that match the expectation's XPATH.
+        _find_element finds and returns the `WebElement`(s) that match the expectation's XPATH.
 
         If a TimeoutException is raised by the driver, this method will take care of finding the reason of the exception and it will call itcls another time. If the second attemt fails as well, then the `NoSuchElementException` will be raised.
 
@@ -24,7 +126,7 @@ class Component:
             WebElement: web element that matches the `expectation` xpath
         """
         try:
-            wait = WebDriverWait(client.driver, wait_time)
+            wait = WebDriverWait(self.driver, wait_time)
             widgets = wait.until(expectation)
             if widgets == None:
                 raise NoSuchElementException()
@@ -32,46 +134,46 @@ class Component:
                 return widgets
         except TimeoutException:
             # Element was not found in time
-            logger.debug('INSTACLIENT: Element Not Found...')
+            LOGGER.debug('INSTACLIENT: Element Not Found...')
             if retry and attempt < 2:
-                logger.debug('Retrying find element...')
+                LOGGER.debug('Retrying find element...')
                 if attempt == 0:
-                    logger.debug('Checking for cookies/dialogues...')
-                    if cls.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
-                        cls.__dismiss_cookies()
+                    LOGGER.debug('Checking for cookies/dialogues...')
+                    if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
+                        self._dismiss_cookies()
 
-                    if cls.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.DISMISS_DIALOGUE))):
-                        cls.__dismiss_dialogue()
-                    return cls.__find_element(expectation, url, wait_time=2, attempt=attempt+1)
+                    if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.DISMISS_DIALOGUE))):
+                        self._dismiss_dialogue()
+                    return self._find_element(expectation, url, wait_time=2, attempt=attempt+1)
                 elif retry:
-                    logger.debug('Checking if user is logged in...')
-                    if ClientUrls.LOGIN_URL in client.driver.current_url:
+                    LOGGER.debug('Checking if user is logged in...')
+                    if ClientUrls.LOGIN_URL in self.driver.current_url:
                         if url is not None:
-                            client.driver.get(url)
-                            return cls.__find_element(expectation, url, wait_time=2, attempt=attempt+1)
+                            self.driver.get(url)
+                            return self._find_element(expectation, url, wait_time=2, attempt=attempt+1)
                         else:
-                            if client.error_callback:
-                                client.error_callback(client.driver)
-                            logger.exception('The element with locator {} was not found'.format(expectation.locator))
+                            if self.error_callback:
+                                self.error_callback(self.driver)
+                            LOGGER.exception('The element with locator {} was not found'.format(expectation.locator))
                             raise NoSuchElementException()
-                    elif not client.logged_in:
-                        if client.error_callback:
-                                client.error_callback(client.driver)
+                    elif not self.logged_in:
+                        if self.error_callback:
+                                self.error_callback(self.driver)
                         raise NotLoggedInError()   
                     else:
-                        if client.error_callback:
-                            client.error_callback(client.driver)
-                        logger.exception('The element with locator {} was not found'.format(expectation.locator))
+                        if self.error_callback:
+                            self.error_callback(self.driver)
+                        LOGGER.exception('The element with locator {} was not found'.format(expectation.locator))
                         raise NoSuchElementException()
             else:
-                if client.error_callback:
-                        client.error_callback(client.driver)
-                logger.exception('The element with locator {} was not found'.format(expectation.locator))
+                if self.error_callback:
+                        self.error_callback(self.driver)
+                LOGGER.exception('The element with locator {} was not found'.format(expectation.locator))
                 raise NoSuchElementException()
 
 
     @staticmethod
-    def __check_existence(client:'InstaClient', expectation, wait_time:int=2):
+    def _check_existence(self:'InstaClient', expectation, wait_time:int=2):
         """
         Checks if an element exists.
         Args:
@@ -79,72 +181,72 @@ class Component:
             wait_time:int: (Seconds) retry window before throwing Exception
         """
         try: 
-            wait = WebDriverWait(client.driver, wait_time)
+            wait = WebDriverWait(self.driver, wait_time)
             widgets = wait.until(expectation)
             return True
         except:
             return False
 
 
-    @classmethod
-    def __dismiss_cookies(cls):
-        if cls.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)), wait_time=2.5):
-            accept_btn = cls.__find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
-            cls.__press_button(accept_btn)
-        logger.debug('Dismissed Cookies')
+    
+    def _dismiss_cookies(self):
+        if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)), wait_time=2.5):
+            accept_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
+            self._press_button(accept_btn)
+        LOGGER.debug('Dismissed Cookies')
 
 
-    @classmethod
-    def __dismiss_dialogue(cls, wait_time:float=2):
+    
+    def _dismiss_dialogue(self, wait_time:float=2):
         """
         Dismiss an eventual Instagram dialogue with button text containing either 'Cancel' or 'Not Now'.
         """
         try:
-            if cls.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
-                dialogue = cls.__find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)), wait_time=wait_time)
-                cls.__press_button(dialogue)
+            if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
+                dialogue = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)), wait_time=wait_time)
+                self._press_button(dialogue)
         except:
             try:
-                dialogue = cls.__find_buttons(button_text='Cancel') # TODO add this to translation docs
-                cls.__press_button(dialogue)
+                dialogue = self.__find_buttons(button_text='Cancel') # TODO add this to translation docs
+                self._press_button(dialogue)
             except:
                 pass
 
 
-    @classmethod
-    def __press_button(cls, button):
+    
+    def _press_button(self, button):
         try:
             button.click()
             time.sleep(randrange(0,2))
-            cls.__detect_restriction()
+            self._detect_restriction()
             return True
         except:
-            x = cls.__find_element(EC.presence_of_element_located((By.XPATH, Paths.X)), wait_time=3)
+            x = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.X)), wait_time=3)
             x.click()
             time.sleep(1)
             button.click()
             time.sleep(randrange(0,2))
-            cls.__detect_restriction()
+            self._detect_restriction()
             return True
 
 
-    @classmethod
-    def __detect_restriction(cls):
+    
+    def _detect_restriction(self):
         """
-        __detect_restriction detects wheter instagram has restricted the current account
+        _detect_restriction detects wheter instagram has restricted the current account
 
         Raises:
             RestrictedAccountError: Raised if the account is restricted
         """
-        restriction = cls.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.RESTRICTION_DIALOG)), wait_time=1.2)
+        restriction = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.RESTRICTION_DIALOG)), wait_time=1.2)
         if restriction:
-            logger.warn('INSTACLIENT: WARNING: ACCOUNT HAS BEEN RESTRICTED')
-            buttons = cls.__find_element(EC.presence_of_element_located((By.XPATH, Paths.RESTRICTION_DIALOGUE_BTNS)), retry=False)
+            LOGGER.warn('INSTACLIENT: WARNING: ACCOUNT HAS BEEN RESTRICTED')
+            buttons = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.RESTRICTION_DIALOGUE_BTNS)), retry=False)
             buttons.click()
             time.sleep(randrange(2,4))
             raise RestrictedAccountError(None)
 
-        block = cls.__check_existence(EC.presence_of_element_located((By.XPATH, Paths.BLOCK_DIV)), wait_time=1.2)
+        block = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.BLOCK_DIV)), wait_time=1.2)
         if block:
-            logger.warn('INSTACLIENT: WARNING: ACCOUNT HAS BEEN BLOCKED - Log in Manually')
+            LOGGER.warn('INSTACLIENT: WARNING: ACCOUNT HAS BEEN BLOCKED - Log in Manually')
             raise BlockedAccountError(None)

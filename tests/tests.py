@@ -81,7 +81,7 @@ class TestClient(unittest.TestCase):
         # Test with existing user
         user = input('Enter a username to get followers: ')
         try:
-            response = self.client.get_followers(user)
+            response = self.client._scrape_followers(user)
             self.assertIsInstance(response, list, 'Response is not list: type= {} response={}'.format(type(response), response))
         except Exception as error:
             self.assertIsInstance(error, (PrivateAccountError, InvalidUserError), 'An uncaught error has been raised: type={} error= {}'.format(type(error), error))

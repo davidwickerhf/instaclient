@@ -1,5 +1,5 @@
 import abc, json
-from instaclient.client.instaclient import InstaClient
+import instaclient.client.instaclient as client
 from instaclient.utilities import get_url
 
 class InstaBaseObject(abc.ABC):
@@ -15,7 +15,7 @@ class InstaBaseObject(abc.ABC):
     GRAPH_MENTION = 'GraphMentionStory'
     GRAPH_COMMENT = 'GraphCommentMediaStory'
 
-    def __init__(self, id:str, type:str, viewer:str=None, client:'InstaClient'=None):
+    def __init__(self, id:str, type:str, viewer:str=None, client:'client.InstaClient'=None):
         """
         Reppresents an abstract instagram object.
 
@@ -37,8 +37,8 @@ class InstaBaseObject(abc.ABC):
     def __getitem__(self, item: str):
         return self.__dict__[item]
 
-    @classmethod
-    def de_json(cls, data: str, client: 'InstaClient'):
+    
+    def de_json(cls, data: str, client: 'client.InstaClient'):
 
         if not data:
             return None

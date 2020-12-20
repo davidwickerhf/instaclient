@@ -1,6 +1,10 @@
+# OTHERS
 import time, logging, abc, os
-from random import randrange
+from random import randrange, randint
+from functools import wraps
+from typing import TYPE_CHECKING, Union, Optional
 
+# SELENIUM STUFF
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.remote.webelement import WebElement
@@ -11,8 +15,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 
+# INSTACLIENT PACKAGE
+from instaclient import LOGGER
 from instaclient.client.constants import (ClientUrls, GraphUrls, Paths)
 from instaclient.errors.common import *
-from instaclient.client.instaclient import InstaClient # TODO may leed to error
-
-logger = logging.getLogger(__name__)
+from instaclient.instagram import *
