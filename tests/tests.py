@@ -91,8 +91,8 @@ class TestClient(unittest.TestCase):
 # TODO test_send_dm()
 # TODO test_nav_user_followers()
 # TODO test_get_followers()
-# TODO test_follow_user()
-# TODO test_unfollow_user()
+# TODO test__follow_user()
+# TODO test_un_follow_user()
 # TODO test_get_user_images()
 
 

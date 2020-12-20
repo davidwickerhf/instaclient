@@ -8,26 +8,6 @@ from instaclient.client.component import Component
 class Navigator(Component):
 
     # NAVIGATION PROCEDURES
-    
-    def _nav_tag(self:'InstaClient', tag:str, _discard_driver:bool=False):
-        """
-        Naviagtes to a search for posts with a specific tag on IG.
-
-        Args:
-            tag:str: Tag to search for
-        """
-
-        self.driver.get(ClientUrls.SEARCH_TAGS.format(tag))
-        alert: WebElement = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)))
-        if alert:
-            # Tag does not exist
-            raise InvaildTagError(tag=tag)
-        else: 
-            # Operation Successful
-            return True
-
-
-    @staticmethod
     def _nav_user(self:'InstaClient', user:str, check_user:bool=True):
         """
         Navigates to a users profile page
@@ -44,8 +24,7 @@ class Navigator(Component):
         """
         self.driver.get(ClientUrls.NAV_USER.format(user))
         if check_user:
-            return self.is_valid_user(user=user, nav_to_user=False) # TODO FIX THIS
-        
+            return self._is_valid_user(user=user, nav_to_user=False) # TODO FIX THIS 
 
     
     def _nav_user_dm(self:'InstaClient', user:str, check_user:bool=True):
@@ -100,3 +79,20 @@ class Navigator(Component):
             LOGGER.error('There was error navigating to the user page: ', exc_info=error)
             raise InstaClientError('There was an error when navigating to <{}>\'s DMs'.format(user))
             
+     
+    def _nav_tag(self:'InstaClient', tag:str):
+        """
+        Naviagtes to a search for posts with a specific tag on IG.
+
+        Args:
+            tag:str: Tag to search for
+        """
+
+        self.driver.get(ClientUrls.SEARCH_TAGS.format(tag))
+        alert: WebElement = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)))
+        if alert:
+            # Tag does not exist
+            raise InvaildTagError(tag=tag)
+        else: 
+            # Operation Successful
+            return True

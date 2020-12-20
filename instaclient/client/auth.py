@@ -7,7 +7,6 @@ if TYPE_CHECKING:
 
 class Auth(Component):
     @Component._manage_driver(login=False)
-    
     def login(self:'InstaClient', username:str, password:str, check_user:bool=True, _discard_driver:bool=False):
         """
         Sign Into Instagram with credentials. Go through 2FA if necessary. Sets the InstaClient variable `InstaClient.logged_in` to True if login was successful.
@@ -57,7 +56,7 @@ class Auth(Component):
             raise InvaildPasswordError(password)
         except Exception as error:
             # User already logged in ?
-            result = self.check_status()
+            result = self._check_status()
             if not result:
                 raise error
             else:
@@ -241,7 +240,7 @@ class Auth(Component):
             bool: True if the 
         """
         LOGGER.debug('INSTACLIENT: LOGOUT')
-        result = self.check_status()
+        result = self._check_status()
         if result:
             if _discard_driver:
                 LOGGER.debug('INSTACLIENT: Logged Out')

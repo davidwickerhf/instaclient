@@ -6,19 +6,15 @@ from instaclient.utilities.utilities import *
 
 # IMPORT CLIENT COMPONENTS
 from instaclient.client.scraper import Scraper
-from instaclient.client.component import Component
-from instaclient.client.navigator import Navigator
+from instaclient.client.auth import Auth
+from instaclient.client.interactions import Interactions
 
 
-class InstaClient(Navigator, Scraper):
+class InstaClient(Auth, Interactions, Scraper):
+    # INIT
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
-    PIXEL_SCROLL=3
-    END_PAGE_SCROLL=4
-    PAGE_DOWN_SCROLL=5
-    
-    # INIT
     def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, init_driver=False, logger:logging.Logger=None, debug=False, error_callback=None, localhost_headless=False, proxy=None, scraperapi_key=None):
         """
         Create an `InstaClient` object to access the instagram website.
@@ -67,52 +63,14 @@ class InstaClient(Navigator, Scraper):
         if init_driver:
             self._init_driver(func='__init__')
 
-    
-
-    #@Component._manage_driver()
-    #def comment_post(self, text):
-        #"""
-        #Comments on a post that is in modal form
-        #"""
-
-        #comment_input = self.driver.find_elements_by_class_name('Ypffh')[0]
-        #comment_input.click()
-        #comment_input.send_keys(text)
-        #comment_input.send_keys(Keys.Return)
-
-        #LOGGER.debug('Commentd.')
+    # AUTH
 
 
-    """ @Component._manage_driver() # TODO
-    def scrape_dms(self, _discard_driver:bool=False):
-        if not self.driver:
-            self._init_driver()
+    # CHECKERS
 
-        # Navigate to DMs
-        if self.username:
-            self.nav_user_dm(self.username)
-        else:
-            raise NotLoggedInError()
+   
+   # SCRAPING
 
-        # Infinite Scroll & Loading
-        for i in range(1,count+1):
-            try:
-                div:WebElement = self.driver.find_element_by_xpath(Paths.FOLLOWER_USER_DIV % i)
-                time.sleep(1)
-                username = div.text.split('\n')[0]
-                if  username not in followers:
-                    followers.append(username)
-                if i%callback_frequency==0:
-                    if callback is None:
-                        LOGGER.debug('Got another {} followers...'.format(callback_frequency))
-                    else:
-                        callback(*args, **kwargs)
-                self.driver.execute_script("arguments[0].scrollIntoView();", div)
-                # TODO OPTIMIZE ALGORITHM (scroll by more than one account only)
-            except Exception as error:
-                raise error
 
-        
-        if _discard_driver:
-            self._discard_driver() """
+   # INTERACTIONS
     

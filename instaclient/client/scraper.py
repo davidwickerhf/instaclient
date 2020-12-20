@@ -30,23 +30,9 @@ class Scraper(Component):
             raise InvalidInstaSchemaError(__name__)
 
 
-    # SCRAPE PROFILE
-        
-    @Component._manage_driver()
-    def get_notifications(self, types:list=None, count:int=None, _discard_driver=False):
-        LOGGER.debug('INSTACLIENT: check_notifications')
-        self.driver.get(GraphUrls.GRAPH_ACTIVITY)
-        element:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.QUERY_ELEMENT)))
-        source = element.text        
-        notifications = self._scrape_notifications(source, viewer=self.username, types=types, count=count)
-        return notifications
-
-
-
-
     # SCRAPE NOTIFICATIONS
-    
-    def _scrape_notifications(cls, client:'InstaClient', source:int, viewer:str, types:list=None, count:int=None):
+    @Component._manage_driver()
+    def _scrape_notifications(self:'InstaClient', viewer:str, types:list=None, count:int=None) -> list:
 
         if types is None or len(types) == 0:
             types = [InstaBaseObject.GRAPH_FOLLOW, InstaBaseObject.GRAPH_LIKE, InstaBaseObject.GRAPTH_TAGGED, InstaBaseObject.GRAPH_COMMENT, InstaBaseObject.GRAPH_MENTION]
@@ -55,16 +41,32 @@ class Scraper(Component):
                 if type not in [InstaBaseObject.GRAPH_FOLLOW, InstaBaseObject.GRAPH_LIKE, InstaBaseObject.GRAPTH_TAGGED, InstaBaseObject.GRAPH_COMMENT, InstaBaseObject.GRAPH_MENTION]:
                     raise InvalidNotificationTypeError(type)
         
-        nodes = self.__scrape_nodes(source, types, count)
+        LOGGER.debug('INSTACLIENT: check_notifications')
+
+        # Deserialize Response
+        data = self._request(GraphUrls.GRAPH_ACTIVITY, use_driver=True)
+        nodes = list()
+        try:
+            edges = data['graphql']['user']['activity_feed']['edge_web_activity_feed']['edges']
+            for edge in edges:
+                if edge.get('node') is not None:
+                    nodes.append(edge.get('node'))
+        except:
+            raise InvalidInstaSchemaError(__name__)
+        LOGGER.info('NODE COUNT: {}'.format(len(nodes)))
+
+        # Retrieve Nodes
+        selected_nodes = []
+        for node in nodes:
+            if count is not None and len(selected_nodes) >= count:
+                break
+            else:
+                if node.get('__typename') in types:
+                    selected_nodes.append(node)
+
         notifications = []
 
         # Map nodes into Notification Objects
-        try:
-            viewer = Profile.from_username(viewer, proxy=client.proxy, scraperapi_key=client.scraperapi_key)
-        except InvalidInstaRequestError as error:
-            LOGGER.error(f'InvalidInstaRequestError intercepted. Creating {viewer} profile with username.', exc_info=error)
-            viewer = Profile.username_profile(viewer)
-            
         for node in nodes:
             user = Profile(
                 id=node['user']['id'],
@@ -82,53 +84,52 @@ class Scraper(Component):
         return notifications
 
 
-    def __scrape_nodes(self, source:str, types:list, count:int=None):
-        data = json.loads(source)
-        nodes = self.__parse_notifications(data)
-        LOGGER.info('NODE COUNT: {}'.format(len(nodes)))
+    # USER DATA PRODECURES
+    @Component._manage_driver(login=False)
+    def _scrape_profile(self:'InstaClient', username:str, login:bool=True) -> Optional[Profile]:
+        
+        if login and not self.logged_in and None not in (self.username, self.password):
+            self.login(self.username, self.password)
+        data = self._request(GraphUrls.GRAPH_USER.format(username), use_driver=True)
 
-        selected_nodes = []
-        for node in nodes:
-            if count is not None and len(selected_nodes) >= count:
-                break
-            else:
-                if node.get('__typename') in types:
-                    selected_nodes.append(node)
-        return selected_nodes
+        if not data:
+            return None
 
-
-    def __parse_notifications(self, data):
         try:
-            edges = data['graphql']['user']['activity_feed']['edge_web_activity_feed']['edges']
-            nodes = []
-            for edge in edges:
-                if edge.get('node') is not None:
-                    nodes.append(edge.get('node'))
-            return nodes
-        except:
+            user = data['graphql']['user']
+            profile:Profile = Profile(
+                client=self,
+                id=user['id'],
+                viewer=self.username,
+                username=user['username'],
+                name=user['full_name'],
+                biography = user['biography'],
+                is_private = user['is_private'],
+                is_verified = user['is_verified'],
+                is_business_account = user['is_business_account'],
+                is_joined_recently = user['is_joined_recently'],
+                follower_count = user['edge_followed_by']['count'],
+                followed_count = user['edge_follow']['count'],
+                post_count = user['edge_owner_to_timeline_media']['count'],
+                business_category_name = user['business_category_name'],
+                overall_category_name = user['overall_category_name'],
+                external_url = user['external_url'],
+                business_email = user['business_email'],
+                
+                blocked_by_viewer = user['blocked_by_viewer'],
+                restricted_by_viewer = user['restricted_by_viewer'],
+                has_blocked_viewer = user['has_blocked_viewer'],
+                has_requested_viewer = user['has_requested_viewer'],
+                mutual_followed = user['edge_mutual_followed_by']['count'],
+                requested_by_viewer = user['requested_by_viewer']
+            )
+            return profile
+        except Exception as error:
             raise InvalidInstaSchemaError(__name__)
 
 
-    def _request(self: 'InstaClient', url:str, use_driver):
-        if self.proxy:
-            proxyDict = { 
-              "http"  : self.proxy, 
-              "https" : self.proxy, 
-              "ftp"   : self.proxy
-            }
-            result = requests.get(url, proxies=proxyDict)
-        else:
-            result = requests.get(url)
-
-        try:
-            return result.json()
-        except:
-            raise InvalidInstaRequestError(url)
-
-
-    # USER DATA PRODECURES
     @Component._manage_driver()
-    def get_user_images(self, user:str, _discard_driver:bool=False):
+    def _scrape_user_images(self, user:str, _discard_driver:bool=False):
         """
         Get all images from a users profile.
 
@@ -232,7 +233,7 @@ class Scraper(Component):
                     break
 
                 LOGGER.debug('Scroll')
-                self.scroll(mode=self.END_PAGE_SCROLL, times=2, interval=1)
+                self._scroll(mode=self.END_PAGE_SCROLL, times=2, interval=1)
         except Exception as error:
             LOGGER.error('ERROR IN SCRAPING FOLLOWERS', exc_info=error)
                 
@@ -241,4 +242,30 @@ class Scraper(Component):
         LOGGER.debug(f'Finished. Total: {end - start}')
         LOGGER.debug(f'Failed: {len(failed)}')
         return followers
+
+    
+    def _request(self: 'InstaClient', url:str, use_driver:bool=False) -> Optional[dict]:
+        if not use_driver:
+            if self.proxy:
+                proxyDict = { 
+                "http"  : self.proxy, 
+                "https" : self.proxy, 
+                "ftp"   : self.proxy
+                }
+                result = requests.get(url, proxies=proxyDict)
+            else:
+                result = requests.get(url)
+
+            try:
+                return result.json()
+            except:
+                use_driver = True
         
+        if use_driver:
+            try:
+                self.driver.get(url)
+                element:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.QUERY_ELEMENT)))
+                source = element.text
+                return json.loads(source)
+            except:
+                return None

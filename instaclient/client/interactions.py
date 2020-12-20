@@ -3,12 +3,14 @@ from instaclient.client.component import Component
 
 
 class Interactions(Component):
-
+    PIXEL_SCROLL=3
+    END_PAGE_SCROLL=4
+    PAGE_DOWN_SCROLL=5
     # FOLLOW PROCEDURE
     @Component._manage_driver()
-    def follow_user(self, user:str, nav_to_user:bool=True, _discard_driver:bool=False):
+    def _follow_user(self, user:str, nav_to_user:bool=True, _discard_driver:bool=False):
         """
-        follow_user follows the instagram user that matches the username in the `user` attribute.
+        _follow_user follows the instagram user that matches the username in the `user` attribute.
         If the target account is private, a follow request will be sent to such user and a `PrivateAccountError` will be raised.
 
         Args:
@@ -25,7 +27,7 @@ class Interactions(Component):
         
         # Check User Vadility
         try:
-            result = self.is_valid_user(user, nav_to_user=False)
+            result = self._is_valid_user(user, nav_to_user=False)
             LOGGER.debug('INSTACLIENT: User <{}> is valid'.format(user))
             private = False
             
@@ -48,7 +50,7 @@ class Interactions(Component):
 
     
     @Component._manage_driver()
-    def unfollow_user(self, user:str, nav_to_user=True, check_user=True, _discard_driver:bool=False):
+    def _unfollow_user(self, user:str, nav_to_user=True, check_user=True, _discard_driver:bool=False):
         """
         Unfollows a given user.
 
@@ -65,7 +67,7 @@ class Interactions(Component):
             self.nav_user(user, check_user)
         elif check_user:
             try:
-                self.is_valid_user(user, nav_to_user=False)
+                self._is_valid_user(user, nav_to_user=False)
             except PrivateAccountError:
                 pass
             LOGGER.debug('INSTACLIENT: User <{}> is valid'.format(user))
@@ -84,7 +86,7 @@ class Interactions(Component):
 
     
     @Component._manage_driver()
-    def like_latest_posts(self, user:str, n_posts:int, like:bool=True, _discard_driver:bool=False):
+    def _like_latest_posts(self, user:str, n_posts:int, like:bool=True, _discard_driver:bool=False):
         """
         Likes a number of a users latest posts, specified by n_posts.
 
@@ -117,7 +119,7 @@ class Interactions(Component):
 
 
     @Component._manage_driver()
-    def send_dm(self, user:str, message:str, _discard_driver:bool=False):
+    def _send_dm(self, user:str, message:str, _discard_driver:bool=False):
         """
         Send an Instagram Direct Message to a user. 
 
@@ -147,7 +149,7 @@ class Interactions(Component):
 
     # ENGAGEMENT PROCEDURES
     @Component._manage_driver()
-    def scroll(self, mode=PAGE_DOWN_SCROLL, size=500, times=1, interval=3):
+    def _scroll(self, mode=PAGE_DOWN_SCROLL, size=500, times=1, interval=3):
         """
         Scrolls to the bottom of a users page to load all of their media
 
@@ -174,7 +176,7 @@ class Interactions(Component):
 
 
     @Component._manage_driver()
-    def like_feed_posts(self, count):
+    def _like_feed_posts(self, count):
         LOGGER.debug('INSTACLIENT: like_feed_posts')
 
 
