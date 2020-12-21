@@ -30,8 +30,8 @@ class Post(InstaBaseObject):
         self.text = text
         self.shortcode = shortcode
 
-    def __repr__(self) -> str:
-        return f'BasePost<{self.shortcode}>'
+    def __str__(self) -> str:
+        return f'Post<{self.shortcode}>'
 
     def get_owner(self):
         """

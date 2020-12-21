@@ -104,8 +104,6 @@ class Auth(Checker):
             # 2F Auth is enabled, request security code
             LOGGER.warn('INSTACLIENT: 2FA Required. Check Auth App')
             raise VerificationCodeNecessary()
-        else:
-            self.logged_in = True
 
         LOGGER.debug('INSTACLIENT: Credentials are Correct')
 
@@ -191,7 +189,6 @@ class Auth(Checker):
             scode_input.clear()
             raise InvalidSecurityCodeError()
 
-        self.logged_in = True
         self._dismiss_dialogue()
         return self.logged_in
 
@@ -224,7 +221,6 @@ class Auth(Checker):
             raise InvalidVerificationCodeError()
         else:
             # Auth Correct
-            self.logged_in = True
             self._dismiss_dialogue()
             return self.logged_in
 

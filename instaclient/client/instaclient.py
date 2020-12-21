@@ -47,11 +47,9 @@ class InstaClient(Auth, Interactions, Scraper):
         self.localhost_headless = localhost_headless
         self.proxy = proxy
         self.scraperapi_key = scraperapi_key
-        self.logged_in = False
         self.driver = None
         self.username = None
         self.password = None
-        self.threads = []
 
         global LOGGER
         if logger:
@@ -62,6 +60,50 @@ class InstaClient(Auth, Interactions, Scraper):
 
         if init_driver:
             self._init_driver(func='__init__')
+
+    # CLIENT PROPERTIES
+    @property
+    def logged_in(self) -> bool:
+        """
+        logged_in: Checks whether the client is currently logged in to Instagram.
+
+        Returns:
+            bool: True if `driver` is open and user is logged into Instagram.
+        """
+        if self.driver:
+            if self.username and self.password:
+                url = self.driver.current_url
+                if 'https://www.instagram.com/' in url and ClientUrls.LOGIN_URL not in url:
+                    return True
+        return False
+
+    @property
+    def threads(self) -> Optional[list]:
+        """
+        threads: gets all the threads created and controlled by the client. All such threads include `instaclient` in their names.
+
+        Returns:
+            Optional[list]: A list of all sub-threads created and controlled by the client. Returns `None` if no thread is found.
+        """
+        running = list()
+        for thread in threading.enumerate(): 
+            if thread is not threading.main_thread():
+                running.append(thread)
+        
+        if len(running) < 1:
+            return None
+        else:
+            return running
+
+
+
+    # DRIVER METHODS
+    def init_driver(self: 'InstaClient', login=False, retries=0, func=None):
+        return super()._init_driver(login=login, retries=retries, func=func)
+
+    def discard_driver(self: 'InstaClient'):
+        return super()._discard_driver()
+
 
 
     # AUTH
@@ -88,6 +130,7 @@ class InstaClient(Auth, Interactions, Scraper):
     
     def is_valid_user(self: 'InstaClient', user: str, nav_to_user: bool=True, _discard_driver: bool=False) -> bool:
         return super()._is_valid_user(user, nav_to_user=nav_to_user, _discard_driver=_discard_driver)
+
 
    
     # SCRAPING

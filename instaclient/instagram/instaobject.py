@@ -28,11 +28,12 @@ class InstaBaseObject(abc.ABC):
         # Required
         self.client = client
         self.id = id
-        self.viewer = viewer
         self.type = type
+        self.viewer = viewer
+        
 
     def __str__(self) -> str:
-        return str(self.to_dict())
+        return f'InstaBaseObject<{self.id}>'
 
     def __getitem__(self, item: str):
         return self.__dict__[item]

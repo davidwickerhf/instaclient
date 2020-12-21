@@ -62,8 +62,8 @@ class Profile(InstaBaseObject):
         self.requested_by_viewer = requested_by_viewer
         
 
-    def __repr__(self) -> str:
-        return f'BaseProfile<{self.username}>'
+    def __str__(self) -> str:
+        return f'Profile<{self.username}>'
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, Profile):
@@ -75,13 +75,7 @@ class Profile(InstaBaseObject):
         except:
             return self.username == o.username
 
-    @property
-    def viewer(self) -> Optional['Profile']:
-        if self.viewer:
-            return self.client._scrape_profile(self.viewer)
-        return self.viewer
 
-    
     @classmethod
     def de_json(cls, data: str, client: 'InstaClient'):
         if not data:
@@ -92,10 +86,16 @@ class Profile(InstaBaseObject):
     @staticmethod
     def from_username(username:str, client:'InstaClient', context:bool=True):
         return client._scrape_profile(username, login=context)
+
+
+    @property
+    def viewer_profile(self):
+        return self.client._scrape_profile(self.viewer)
         
 
     def get_username(self):
         return self.username
+
 
     def get_name(self):
         return self.name

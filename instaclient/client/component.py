@@ -45,7 +45,6 @@ class Component:
         LOGGER.debug('INSTACLIENT: Discarding driver...')
         if self.driver:
             self.driver.quit()
-            self.logged_in = False
             self.driver = None
         LOGGER.debug('INSTACLIENT: Driver Discarded')
 

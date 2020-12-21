@@ -19,25 +19,7 @@ class Checker(Component):
             bool: True if client is logged in, False if client is not connected or webdriver is not open.
         """
         LOGGER.debug('INSTACLIENT: Check Status')
-        if not self.driver:
-            return False
-        LOGGER.debug(self.driver.current_url)
-        if ClientUrls.HOME_URL not in self.driver.current_url:
-            self.driver.get(ClientUrls.HOME_URL)
-        self._dismiss_cookies()
-        if self._check_existence( EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
-            btn = self._find_element( EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)))
-            self._press_button(btn)
-            LOGGER.debug('INSTACLIENT: Dismissed dialogue')
-
-        icon = self._check_existence( EC.presence_of_element_located((By.XPATH, Paths.NAV_BAR)), wait_time=4)
-        if icon:
-            self.logged_in = True
-            result = True
-        else:
-            self.logged_in = False
-            result = False
-        return result
+        return self.logged_in
 
     """ def is_valid(user):
         pass

@@ -17,8 +17,8 @@ class Notification(InstaBaseObject):
                         return True
         return False
 
-    def __repr__(self) -> str:
-        return f'Notification<{self.type}, {self.from_user}>'
+    def __str__(self) -> str:
+        return f'Notification<{self.type} | {self.from_user}>'
 
     def __lt__(self, o) -> bool:
         if self.timestamp < o.timestamp:

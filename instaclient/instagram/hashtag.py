@@ -13,7 +13,7 @@ class Hashtag(InstaBaseObject):
         self.posts_data = posts_data
         self.loaded_posts = loaded_posts
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f'Hashtag<{self.name}: {self.count}>'
 
     def get_posts_data(self):
