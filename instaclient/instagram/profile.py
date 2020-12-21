@@ -1,14 +1,8 @@
 from typing import Optional, TYPE_CHECKING
-import requests, logging
 
 if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
-from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
-from instaclient.client.constants import GraphUrls
 from instaclient.instagram.instaobject import InstaBaseObject
-from instaclient.utilities import get_url
-
-logger = logging.getLogger(__name__)
 
 class Profile(InstaBaseObject):
     def __init__(self, 

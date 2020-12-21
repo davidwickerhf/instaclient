@@ -26,6 +26,14 @@ The only thing you need to worry about is to spread your requests throughout the
 #### Currently in Development:
 - Like a users latest posts (max 15 for now - not working yet)
 - Get a users image media (not working yet)
+#### TO DO:
+- [ ] Scrape User Posts's shorturl
+- [ ] Scrape Post by shorturl
+- [ ] Add comment to post by shorturl
+- [ ] Like post by shorturl
+- [ ] Unlike post by shorturl
+- [ ] Scrape Location
+
 
 ## Installation
 
