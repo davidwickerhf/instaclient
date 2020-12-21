@@ -1,6 +1,7 @@
 import abc, json
-import instaclient.client.instaclient as client
-from instaclient.utilities import get_url
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import instaclient.client.instaclient as client
 
 class InstaBaseObject(abc.ABC):
     GRAPH_IMAGE = 'GraphImage'
@@ -15,7 +16,7 @@ class InstaBaseObject(abc.ABC):
     GRAPH_MENTION = 'GraphMentionStory'
     GRAPH_COMMENT = 'GraphCommentMediaStory'
 
-    def __init__(self, id:str, type:str, viewer:str=None, client:'client.InstaClient'=None):
+    def __init__(self, client:'client.InstaClient', id:str, type:str, viewer:str=None):
         """
         Reppresents an abstract instagram object.
 
@@ -25,11 +26,10 @@ class InstaBaseObject(abc.ABC):
             type (str): Instagram object type. Can be `GRAPTH_IMAGE`, `GRAPH_VIDEO`, `GRAPH_SIDECAR`,  `GRAPH_PROFILE`, `GRAPH_HASHTAG`
         """
         # Required
-        self.id = id
-        self.type = type
-        # Optional
-        self.viewer = viewer
         self.client = client
+        self.id = id
+        self.viewer = viewer
+        self.type = type
 
     def __str__(self) -> str:
         return str(self.to_dict())
@@ -37,7 +37,6 @@ class InstaBaseObject(abc.ABC):
     def __getitem__(self, item: str):
         return self.__dict__[item]
 
-    
     def de_json(cls, data: str, client: 'client.InstaClient'):
 
         if not data:
@@ -84,7 +83,4 @@ class InstaBaseObject(abc.ABC):
 
     def get_type(self):
         return self.type
-
-    def _get_url(self, url):
-        return get_url(url, self.scraperapi_key)
 

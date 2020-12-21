@@ -1,13 +1,14 @@
 from instaclient.client import *
+from instaclient.client.checker import Checker
 from instaclient.client.component import Component
 
 if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
 
 
-class Auth(Component):
+class Auth(Checker):
     @Component._manage_driver(login=False)
-    def login(self:'InstaClient', username:str, password:str, check_user:bool=True, _discard_driver:bool=False):
+    def _login(self:'InstaClient', username:str, password:str, check_user:bool=True, _discard_driver:bool=False):
         """
         Sign Into Instagram with credentials. Go through 2FA if necessary. Sets the InstaClient variable `InstaClient.logged_in` to True if login was successful.
 
@@ -32,14 +33,13 @@ class Auth(Component):
             # Attempt Login
             self.driver.get(ClientUrls.LOGIN_URL)
             LOGGER.debug('INSTACLIENT: Got Login Page')
-            # Detect Cookies Dialogue
 
-            if self._check_existence( EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
-                self._dismiss_cookies()
+            # Detect Cookies Dialogue
+            self._dismiss_cookies()
 
             # Get Form elements
-            username_input = self._check_existence( EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)), url=ClientUrls.LOGIN_URL)
-            password_input = self._check_existence( EC.presence_of_element_located((By.XPATH,Paths.PASSWORD_INPUT)), url=ClientUrls.LOGIN_URL)
+            username_input = self._find_element( EC.presence_of_element_located((By.XPATH,Paths.USERNAME_INPUT)), url=ClientUrls.LOGIN_URL)
+            password_input = self._find_element( EC.presence_of_element_located((By.XPATH,Paths.PASSWORD_INPUT)), url=ClientUrls.LOGIN_URL)
             LOGGER.debug('INSTACLIENT: Found elements')
             # Fill out form
             username_input.send_keys(username)
@@ -47,7 +47,7 @@ class Auth(Component):
             password_input.send_keys(password)
             time.sleep(1)
             LOGGER.debug('INSTACLIENT: Filled in form')
-            login_btn = self._check_existence( EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)), url=ClientUrls.LOGIN_URL)# login button xpath changes after text is entered, find first
+            login_btn = self._find_element( EC.presence_of_element_located((By.XPATH,Paths.LOGIN_BTN)), url=ClientUrls.LOGIN_URL)# login button xpath changes after text is entered, find first
             self._press_button(login_btn)
             LOGGER.debug('INSTACLIENT: Sent form')
         except ElementClickInterceptedException as error:
@@ -117,17 +117,15 @@ class Auth(Component):
             self.driver.get(ClientUrls.HOME_URL)
             
             # Detect 'Save to Home Screen' Dialogue
-            if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.DISMISS_DIALOGUE))):
-                self._dismiss_dialogue()
+            self._dismiss_dialogue()
             
             # Detect 'Turn On Notifications' Box
-            if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.DISMISS_DIALOGUE))):
-                self._dismiss_dialogue()
+            self._dismiss_dialogue()
         return self.logged_in
 
 
     @Component._manage_driver(login=False)
-    def resend_security_code(self):
+    def _resend_security_code(self):
         """
         Resend security code if code hasn't been sent successfully. The code is used to verify the login attempt if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised.
 
@@ -161,9 +159,9 @@ class Auth(Component):
 
 
     @Component._manage_driver(login=False)
-    def input_security_code(self, code:int or str, _discard_driver:bool=False):
+    def _input_security_code(self:'InstaClient', code:int, _discard_driver:bool=False):
         """
-        Complete login procedure started with `InstaClient.login()` and insert security code required if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised. Sets `InstaClient.logged_in` attribute to True if login was successful.
+        Complete login procedure started with `InstaClient_login()` and insert security code required if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised. Sets `InstaClient.logged_in` attribute to True if login was successful.
 
         Args:
             code (intorstr): The security code sent by Instagram via SMS or email.
@@ -199,9 +197,9 @@ class Auth(Component):
 
 
     @Component._manage_driver(login=False)
-    def input_verification_code(self, code:int or str, _discard_driver:bool=False):
+    def _input_verification_code(self, code:int, _discard_driver:bool=False):
         """
-        Complete login procedure started with `InstaClient.login()` and insert 2FA security code. Sets `instaclient.logged_in` to True if login was successful.
+        Complete login procedure started with `InstaClient_login()` and insert 2FA security code. Sets `instaclient.logged_in` to True if login was successful.
 
         Args:
             code (int|str): The 2FA security code generated by the Authenticator App or sent via SMS to the user.
@@ -232,7 +230,7 @@ class Auth(Component):
 
 
     @Component._manage_driver(login=False)
-    def logout(self, _discard_driver:bool=False):
+    def _logout(self:'InstaClient', _discard_driver:bool=False):
         """
         Check if the client is currently connected to Instagram and logs of the current InstaClient session.
 

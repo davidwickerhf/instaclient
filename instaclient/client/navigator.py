@@ -41,7 +41,7 @@ class Navigator(Component):
             True if operation was successful
         """
         try:
-            self.nav_user(user, check_user=check_user)
+            self._nav_user(user, check_user=check_user)
             private = False
             LOGGER.debug('INSTACLIENT: User <{}> is valid and public (or followed)'.format(user))
         except PrivateAccountError:

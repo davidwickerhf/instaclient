@@ -63,14 +63,68 @@ class InstaClient(Auth, Interactions, Scraper):
         if init_driver:
             self._init_driver(func='__init__')
 
+
     # AUTH
+    def login(self: 'InstaClient', username: str, password: str, check_user: bool=True, _discard_driver: bool=False):
+        return super()._login(username, password, check_user=check_user, _discard_driver=_discard_driver)
+
+    def resend_security_code(self):
+        return super()._resend_security_code()
+
+    def input_security_code(self, code: int, _discard_driver: bool=False):
+        return super()._input_security_code(code, _discard_driver=_discard_driver)
+
+    def input_verification_code(self, code: int, _discard_driver: bool=False):
+        return super()._input_verification_code(code, _discard_driver=_discard_driver)
+
+    def logout(self: 'InstaClient', _discard_driver: bool=False):
+        return super()._logout(_discard_driver=_discard_driver)
+    
 
 
     # CHECKERS
+    def check_status(self: 'InstaClient', _discard_driver: bool=False) -> bool:
+        return super()._check_status(_discard_driver=_discard_driver)
+    
+    def is_valid_user(self: 'InstaClient', user: str, nav_to_user: bool=True, _discard_driver: bool=False) -> bool:
+        return super()._is_valid_user(user, nav_to_user=nav_to_user, _discard_driver=_discard_driver)
 
    
-   # SCRAPING
+    # SCRAPING
+    def get_notifications(self: 'InstaClient', types: Optional[list]=None, count: Optional[int]=None) -> Optional[list]:
+        return super()._scrape_notifications(types=types, count=count)
 
+    def get_profile(self: 'InstaClient', username: str, context: bool=True) -> Optional[Profile]:
+        return super()._scrape_profile(username, context=context)
 
-   # INTERACTIONS
+    def get_user_images(self, user: str, _discard_driver: bool=False):
+        return super()._scrape_user_images(user, _discard_driver=_discard_driver)
+
+    def get_followers(self, user: str, count: int, check_user:bool=True, _discard_driver:bool=False, callback_frequency: int=100, callback=None, **callback_args) -> Optional[list]:
+        return super()._scrape_followers(user, count, check_user=check_user, _discard_driver=_discard_driver, callback_frequency=callback_frequency, callback=callback, **callback_args)
+
+    def get_hashtag(self: 'InstaClient', tag: str) -> Optional[Hashtag]:
+        return super()._scrape_tag(tag, self.username)
+
+    
+
+    # INTERACTIONS
+    def follow(self, user: str, nav_to_user: bool=True, _discard_driver: bool=False):
+        return super()._follow_user(user, nav_to_user=nav_to_user, _discard_driver=_discard_driver)
+
+    def unfollow(self, user: str, nav_to_user:bool=True, check_user:bool=True, _discard_driver: bool=False):
+        return super()._unfollow_user(user, nav_to_user=nav_to_user, check_user=check_user, _discard_driver=_discard_driver)
+
+    def send_dm(self, user: str, message: str, _discard_driver: bool=False):
+        return super()._send_dm(user, message, _discard_driver=_discard_driver)
+
+    def like_user_posts(self, user: str, n_posts: int, like: bool=True, _discard_driver: bool=False):
+        return super()._like_latest_posts(user, n_posts, like=like, _discard_driver=_discard_driver)
+
+    def like_feed_posts(self, count:int):
+        return super()._like_feed_posts(count)
+
+    def scroll(self, mode:int=Interactions.PAGE_DOWN_SCROLL, size:int=500, times:int=1, interval:int=3):
+        return super()._scroll(mode=mode, size=size, times=times, interval=interval)
+
     

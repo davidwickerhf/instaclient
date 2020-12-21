@@ -1,9 +1,15 @@
 from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
-from requests.models import InvalidURL
 from instaclient.client.constants import GraphUrls
+# Objects
 from instaclient.instagram.instaobject import InstaBaseObject
 from instaclient.instagram.profile import Profile
+from instaclient import LOGGER
+# Others
 import requests
+from typing import TYPE_CHECKING, Type
+
+if TYPE_CHECKING:
+    from instaclient.client.instaclient import InstaClient
 
 
 class Post(InstaBaseObject):
@@ -11,6 +17,7 @@ class Post(InstaBaseObject):
     # Required
     id:str, 
     type:str,
+    client:'InstaClient',
     # Optional
     viewer:Profile=None, 
     text:str=None,
@@ -19,7 +26,7 @@ class Post(InstaBaseObject):
         id = id
         type = self.index_type(type)
         
-        super().__init__(id=id, type=type, viewer=viewer)
+        super().__init__(id=id, type=type, viewer=viewer, client=client)
         self.text = text
         self.shortcode = shortcode
 

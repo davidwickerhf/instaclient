@@ -24,10 +24,9 @@ class Checker(Component):
         LOGGER.debug(self.driver.current_url)
         if ClientUrls.HOME_URL not in self.driver.current_url:
             self.driver.get(ClientUrls.HOME_URL)
-        if self._check_existence( EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
-            self._dismiss_cookies()
+        self._dismiss_cookies()
         if self._check_existence( EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
-            btn = self._check_existence( EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)))
+            btn = self._find_element( EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)))
             self._press_button(btn)
             LOGGER.debug('INSTACLIENT: Dismissed dialogue')
 
@@ -81,8 +80,7 @@ class Checker(Component):
             time.sleep(1)
 
 
-        if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
-            self._dismiss_cookies()
+        self._dismiss_cookies()
 
         element = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=3)
         if element:

@@ -1,4 +1,5 @@
 import requests, json
+from instaclient import client
 
 from instaclient.client import *
 if TYPE_CHECKING:
@@ -9,30 +10,9 @@ from instaclient.client.component import Component
 class Scraper(Component):
     TYPES = [InstaBaseObject.GRAPH_IMAGE, InstaBaseObject.GRAPH_VIDEO, InstaBaseObject.GRAPH_SIDECAR]
 
-    # SCRAPE HASHTAG
-    @Component._manage_driver(login=False)
-    def _scrape_tag(self:'InstaClient', tag:str, viewer:str):
-        LOGGER.debug('INSTACLIENT: scrape hashtag')
-        result = self._request(GraphUrls.GRAPH_TAGS.format(tag))
-
-        try:
-            data = result['graphql']['hashtag']
-            tag:Hashtag = Hashtag(
-                id=data['id'],
-                viewer=viewer,
-                name=data['name'],
-                count=data['edge_hashtag_to_media']['count'],
-                posts_data=data['edge_hashtag_to_media']
-            )
-            LOGGER.info('Scraped hashtag: {}'.format(tag))
-            return tag
-        except:
-            raise InvalidInstaSchemaError(__name__)
-
-
-    # SCRAPE NOTIFICATIONS
+    # SCRAPE USER DATA
     @Component._manage_driver()
-    def _scrape_notifications(self:'InstaClient', viewer:str, types:list=None, count:int=None) -> list:
+    def _scrape_notifications(self:'InstaClient', types:Optional[list], count:int=None) -> Optional[list]:
 
         if types is None or len(types) == 0:
             types = [InstaBaseObject.GRAPH_FOLLOW, InstaBaseObject.GRAPH_LIKE, InstaBaseObject.GRAPTH_TAGGED, InstaBaseObject.GRAPH_COMMENT, InstaBaseObject.GRAPH_MENTION]
@@ -69,14 +49,16 @@ class Scraper(Component):
         # Map nodes into Notification Objects
         for node in nodes:
             user = Profile(
+                client=self,
                 id=node['user']['id'],
-                viewer=viewer,
+                viewer=self.username,
                 username=node['user']['username'],
                 name=node['user']['full_name']
             )
             notifications.append(Notification(
+                client=self,
                 id=node['id'],
-                viewer=viewer,
+                viewer=self.username,
                 from_user=user,
                 type=node['__typename'],
                 timestamp=node['timestamp'],
@@ -84,12 +66,11 @@ class Scraper(Component):
         return notifications
 
 
-    # USER DATA PRODECURES
     @Component._manage_driver(login=False)
-    def _scrape_profile(self:'InstaClient', username:str, login:bool=True) -> Optional[Profile]:
+    def _scrape_profile(self:'InstaClient', username:str, context:bool=True) -> Optional[Profile]:
         
-        if login and not self.logged_in and None not in (self.username, self.password):
-            self.login(self.username, self.password)
+        if context and not self.logged_in and None not in (self.username, self.password):
+            self._login(self.username, self.password)
         data = self._request(GraphUrls.GRAPH_USER.format(username), use_driver=True)
 
         if not data:
@@ -141,7 +122,7 @@ class Scraper(Component):
 
         """
     
-        self.nav_user(user)
+        self._nav_user(user)
 
         img_srcs = []
         finished = False
@@ -157,7 +138,7 @@ class Scraper(Component):
     
  
     @Component._manage_driver(login=False)
-    def _scrape_followers(self, user:str, count:int, check_user=True, _discard_driver=False, callback_frequency:int=100, callback=None, **callback_args):
+    def _scrape_followers(self, user:str, count:int, check_user=True, _discard_driver=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[list]:
         """
         scrape_followers: Scrape an instagram user's followers and return them as a list of strings.
 
@@ -177,7 +158,7 @@ class Scraper(Component):
             PrivateAccountError: Raised if the user is a private account
             NoSuchElementException: Raised if an element is not found when compiling operation.
         """
-        self.nav_user(user, check_user=check_user)
+        self._nav_user(user, check_user=check_user)
         followers_btn:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), url=ClientUrls.NAV_USER.format(user))
         # Click followers btn
         self._press_button(followers_btn)
@@ -243,7 +224,31 @@ class Scraper(Component):
         LOGGER.debug(f'Failed: {len(failed)}')
         return followers
 
+        # SCRAPE HASHTAG
     
+    
+    # SCRAPE HASHTAG
+    @Component._manage_driver(login=False)
+    def _scrape_tag(self:'InstaClient', tag:str, viewer:str) -> Optional[Hashtag]:
+        LOGGER.debug('INSTACLIENT: scrape hashtag')
+        result = self._request(GraphUrls.GRAPH_TAGS.format(tag))
+
+        try:
+            data = result['graphql']['hashtag']
+            tag:Hashtag = Hashtag(
+                id=data['id'],
+                viewer=viewer,
+                name=data['name'],
+                count=data['edge_hashtag_to_media']['count'],
+                posts_data=data['edge_hashtag_to_media']
+            )
+            LOGGER.info('Scraped hashtag: {}'.format(tag))
+            return tag
+        except:
+            raise InvalidInstaSchemaError(__name__)
+
+    
+    # GENERAL TOOL
     def _request(self: 'InstaClient', url:str, use_driver:bool=False) -> Optional[dict]:
         if not use_driver:
             if self.proxy:

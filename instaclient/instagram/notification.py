@@ -1,10 +1,11 @@
-from instaclient.classes.baseprofile import BaseProfile
-from instaclient.classes.instaobject import InstaBaseObject
+from instaclient.instagram.profile import Profile
+from instaclient.instagram.instaobject import InstaBaseObject
 
 
 class Notification(InstaBaseObject):
-    def __init__(self, id:str, viewer:int or BaseProfile, from_user:BaseProfile, type:str, timestamp):
-        super().__init__(id, viewer, type)
+    def __init__(self, client, id:str, viewer:str, from_user:Profile, type:str, timestamp):
+        super().__init__(client, id, type, viewer)
+        # Required
         self.from_user = from_user
         self.timestamp = timestamp
 

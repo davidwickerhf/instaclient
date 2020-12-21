@@ -1,8 +1,9 @@
 from instaclient.client import *
 from instaclient.client.component import Component
+from instaclient.client.navigator import Navigator
 
 
-class Interactions(Component):
+class Interactions(Navigator):
     PIXEL_SCROLL=3
     END_PAGE_SCROLL=4
     PAGE_DOWN_SCROLL=5
@@ -23,7 +24,7 @@ class Interactions(Component):
         """
         # Navigate to User Page
         if nav_to_user:
-            self.nav_user(user, check_user=False)
+            self._nav_user(user, check_user=False)
         
         # Check User Vadility
         try:
@@ -64,7 +65,7 @@ class Interactions(Component):
             InvalidUserError: raised if the user specified by the `user` argument is invalid.
         """
         if nav_to_user:
-            self.nav_user(user, check_user)
+            self._nav_user(user, check_user)
         elif check_user:
             try:
                 self._is_valid_user(user, nav_to_user=False)
@@ -101,7 +102,7 @@ class Interactions(Component):
 
         action = 'Like' if like else 'Unlike'
 
-        self.nav_user(user)
+        self._nav_user(user)
 
         imgs = []
         elements = self._find_element(EC.presence_of_all_elements_located((By.CLASS_NAME, '_9AhH0')))
@@ -133,7 +134,7 @@ class Interactions(Component):
         """
         # Navigate to User's dm page
         try:
-            self.nav_user_dm(user)
+            self._nav_user_dm(user)
             text_area = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.DM_TEXT_AREA)))
             text_area.send_keys(message)
             time.sleep(1)

@@ -19,7 +19,7 @@ class Component:
                 error = False
                 result = None
                 try:
-                    result = func(*args, **kwargs)
+                    result = func(self, *args, **kwargs)
                     time.sleep(1)
                 except Exception as exception:
                     error = exception
@@ -41,7 +41,6 @@ class Component:
         return outer
 
 
-    @staticmethod
     def _discard_driver(self: 'InstaClient'):
         LOGGER.debug('INSTACLIENT: Discarding driver...')
         if self.driver:
@@ -51,7 +50,6 @@ class Component:
         LOGGER.debug('INSTACLIENT: Driver Discarded')
 
 
-    @staticmethod
     def _init_driver(self: 'InstaClient', login=False, retries=0, func=None):
         LOGGER.debug('INSTACLIENT: Initiating Driver | attempt {} | func: {}'.format(retries, func))
         try:
@@ -99,7 +97,7 @@ class Component:
 
         if login:
             try:
-                self.login(self.username, self.password)
+                self._login(self.username, self.password)
             except:
                 raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.')
 
@@ -139,11 +137,9 @@ class Component:
                 LOGGER.debug('Retrying find element...')
                 if attempt == 0:
                     LOGGER.debug('Checking for cookies/dialogues...')
-                    if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.COOKIES_LINK))):
-                        self._dismiss_cookies()
+                    self._dismiss_cookies()
 
-                    if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.DISMISS_DIALOGUE))):
-                        self._dismiss_dialogue()
+                    self._dismiss_dialogue()
                     return self._find_element(expectation, url, wait_time=2, attempt=attempt+1)
                 elif retry:
                     LOGGER.debug('Checking if user is logged in...')
@@ -172,7 +168,6 @@ class Component:
                 raise NoSuchElementException()
 
 
-    @staticmethod
     def _check_existence(self:'InstaClient', expectation, wait_time:int=2):
         """
         Checks if an element exists.

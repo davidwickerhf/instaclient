@@ -1,6 +1,8 @@
-from typing import Optional
-from instaclient.client.instaclient import InstaClient
+from typing import Optional, TYPE_CHECKING
 import requests, logging
+
+if TYPE_CHECKING:
+    from instaclient.client.instaclient import InstaClient
 from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
 from instaclient.client.constants import GraphUrls
 from instaclient.instagram.instaobject import InstaBaseObject
@@ -11,9 +13,9 @@ logger = logging.getLogger(__name__)
 class Profile(InstaBaseObject):
     def __init__(self, 
     client:'InstaClient',
-    username:str,
     id:str, 
-    viewer:str=None, 
+    viewer:str, 
+    username:str,
     name:str=None,
     biography:str=None,
     is_private:bool=None,
@@ -34,8 +36,7 @@ class Profile(InstaBaseObject):
     mutual_followed:bool=None,
     requested_by_viewer:bool=None,
     ):
-    
-        super().__init__(id=id, type=self.GRAPH_PROFILE, viewer=viewer, client=client)
+        super().__init__(client, id, self.GRAPH_PROFILE, viewer)
         # Required
         self.username = username
         # Optional
