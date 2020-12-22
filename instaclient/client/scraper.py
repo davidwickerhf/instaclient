@@ -1,5 +1,4 @@
 import requests, json
-from instaclient import client
 
 from instaclient.client import *
 if TYPE_CHECKING:
@@ -12,7 +11,7 @@ class Scraper(Component):
 
     # SCRAPE USER DATA
     @Component._manage_driver()
-    def _scrape_notifications(self:'InstaClient', types:Optional[list], count:int=None) -> Optional[list]:
+    def _scrape_notifications(self:'InstaClient', types:Optional[list], count:int=None) -> Optional[List[Notification]]:
 
         if types is None or len(types) == 0:
             types = [InstaBaseObject.GRAPH_FOLLOW, InstaBaseObject.GRAPH_LIKE, InstaBaseObject.GRAPTH_TAGGED, InstaBaseObject.GRAPH_COMMENT, InstaBaseObject.GRAPH_MENTION]
@@ -67,7 +66,7 @@ class Scraper(Component):
 
 
     @Component._manage_driver(login=False)
-    def _scrape_profile(self:'InstaClient', username:str, context:bool=True) -> Optional[Profile]:
+    def _scrape_profile(self:'InstaClient', username:str, context:bool=True) -> Optional['Profile']:
         
         if context and not self.logged_in and None not in (self.username, self.password):
             self._login(self.username, self.password)
@@ -96,7 +95,7 @@ class Scraper(Component):
                 overall_category_name = user['overall_category_name'],
                 external_url = user['external_url'],
                 business_email = user['business_email'],
-                
+                # Context Based
                 blocked_by_viewer = user['blocked_by_viewer'],
                 restricted_by_viewer = user['restricted_by_viewer'],
                 has_blocked_viewer = user['has_blocked_viewer'],
@@ -108,37 +107,241 @@ class Scraper(Component):
         except Exception as error:
             raise InvalidInstaSchemaError(__name__)
 
+    
+    @Component._manage_driver(login=False)
+    def _scrape_post(self:'InstaClient', shortcode:str, context:bool=True) -> Optional['Post']:
+        if context and not self.logged_in and None not in (self.username, self.password):
+            self._login(self.username, self.password)
+
+        data = self._request(GraphUrls.GRAPH_POST.format(shortcode), use_driver=True)
+        if not data:
+            raise InvalidInstaRequestError(GraphUrls.GRAPH_POST.format(shortcode))
+
+        try:
+            data = data['graphql']['shortcode_media']
+
+            # Get Location
+            location = data['location']
+            if location:
+                location = Location(
+                    client=self,
+                    id=location['id'],
+                    type=InstaBaseObject.GRAPH_LOCATION,
+                    viewer=self.username,
+                    name=location['name'],
+                    slug=location['slug'],
+                    has_public_page=location['has_public_page'],
+                    address=Address(location['address_json'],)
+                )
+
+            # TODO Deserialize Comments
+            # Get Comments
+            comments = list()
+            for cdata in data['edge_media_to_parent_comment']['edges']:
+                node = cdata['node']
+                comments.append(
+                    Comment(
+                        client=self,
+                        id=node['id'],
+                        type=InstaBaseObject.GRAPH_COMMENT,
+                        viewer=self.username,
+                        owner=node['owner']['username'],
+                        post_shortcode=data['shortcode'],
+                        text=node['text'],
+                        created_at=node['created_at'],
+                        likes_count=node['edge_liked_by']['count'],
+                        did_report_as_spam=node['did_report_as_spam'],
+                        viewer_has_liked=node['viewer_has_liked'],
+                    )
+                )
+            
+            # Get Post Media Info
+            media = list()
+            type = data['__typename']
+            if type == InstaBaseObject.GRAPH_SIDECAR:
+                # Get PostMedias
+                for edge in data['edge_sidecar_to_children']['edges']:
+                    # Get Tagged Users
+                    node = edge['node']
+                    tagged_users = list()
+                    for user in node['edge_media_to_tagged_user']['edges']:
+                        tagged_users.append(user['node']['user']['username'])
+
+                    # Append PostMedia
+                    if type == InstaBaseObject.GRAPH_VIDEO:
+                        src_url = node['video_url']
+                    else:
+                        src_url = node['display_url']
+
+                    media.append(
+                        PostMedia(
+                            client=self,
+                            id=node['id'],
+                            type=node['__typename'],
+                            viewer=self.username,
+                            shortcode=node['shortcode'],
+                            src_url=src_url,
+                            is_video=['is_video'],
+                            accessibility_caption=['accessibility_caption'],
+                            tagged_users=tagged_users,
+                            has_audio=data.get('has_audio'),
+                            video_duration=data.get('video_duration'),
+                            video_view_count=data.get('video_view_count')
+                        )
+                    )
+            else:
+                if type == InstaBaseObject.GRAPH_VIDEO:
+                    src_url = data['video_url']
+                else:
+                    src_url = data['display_url']
+
+                tagged_users = list()
+                for user in data['edge_media_to_tagged_user']['edges']:
+                    tagged_users.append(user['node']['user']['username'])
+
+                media.append(
+                    PostMedia(
+                        client=self,
+                        id=data['id'],
+                        type=data['__typename'],
+                        viewer=self.username,
+                        shortcode=data['shortcode'],
+                        src_url=src_url,
+                        is_video=['is_video'],
+                        accessibility_caption=['accessibility_caption'],
+                        tagged_users=tagged_users,
+                        has_audio=data.get('has_audio'),
+                        video_duration=data.get('video_duration'),
+                        video_view_count=data.get('video_view_count')
+                    )
+                )
+
+            # Get Tagged Users
+            tagged_users = list()
+            for user in data['edge_media_to_tagged_user']['edges']:
+                tagged_users.append(user['node']['user']['username'])
+
+            # Get Caption
+            caption = None
+            caption_edges = data['edge_media_to_caption']['edges']
+            for edge in caption_edges:
+                caption = edge['node']['text']
+
+            post:Post = Post(
+                client=self,
+                id=data['id'],
+                type=type,
+                viewer=self.username,
+                owner=data['owner']['username'],
+                shortcode=data['shortcode'],
+                caption=caption,
+                timestamp=data['taken_at_timestamp'],
+                likes_count=data['edge_media_preview_like']['count'],
+                comments_disabled=data['comments_disabled'],
+                is_ad=data['is_ad'],
+                media=media,
+                # Require Context
+                commenting_disabled_for_viewer=data['commenting_disabled_for_viewer'],
+                viewer_has_liked=data['viewer_has_liked'],
+                viewer_has_saved=data['viewer_has_saved'],
+                viewer_has_saved_to_collection=data['viewer_has_saved_to_collection'],
+                viewer_in_photo_of_you=data['viewer_in_photo_of_you'],
+                viewer_can_reshare=data['viewer_can_reshare'],
+                tagged_users=tagged_users,
+                comments=comments,
+                location=location
+            )
+            return post
+        except Exception as error:
+            LOGGER.error('Error scraping post: ', exc_info=error)
+            raise InvalidInstaSchemaError(__name__)
+
 
     @Component._manage_driver()
-    def _scrape_user_images(self, user:str, _discard_driver:bool=False):
-        """
-        Get all images from a users profile.
+    def _find_comment(self:'InstaClient', shortcode:str, owner:str, text:str) -> Optional['Comment']:
+        post:Post = self._scrape_post(shortcode, context=True)
+        if post.comments:
+            for comment in post.comments:
+                if comment.owner == owner and comment.text == text:
+                    return comment
+        return None
 
-        Args:
-            user:str: Username of the user
 
-        Returns:
-            img_srcs:list<str>: list of strings (img_src)
+    @Component._manage_driver()
+    def _scrape_user_posts(self:'InstaClient', username:str, count:Optional[int], deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Union[List[str], List[Profile]]:
+        # Nav to User Page
+        self._nav_user(username)
 
-        """
-    
-        self._nav_user(user)
+        # Scroll down and save shortcodes
+        shortcodes = list()
+        failed = list()
+        last_callback = 0
+        
+        # Shortcodes scraper loop
+        try:
+            while len(shortcodes) < count:
+                finished_warning = False
+                
 
-        img_srcs = []
-        finished = False
-        while not finished:
+                loop = time.time() # TODO
+                LOGGER.debug(f'Starting Scrape Loop. Followers: {len(shortcodes)}')
+                
+                scraped_count = len(shortcodes)
+                divs = self._find_element(EC.presence_of_all_elements_located((By.XPATH, Paths.SHORTCODE_DIV)), wait_time=2)
 
-            finished = self.__infinite_scroll() # scroll down
-            
-            elements = self._find_element((EC.presence_of_element_located(By.CLASS_NAME, 'FFVAD')))
-            img_srcs.extend([img.get_attribute('src') for img in elements]) # scrape srcs
+                got_elements = time.time() # TODO
+                LOGGER.debug(f'Got Divs in {got_elements - loop}')
 
-        img_srcs = list(set(img_srcs)) # clean up duplicates
-        return img_srcs
-    
+                new = 0
+                for div in divs:
+                    try:
+                        shortcode = div.get_attribute('href')
+                        if shortcode:
+                            shortcode = shortcode.replace('https://www.instagram.com/p/', '')
+                            shortcode = shortcode.replace('/', '')
+                        if shortcode not in shortcodes and shortcode not in (None,) and len(shortcodes) < count:
+                            shortcodes.append(shortcode)
+                            new += 1
+
+                            if (last_callback + new) % callback_frequency == 0:
+                                if callable(callback):
+                                    LOGGER.debug('Called Callback')
+                                    callback(**callback_args)
+
+                    except:
+                        failed.append(div)
+                        pass
+                
+                if len(shortcodes) >= count:
+                    break
+
+                if not finished_warning and len(shortcodes) == scraped_count:
+                    LOGGER.info('Detected End of Followers Page')
+                    finished_warning = True
+                    time.sleep(3)
+                elif finished_warning:
+                    LOGGER.info('Finished Followers')
+                    break
+
+                LOGGER.debug('Scroll')
+                self._scroll(mode=self.END_PAGE_SCROLL, times=2, interval=1)
+        except Exception as error:
+            LOGGER.error('ERROR IN SCRAPING POSTS', exc_info=error)
+                
+        LOGGER.warn(f'Failed: {len(failed)}')
+
+        if not deep_scrape:
+            return shortcodes
+        else:
+            # For every shortlink, scrape Post
+            profiles = list()
+            for shortcode in shortcodes:
+                profiles.append(self._scrape_post(shortcode))
+            return profiles
  
+
     @Component._manage_driver(login=False)
-    def _scrape_followers(self, user:str, count:int, check_user=True, _discard_driver=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[list]:
+    def _scrape_followers(self, user:str, count:int, check_user=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[list]:
         """
         scrape_followers: Scrape an instagram user's followers and return them as a list of strings.
 
@@ -163,7 +366,7 @@ class Scraper(Component):
         # Click followers btn
         self._press_button(followers_btn)
         time.sleep(2)
-        LOGGER.info(f'Got Followers page for <{user}>')
+        LOGGER.debug(f'Got Followers page for <{user}>')
 
         followers = list()
         failed = list()
@@ -220,16 +423,15 @@ class Scraper(Component):
                 
 
         end = time.time() # TODO
-        LOGGER.debug(f'Finished. Total: {end - start}')
+        LOGGER.info(f'Scraped Followers:. Total: {end - start}')
         LOGGER.debug(f'Failed: {len(failed)}')
         return followers
 
-        # SCRAPE HASHTAG
     
     
     # SCRAPE HASHTAG
     @Component._manage_driver(login=False)
-    def _scrape_tag(self:'InstaClient', tag:str, viewer:str) -> Optional[Hashtag]:
+    def _scrape_tag(self:'InstaClient', tag:str, viewer:str) -> Optional['Hashtag']:
         LOGGER.debug('INSTACLIENT: scrape hashtag')
         result = self._request(GraphUrls.GRAPH_TAGS.format(tag))
 
@@ -248,7 +450,7 @@ class Scraper(Component):
             raise InvalidInstaSchemaError(__name__)
 
     
-    # GENERAL TOOL
+    # GENERAL TOOLS
     def _request(self: 'InstaClient', url:str, use_driver:bool=False) -> Optional[dict]:
         if not use_driver:
             if self.proxy:

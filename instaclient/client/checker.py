@@ -10,7 +10,7 @@ class Checker(Component):
     # INSTAGRAM FUNCTIONS
     # LOGIN PROCEDURE
     @Component._manage_driver(login=False)
-    def _check_status(self: 'InstaClient', _discard_driver:bool=False):
+    def _check_status(self: 'InstaClient'):
         """
         Check if account is currently logged in. Returns True if account is logged in. Sets the `instaclient.logged_in` variable accordingly.
         Returns False if the driver is not open yet - even if the Instagram credentials (`username` and `password`) are correct.
@@ -29,14 +29,13 @@ class Checker(Component):
 
 
     @Component._manage_driver(login=False)
-    def _is_valid_user(self:'InstaClient', user:str, nav_to_user:bool=True, _discard_driver:bool=False):
+    def _is_valid_user(self:'InstaClient', user:str, nav_to_user:bool=True):
         """
         _is_valid_user Checks if a given username is a valid Instagram user.
 
         Args:
             user (str): Instagram username to check
             nav_to_user (bool, optional): Whether the driver shouldnavigate to the user page or not. Defaults to True.
-            _discard_driver (bool, optional): Whether the driver should be closed after the method finishes. Defaults to False.
 
         Raises:
             NotLoggedInError: Raised if you are not logged into any account
@@ -79,3 +78,22 @@ class Checker(Component):
             else:
                 return True
 
+
+    @Component._manage_driver(login=False)
+    def _is_valid_page(self:'InstaClient', url:str=None):
+        current = self.driver.current_url
+        if url:
+            if url != current:
+                self.driver.get(url)
+                current = self.driver.current_url
+
+        if url and current != url:
+            return False
+
+        if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=2):
+            return False
+
+        return True
+            
+
+        

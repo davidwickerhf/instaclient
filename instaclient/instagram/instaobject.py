@@ -1,7 +1,7 @@
 import abc, json
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    import instaclient.client.instaclient as client
+    from instaclient.client.instaclient import InstaClient
 
 class InstaBaseObject(abc.ABC):
     GRAPH_IMAGE = 'GraphImage'
@@ -9,6 +9,7 @@ class InstaBaseObject(abc.ABC):
     GRAPH_SIDECAR = 'GraphSidecar'
     GRAPH_PROFILE = 'GraphProfile'
     GRAPH_HASHTAG = 'GraphHashtag'
+    GRAPH_LOCATION = 'GraphLocation'
 
     GRAPH_FOLLOW = 'GraphFollowAggregatedStory'
     GRAPH_LIKE = 'GraphLikeAggregatedStory'
@@ -16,7 +17,7 @@ class InstaBaseObject(abc.ABC):
     GRAPH_MENTION = 'GraphMentionStory'
     GRAPH_COMMENT = 'GraphCommentMediaStory'
 
-    def __init__(self, client:'client.InstaClient', id:str, type:str, viewer:str=None):
+    def __init__(self, client:'InstaClient', id:str, type:str, viewer:str=None):
         """
         Reppresents an abstract instagram object.
 
@@ -32,18 +33,41 @@ class InstaBaseObject(abc.ABC):
         self.viewer = viewer
         
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f'InstaBaseObject<{self.id}>'
+
 
     def __getitem__(self, item: str):
         return self.__dict__[item]
 
-    def de_json(cls, data: str, client: 'client.InstaClient'):
+
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, InstaBaseObject):
+            if o.get_id() == self.id:
+                return True
+            else:
+                return False
+        else:
+            return 
+            
+    
+    def __update(self, o: object) -> object:
+        if isinstance(o, self.__class__):
+            args = o.to_dict()
+            for attr in vars(self):
+                setattr(self, attr, args.get(attr))
+            return self
+        return None
+
+
+    @classmethod
+    def de_json(cls, data: str, client: 'InstaClient'):
 
         if not data:
             return None
 
         return cls(client=client, **data)  # type: ignore[call-arg]
+
 
     def to_json(self) -> str:
         """
@@ -51,6 +75,7 @@ class InstaBaseObject(abc.ABC):
             str: Json string reppresentation of the object. Any 'client' attribute will be ignored.
         """
         return json.dumps(self.to_dict())
+
 
     def to_dict(self) -> str:
         data = dict()
@@ -67,20 +92,19 @@ class InstaBaseObject(abc.ABC):
                     data[key] = value
         return data
 
-    def __eq__(self, o: object) -> bool:
-        if isinstance(o, InstaBaseObject):
-            if o.get_id() == self.id:
-                return True
-            else:
-                return False
-        else:
-            return False
+
+    @property
+    def viewer_profile(self):
+        return self.client._scrape_profile(self.viewer)
+        
 
     def get_id(self):
         return self.id
 
+
     def get_viewer(self):
         return self.viewer
+
 
     def get_type(self):
         return self.type

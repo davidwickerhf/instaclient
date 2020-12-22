@@ -17,7 +17,7 @@ class Notification(InstaBaseObject):
                         return True
         return False
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f'Notification<{self.type} | {self.from_user}>'
 
     def __lt__(self, o) -> bool:

@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Union, List
 
 if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
@@ -10,25 +10,25 @@ class Profile(InstaBaseObject):
     id:str, 
     viewer:str, 
     username:str,
-    name:str=None,
-    biography:str=None,
-    is_private:bool=None,
-    is_verified:bool=None,
-    is_business_account:bool=None,
-    is_joined_recently:bool=None,
-    follower_count:int=None,
-    followed_count:int=None,
-    post_count:int=None,
-    business_category_name:str=None,
-    overall_category_name:str=None,
-    external_url:str=None,
-    business_email:str=None,
-    blocked_by_viewer:bool=None,
-    restricted_by_viewer:bool=None,
-    has_blocked_viewer:bool=None,
-    has_requested_viewer:bool=None,
-    mutual_followed:bool=None,
-    requested_by_viewer:bool=None,
+    name:Optional[str]=None,
+    biography:Optional[str]=None,
+    is_private:Optional[bool]=None,
+    is_verified:Optional[bool]=None,
+    is_business_account:Optional[bool]=None,
+    is_joined_recently:Optional[bool]=None,
+    follower_count:Optional[int]=None,
+    followed_count:Optional[int]=None,
+    post_count:Optional[int]=None,
+    business_category_name:Optional[str]=None,
+    overall_category_name:Optional[str]=None,
+    external_url:Optional[str]=None,
+    business_email:Optional[str]=None,
+    blocked_by_viewer:Optional[bool]=None,
+    restricted_by_viewer:Optional[bool]=None,
+    has_blocked_viewer:Optional[bool]=None,
+    has_requested_viewer:Optional[bool]=None,
+    mutual_followed:Optional[bool]=None,
+    requested_by_viewer:Optional[bool]=None,
     ):
         super().__init__(client, id, self.GRAPH_PROFILE, viewer)
         # Required
@@ -56,35 +56,24 @@ class Profile(InstaBaseObject):
         self.requested_by_viewer = requested_by_viewer
         
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f'Profile<{self.username}>'
 
+
     def __eq__(self, o: object) -> bool:
-        if not isinstance(o, Profile):
-            return False
-        try:
-            self_id = self.get_id()
-            o_id = o.get_id()
-            return self_id == o_id
-        except:
-            return self.username == o.username
-
-
-    @classmethod
-    def de_json(cls, data: str, client: 'InstaClient'):
-        if not data:
-            return None
-        return cls(client=client, **data)  # type: ignore[call-arg]
+        if isinstance(o, Profile):
+            if o.id == self.id or o.username == self.username:
+                return True
+        return False
 
 
     @staticmethod
-    def from_username(username:str, client:'InstaClient', context:bool=True):
-        return client._scrape_profile(username, login=context)
+    def from_username(client:'InstaClient', username:str, context:bool=True):
+        return client._scrape_profile(username, context=context)
 
-
-    @property
-    def viewer_profile(self):
-        return self.client._scrape_profile(self.viewer)
+    
+    def get_posts(self, count:Optional[int], deep_scrape:Optional[bool]=True, callback_frequency:int=100, callback=None, **callback_args) -> Union[List[str], List['Profile']]:
+        return self.client._scrape_user_posts(self.username, count, deep_scrape, callback_frequency, callback, **callback_args)
         
 
     def get_username(self):

@@ -1,3 +1,5 @@
+from logging import currentframe, exception
+from typing import Literal
 from instaclient.client import *
 from instaclient.client.component import Component
 from instaclient.client.navigator import Navigator
@@ -9,14 +11,13 @@ class Interactions(Navigator):
     PAGE_DOWN_SCROLL=5
     # FOLLOW PROCEDURE
     @Component._manage_driver()
-    def _follow_user(self, user:str, nav_to_user:bool=True, _discard_driver:bool=False):
+    def _follow_user(self, user:str, nav_to_user:bool=True):
         """
         _follow_user follows the instagram user that matches the username in the `user` attribute.
         If the target account is private, a follow request will be sent to such user and a `PrivateAccountError` will be raised.
 
         Args:
             user (str): Username of the user to follow.
-            _discard_driver (bool, optional): If set to True, the driver will be discarded at the end of the method. Defaults to False.
 
         Raises:
             PrivateAccountError: Raised if the `user` is a private account - A request to follow the user will be sent eitherway.
@@ -51,7 +52,7 @@ class Interactions(Navigator):
 
     
     @Component._manage_driver()
-    def _unfollow_user(self, user:str, nav_to_user=True, check_user=True, _discard_driver:bool=False):
+    def _unfollow_user(self, user:str, nav_to_user=True, check_user=True):
         """
         Unfollows a given user.
 
@@ -59,7 +60,6 @@ class Interactions(Navigator):
             user (str): User to unfollow
             nav_to_user (bool, optional): Navigate to user profile page. Defaults to True.
             check_user (bool, optional): Check user vadility. Defaults to True.
-            _discard_driver (bool, optional): Discard driver when completed. Defaults to False.
 
         Raises:
             InvalidUserError: raised if the user specified by the `user` argument is invalid.
@@ -87,7 +87,7 @@ class Interactions(Navigator):
 
     
     @Component._manage_driver()
-    def _like_latest_posts(self, user:str, n_posts:int, like:bool=True, _discard_driver:bool=False):
+    def _like_latest_posts(self, user:str, n_posts:int, like:bool=True):
         """
         Likes a number of a users latest posts, specified by n_posts.
 
@@ -120,14 +120,13 @@ class Interactions(Navigator):
 
 
     @Component._manage_driver()
-    def _send_dm(self, user:str, message:str, _discard_driver:bool=False):
+    def _send_dm(self, user:str, message:str):
         """
         Send an Instagram Direct Message to a user. 
 
         Args:
             user (str): Instagram username of the account to send the DM to
             message (str): Message to send to the user via DMs
-            _discard_driver (bool): Discard driver when operation is done.
 
         Raises:
             InvalidUserError: if the user is invalid.
@@ -181,3 +180,39 @@ class Interactions(Navigator):
         LOGGER.debug('INSTACLIENT: like_feed_posts')
 
 
+    @Component._manage_driver()
+    def _like_post(self, shortcode:str):
+        # Nav Post Page
+        self._nav_post(shortcode)
+        
+        try:
+            like_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.LIKE_BTN)))
+            self._press_button(like_btn)
+            LOGGER.info(f'Liked Post<{shortcode}>')
+            return True
+        except Exception as error:
+            LOGGER.error(f'There was an error when liking the Post<{shortcode}>', exc_info=error)
+            return False
+
+
+    @Component._manage_driver()
+    def _comment_on_post(self, shortcode:str, text:str) -> bool:
+        # Load Page
+        self._nav_post_comments(shortcode)
+
+        # Find Comment Text Area
+        comment_area = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.COMMENT_TEXT_AREA)))
+
+        # Input Comment
+        comment_area.send_keys(text)
+        time.sleep(1)
+
+        # Send Comment
+        try:
+            comment_area.send_keys(Keys.ENTER)
+        except:
+            send_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_COMMENT_BTN)))
+            self._press_button(send_btn)
+
+        LOGGER.info(f'Successfully commented on Post<{shortcode}>')
+        return True # TODO Return Comment Instance

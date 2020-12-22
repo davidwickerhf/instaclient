@@ -1,83 +1,105 @@
-from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
-from instaclient.client.constants import GraphUrls
-# Objects
-from instaclient.instagram.instaobject import InstaBaseObject
-from instaclient.instagram.profile import Profile
-from instaclient import LOGGER
 # Others
 import requests
-from typing import TYPE_CHECKING, Type
+from typing import TYPE_CHECKING, Type, List, Optional, Union
 
+# Objects
 if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
+    from instaclient.instagram.location import Location
+from instaclient.instagram.postmedia import PostMedia
+from instaclient.instagram.instaobject import InstaBaseObject
+from instaclient.instagram.comment import Comment
+from instaclient.instagram.profile import Profile
+# INSTACLIENT
+from instaclient.errors.common import InvalidInstaRequestError, InvalidInstaSchemaError
+from instaclient.client.constants import GraphUrls
+from instaclient import LOGGER
 
 
 class Post(InstaBaseObject):
     def __init__(self, 
     # Required
-    id:str, 
-    type:str,
     client:'InstaClient',
-    # Optional
-    viewer:Profile=None, 
-    text:str=None,
-    shortcode:str=None,
-    ):
-        id = id
-        type = self.index_type(type)
-        
-        super().__init__(id=id, type=type, viewer=viewer, client=client)
-        self.text = text
-        self.shortcode = shortcode
+    id:int, 
+    type:str,
+    viewer:str, 
+    owner:str,
+    shortcode:str,
+    timestamp:int,
+    likes_count:int,
+    comments_disabled:bool,
+    is_ad:bool,
+    media:List[PostMedia],
 
-    def __str__(self) -> str:
+    # Optional
+    caption:Optional[str]=None,
+    comments_count:Optional[int]=None,
+    tagged_users:Optional[List[str]]=None,
+    comments:Optional[List[Comment]]=None,
+    location:Optional['Location']=None,
+     
+    # Context Based
+    commenting_disabled_for_viewer:Optional[bool]=None,
+    viewer_has_liked:Optional[bool]=None,
+    viewer_has_saved:Optional[bool]=None,
+    viewer_has_saved_to_collection:Optional[bool]=None,
+    viewer_in_photo_of_you:Optional[bool]=None,
+    viewer_can_reshare:Optional[bool]=None,
+    ):  
+        super().__init__(id=id, type=type, viewer=viewer, client=client)
+        # Required
+        self.owner = owner
+        self.shortcode = shortcode
+        
+        self.timestamp = timestamp
+        self.likes_count = likes_count
+        self.comments_disabled = comments_disabled
+        self.is_ad = is_ad
+        self.media = media
+
+        # Optional
+        self.caption = caption
+        self.comments_count = comments_count
+        self.tagged_users = tagged_users
+        self.comments = comments
+        self.location = location
+
+        # Context Based
+        self.commenting_disabled_for_viewer = commenting_disabled_for_viewer
+        self.viewer_has_liked = viewer_has_liked
+        self.viewer_has_saved = viewer_has_saved
+        self.viewer_has_saved_to_collection = viewer_has_saved_to_collection 
+        self.viewer_in_photo_of_you = viewer_in_photo_of_you
+        self.viewer_can_reshare = viewer_can_reshare
+
+    def __repr__(self) -> str:
         return f'Post<{self.shortcode}>'
 
-    def get_owner(self):
-        """
-        get_owner get information about the owner of the post in the form of a `instaclient.classes.baseprofile.BaseProfile` object
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, Post):
+            if o.owner == self.owner and o.shortcode == o.shortcode:
+                return True
+        return False
 
-        Raises:
-            InvalidInstaRequestError: raised if there is an error in the instagram request URL. Notify package developers.
-            InvalidInstaSchemaError: raised if there is an error in the instagram result query shema. Notify package developers.
+    def refresh(self, context:bool=True):
+        refreshed = self.client._scrape_post(self.shortcode, context)
+        return self.__update(refreshed)
 
-        Returns:
-            BaseProfile: User account of the owner of the post
-        """
+    def get_owner(self) -> Optional[Profile]:
+        return self.client._scrape_profile(self.owner)
 
-        # Send Request
-        request = self._get_url(GraphUrls.GRAPH_POST.format(self.shortcode))
-        if self.proxy:
-            proxyDict = { 
-              "http"  : self.proxy, 
-              "https" : self.proxy, 
-              "ftp"   : self.proxy
-            }
-            result = requests.get(request, proxies=proxyDict)
-        else:
-            result = requests.get(request) #TODO
+    def add_comment(self, text) -> Optional[Comment]:
+        result = self.client._comment_on_post(self.shortcode, text)
+        if result:
+            return self.client._find_comment(self.shortcode, self.client.username, text)
+        return None
 
-        try:
-            data = result.json()
-        except:
-            LOGGER.debug('No result')
-            raise InvalidInstaRequestError(request)
+    def like(self):
+        self.client._like_post(self.shortcode)
+        return self.refresh()
 
-        # Process Result Json
-        try:
-            owner = data['graphql']['shortcode_media']['owner']
-            owner:Profile = Profile(
-                id=owner['id'],
-                viewer=self.viewer,
-                username=owner['username'],
-                name=owner['full_name']
-            )
-        except:
-            raise InvalidInstaSchemaError(__name__)
 
-        # Return Object
-        return owner
-
+    
 
 
 

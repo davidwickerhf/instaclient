@@ -2,10 +2,10 @@ from instaclient.client import *
 
 if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
-from instaclient.client.component import Component
+from instaclient.client.checker import Checker
 
 
-class Navigator(Component):
+class Navigator(Checker):
 
     # NAVIGATION PROCEDURES
     def _nav_user(self:'InstaClient', user:str, check_user:bool=True):
@@ -24,7 +24,7 @@ class Navigator(Component):
         """
         self.driver.get(ClientUrls.NAV_USER.format(user))
         if check_user:
-            return self._is_valid_user(user=user, nav_to_user=False) # TODO FIX THIS 
+            return self._is_valid_user(user=user, nav_to_user=False) # TODO OPTIMIZE  THIS 
 
     
     def _nav_user_dm(self:'InstaClient', user:str, check_user:bool=True):
@@ -79,6 +79,39 @@ class Navigator(Component):
             LOGGER.error('There was error navigating to the user page: ', exc_info=error)
             raise InstaClientError('There was an error when navigating to <{}>\'s DMs'.format(user))
             
+    
+    def _nav_post(self:'InstaClient', shortcode:str):
+        url = ClientUrls.POST_URL.format(shortcode)
+        if self.driver.current_url is not url:
+            self.driver.get(url)
+
+        result = self._is_valid_page(url)
+        if not result:
+            raise InvalidShortCodeError(shortcode)
+        LOGGER.debug('Got Post\'s Page')
+        return True
+
+
+    def _nav_post_comments(self:'InstaClient', shortcode:str):
+        url = ClientUrls.COMMENTS_URL.format(shortcode)
+        if self.driver.current_url is not url:
+            if self.driver.current_url == ClientUrls.POST_URL.format(shortcode):
+                # Press Comment Button
+                btn = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.COMMENT_BTN)))
+                if btn:
+                    btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.COMMENT_BTN)))
+                    self._press_button(btn)
+                else:
+                    pass
+            if self.driver.current_url != url:
+                self.driver.get(url)
+
+        result = self._is_valid_page(url)
+        if not result:
+            raise InvalidShortCodeError(shortcode)
+        LOGGER.debug('Got Post\'s Comments Page')
+        return True
+        
      
     def _nav_tag(self:'InstaClient', tag:str):
         """

@@ -2,7 +2,7 @@
 import time, logging, abc, os, threading
 from random import randrange, randint
 from functools import wraps
-from typing import TYPE_CHECKING, Union, Optional
+from typing import TYPE_CHECKING, Union, Optional, List
 
 # SELENIUM STUFF
 from selenium import webdriver
@@ -18,5 +18,17 @@ from selenium.webdriver.support import expected_conditions as EC
 # INSTACLIENT PACKAGE
 from instaclient import LOGGER
 from instaclient.client.constants import (ClientUrls, GraphUrls, Paths)
-from instaclient.errors.common import *
-from instaclient.instagram import *
+from instaclient.errors import *
+
+from instaclient.instagram import (
+    InstaBaseObject,
+    Comment,
+    Post,
+    Profile,
+    Hashtag,
+    Location,
+    Address,
+    PostMedia,
+    Notification
+)
+    
