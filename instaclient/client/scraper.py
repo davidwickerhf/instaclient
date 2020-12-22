@@ -268,7 +268,7 @@ class Scraper(Component):
 
 
     @Component._manage_driver()
-    def _scrape_user_posts(self:'InstaClient', username:str, count:Optional[int], deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Union[List[str], List[Profile]]:
+    def _scrape_user_posts(self:'InstaClient', username:str, count:Optional[int]=30, deep_scrape:Optional[bool]=True, callback_frequency:int=100, callback=None, **callback_args) -> Union[List[str], List[Profile]]:
         # Nav to User Page
         self._nav_user(username)
 

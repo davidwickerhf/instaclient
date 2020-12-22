@@ -150,9 +150,17 @@ class InstaClient(Auth, Interactions, Scraper):
     def get_followers(self, user: str, count: int, check_user:bool=True, callback_frequency: int=100, callback=None, **callback_args) -> Optional[list]:
         return super()._scrape_followers(user, count, check_user=check_user, callback_frequency=callback_frequency, callback=callback, **callback_args)
 
+    
+    def get_post(self, shortcode:int, context:Optional[bool]=True) -> Optional[Post]:
+        return super()._scrape_post(shortcode=shortcode, context=context)
+
+    
+    def get_user_posts(self: 'InstaClient', username: str, count: Optional[int]=30, deep_scrape: Optional[bool]=True, callback_frequency: int=100, callback=None, **callback_args) -> Union[List[str], List[Profile]]:
+        return super()._scrape_user_posts(username, count, deep_scrape=deep_scrape, callback_frequency=callback_frequency, callback=callback, **callback_args)
+
 
     def get_hashtag(self: 'InstaClient', tag: str) -> Optional[Hashtag]:
-        return super()._scrape_tag(tag, self.username)
+        return super()._scrape_tag(tag=tag, viewer=self.username)
 
     
 

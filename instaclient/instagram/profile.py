@@ -82,3 +82,11 @@ class Profile(InstaBaseObject):
 
     def get_name(self):
         return self.name
+
+
+    def follow(self):
+        self.client._follow_user(user=self.username)
+
+    
+    def unfollow(self):
+        self.client._unfollow_user(user=self.username)
