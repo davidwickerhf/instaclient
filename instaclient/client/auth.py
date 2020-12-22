@@ -228,7 +228,7 @@ class Auth(Checker):
         self.password = None
         if result:
             if disconnect:
-                self._discard_driver()
+                self._disconnect()
                 LOGGER.debug('INSTACLIENT: Logged Out')
                 return True
             else:
