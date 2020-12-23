@@ -52,10 +52,12 @@ class InstaBaseObject(abc.ABC):
             
     
     def _update(self, o: object) -> object:
+        client = self.client
         if isinstance(o, self.__class__):
             args = o.to_dict()
             for attr in vars(self):
                 setattr(self, attr, args.get(attr))
+            self.client = client
             return self
         return None
 
