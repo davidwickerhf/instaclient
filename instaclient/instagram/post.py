@@ -83,7 +83,7 @@ class Post(InstaBaseObject):
 
     def refresh(self, context:bool=True):
         refreshed = self.client._scrape_post(self.shortcode, context)
-        return self.__update(refreshed)
+        return self._update(refreshed)
 
     def get_owner(self) -> Optional[Profile]:
         return self.client._scrape_profile(self.owner)

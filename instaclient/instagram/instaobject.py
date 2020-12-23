@@ -51,7 +51,7 @@ class InstaBaseObject(abc.ABC):
             return 
             
     
-    def __update(self, o: object) -> object:
+    def _update(self, o: object) -> object:
         if isinstance(o, self.__class__):
             args = o.to_dict()
             for attr in vars(self):
