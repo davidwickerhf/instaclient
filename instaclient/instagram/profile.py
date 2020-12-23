@@ -22,6 +22,8 @@ class Profile(InstaBaseObject):
     business_category_name:Optional[str]=None,
     overall_category_name:Optional[str]=None,
     external_url:Optional[str]=None,
+    fb_id:Optional[str]=None,
+
     business_email:Optional[str]=None,
     blocked_by_viewer:Optional[bool]=None,
     restricted_by_viewer:Optional[bool]=None,
@@ -46,8 +48,9 @@ class Profile(InstaBaseObject):
         self.business_category_name = business_category_name
         self.overall_category_name = overall_category_name
         self.external_url = external_url
-        self.business_email = business_email
+        self.fb_id = fb_id
 
+        self.business_email = business_email
         self.blocked_by_viewer = blocked_by_viewer
         self.restricted_by_viewer = restricted_by_viewer
         self.has_blocked_viewer = has_blocked_viewer

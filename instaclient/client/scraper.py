@@ -94,8 +94,10 @@ class Scraper(Component):
                 business_category_name = user['business_category_name'],
                 overall_category_name = user['overall_category_name'],
                 external_url = user['external_url'],
-                business_email = user['business_email'],
+                fb_id = user.get('fbid'),
+                
                 # Context Based
+                business_email = user.get('business_email'),
                 blocked_by_viewer = user['blocked_by_viewer'],
                 restricted_by_viewer = user['restricted_by_viewer'],
                 has_blocked_viewer = user['has_blocked_viewer'],
