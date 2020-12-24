@@ -60,6 +60,7 @@ class Paths:
     # GENERAL
     USE_THE_APP = '//button[@class="sqdOP yWX7d    y3zKF   cB_4K  "]' #TODO
     X = '//div[@class="storiesSpriteX__outline__44 u-__7"]'
+    USE_APP_BAR = '//button[@class="dCJp8 "]'
     COOKIES_LINK = '//a[contains(@heref, "cookies") or contains(text(), "Cookie")]'
     ACCEPT_COOKIES = '//button[@class="aOOlW  bIiDR  "]'
     SETTINGS_BTN = '//button[@class="Q46SR"]'

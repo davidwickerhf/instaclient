@@ -88,6 +88,8 @@ class Navigator(Checker):
         result = self._is_valid_page(url)
         if not result:
             raise InvalidShortCodeError(shortcode)
+        
+        self._dismiss_useapp_bar()
         LOGGER.debug('Got Post\'s Page')
         return True
 

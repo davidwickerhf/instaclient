@@ -29,10 +29,9 @@ class Interactions(Navigator):
         
         # Check User Vadility
         try:
-            result = self._is_valid_user(user, nav_to_user=False)
+            result = self._is_valid_user(user)
             LOGGER.debug('INSTACLIENT: User <{}> is valid'.format(user))
             private = False
-            
         # User is private
         except PrivateAccountError:
             private = True
@@ -184,7 +183,7 @@ class Interactions(Navigator):
     def _like_post(self, shortcode:str):
         # Nav Post Page
         self._nav_post(shortcode)
-        
+
         try:
             like_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.LIKE_BTN)))
             self._press_button(like_btn)

@@ -377,7 +377,7 @@ class Scraper(Component):
         start = time.time() # TODO
         
         try:
-            while len(followers) < count:
+            while len(followers) <= count:
                 finished_warning = False
                 
 

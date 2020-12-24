@@ -133,8 +133,8 @@ class InstaClient(Auth, Interactions, Scraper):
         return super()._check_status()
     
 
-    def is_valid_user(self: 'InstaClient', user: str, nav_to_user: bool=True) -> bool:
-        return super()._is_valid_user(user, nav_to_user=nav_to_user)
+    def is_valid_user(self: 'InstaClient', user: str) -> bool:
+        return super()._is_valid_user(user)
 
 
    

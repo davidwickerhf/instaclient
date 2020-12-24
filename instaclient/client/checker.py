@@ -29,7 +29,7 @@ class Checker(Component):
 
 
     @Component._manage_driver(login=False)
-    def _is_valid_user(self:'InstaClient', user:str, nav_to_user:bool=True):
+    def _is_valid_user(self:'InstaClient', user:str):
         """
         _is_valid_user Checks if a given username is a valid Instagram user.
 
@@ -46,37 +46,12 @@ class Checker(Component):
             bool: True if the user is valid
         """
         LOGGER.debug('INSTACLIENT: Checking user vadility')
-        if nav_to_user:
-            self.driver.get(ClientUrls.NAV_USER.format(user))
-
-        if self.driver.current_url != ClientUrls.NAV_USER.format(user):
-            self.driver.get(ClientUrls.NAV_USER.format(user))
-
-        LOGGER.debug('INSTACLIENT: Url: {}'.format(self.driver.current_url))
-        if self.driver.current_url == ClientUrls.LOGIN_THEN_USER.format(user):
-            raise NotLoggedInError()
-        elif self.driver.current_url != ClientUrls.NAV_USER.format(user):
-            time.sleep(1)
-            self.driver.get(ClientUrls.NAV_USER.format(user))
-            time.sleep(1)
-
-
-        self._dismiss_cookies()
-
-        element = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)), wait_time=3)
-        if element:
-            # User does not exist
-            LOGGER.debug('INSTACLIENT: {} does not exist.'.format(user))
-            raise InvalidUserError(username=user)
-        else: 
-            LOGGER.debug('INSTACLIENT: {} is a valid user.'.format(user))
-            # Operation Successful
-            paccount_alert = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PRIVATE_ACCOUNT_ALERT)))
-            if paccount_alert:
-                # navigate back to home page
-                raise PrivateAccountError(user)
-            else:
-                return True
+        profile:Profile = self._scrape_profile(user)
+        if not profile:
+            raise InvalidUserError(user)
+        if profile.is_private:
+            raise PrivateAccountError(user)
+        return True
 
 
     @Component._manage_driver(login=False)

@@ -1,3 +1,4 @@
+from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from instaclient.client import *
 
 if TYPE_CHECKING:
@@ -135,6 +136,8 @@ class Component:
                 LOGGER.debug('Retrying find element...')
                 if attempt == 0:
                     LOGGER.debug('Checking for cookies/dialogues...')
+                    self._dismiss_useapp_bar()
+
                     self._dismiss_cookies()
 
                     self._dismiss_dialogue()
@@ -181,13 +184,18 @@ class Component:
             return False
 
 
-    
     def _dismiss_cookies(self):
         if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)), wait_time=2.5):
             accept_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.ACCEPT_COOKIES)))
             self._press_button(accept_btn)
         LOGGER.debug('Dismissed Cookies')
 
+    
+    def _dismiss_useapp_bar(self):
+        dismiss_bar = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.USE_APP_BAR)))
+        if dismiss_bar:
+            dismiss = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.USE_APP_BAR)))
+            self._press_button(dismiss)
 
     
     def _dismiss_dialogue(self, wait_time:float=2):
