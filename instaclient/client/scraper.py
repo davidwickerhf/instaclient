@@ -343,7 +343,7 @@ class Scraper(Component):
  
 
     @Component._manage_driver(login=False)
-    def _scrape_followers(self, user:str, count:int, check_user=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[list]:
+    def _scrape_followers(self:'InstaClient', user:str, count:int, check_user=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[list]:
         """
         scrape_followers: Scrape an instagram user's followers and return them as a list of strings.
 

@@ -23,10 +23,6 @@ class Interactions(Navigator):
             PrivateAccountError: Raised if the `user` is a private account - A request to follow the user will be sent eitherway.
             InvalidUserError: Raised if the `user` is invalid
         """
-        # Navigate to User Page
-        if nav_to_user:
-            self._nav_user(user, check_user=False)
-        
         # Check User Vadility
         try:
             result = self._is_valid_user(user)
@@ -35,6 +31,10 @@ class Interactions(Navigator):
         # User is private
         except PrivateAccountError:
             private = True
+
+        # Navigate to User Page
+        if nav_to_user:
+            self._nav_user(user, check_user=False)
 
         if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
             # Follow request already sent

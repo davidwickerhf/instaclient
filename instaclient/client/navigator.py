@@ -22,9 +22,10 @@ class Navigator(Checker):
         Raises:
             InvaildUserError if user does not exist
         """
-        self.driver.get(ClientUrls.NAV_USER.format(user))
         if check_user:
-            return self._is_valid_user(user=user) # TODO OPTIMIZE  THIS 
+            result = self._is_valid_user(user=user)
+        self.driver.get(ClientUrls.NAV_USER.format(user))
+         # TODO OPTIMIZE  THIS 
 
     
     def _nav_user_dm(self:'InstaClient', user:str, check_user:bool=True):
