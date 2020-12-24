@@ -63,14 +63,16 @@ class Interactions(Navigator):
         Raises:
             InvalidUserError: raised if the user specified by the `user` argument is invalid.
         """
-        if nav_to_user:
-            self._nav_user(user, check_user)
-        elif check_user:
+        
+        if check_user:
             try:
-                self._is_valid_user(user, nav_to_user=False)
+                self._is_valid_user(user)
             except PrivateAccountError:
                 pass
             LOGGER.debug('INSTACLIENT: User <{}> is valid'.format(user))
+
+        if nav_to_user:
+            self._nav_user(user, check_user)
 
         if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN))):
             unfollow_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN)))

@@ -24,7 +24,7 @@ class Navigator(Checker):
         """
         self.driver.get(ClientUrls.NAV_USER.format(user))
         if check_user:
-            return self._is_valid_user(user=user, nav_to_user=False) # TODO OPTIMIZE  THIS 
+            return self._is_valid_user(user=user) # TODO OPTIMIZE  THIS 
 
     
     def _nav_user_dm(self:'InstaClient', user:str, check_user:bool=True):
@@ -88,7 +88,7 @@ class Navigator(Checker):
         result = self._is_valid_page(url)
         if not result:
             raise InvalidShortCodeError(shortcode)
-        
+
         self._dismiss_useapp_bar()
         LOGGER.debug('Got Post\'s Page')
         return True
