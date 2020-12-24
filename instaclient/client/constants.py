@@ -66,6 +66,7 @@ class Paths:
     SETTINGS_BTN = '//button[@class="Q46SR"]'
     BUTTON = '//button[text()="{}"]'
     NOT_NOW_BTN = '//button[@class="aOOlW   HoLwm "]'
+    NOT_NOW_INFO_BTN = '//button[@class="sqdOP yWX7d    y3zKF     "]'
     RESTRICTION_DIALOG = '//div[@class="_7UhW9   xLCgt      MMzan   _0PwGv         uL8Hv         " and contains(text(), "restrict")]'
     RESTRICTION_DIALOGUE_BTNS = '//div[@class="pbNvD  fPMEg    " and @role="dialog"]//descendant::button'
     BLOCK_DIV = '//div[@class="_7UhW9    vy6Bb     MMzan  KV-D4          uL8Hv     l4b0S    " and contains(text(), "unusual activity")]'

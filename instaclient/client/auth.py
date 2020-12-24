@@ -108,6 +108,15 @@ class Auth(Checker):
         LOGGER.debug('INSTACLIENT: Credentials are Correct')
 
         # Discard Driver or complete login
+        not_now = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_INFO_BTN)))
+        if not_now:
+            not_now = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_INFO_BTN)))
+            self._press_button(not_now)
+
+        not_now = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)))
+        if not_now:
+            not_now = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)))
+            self._press_button(not_now)
         return self.logged_in
 
 

@@ -133,7 +133,7 @@ class Scraper(Component):
                     name=location['name'],
                     slug=location['slug'],
                     has_public_page=location['has_public_page'],
-                    address=Address(location['address_json'],)
+                    address=Address(location['address_json'],) if location['address_json'] else None
                 )
 
             # TODO Deserialize Comments
