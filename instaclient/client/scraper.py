@@ -373,14 +373,12 @@ class Scraper(Component):
         followers = list()
         failed = list()
         last_callback = 0
+        finished_warning = False
 
         start = time.time() # TODO
         
         try:
-            while len(followers) <= count:
-                finished_warning = False
-                
-
+            while len(followers) < count:
                 loop = time.time() # TODO
                 LOGGER.debug(f'Starting Scrape Loop. Followers: {len(followers)}')
                 
@@ -417,6 +415,8 @@ class Scraper(Component):
                 elif finished_warning:
                     LOGGER.info('Finished Followers')
                     break
+                else:
+                    finished_warning = False
 
                 LOGGER.debug('Scroll')
                 self._scroll(mode=self.END_PAGE_SCROLL, times=2, interval=1)
