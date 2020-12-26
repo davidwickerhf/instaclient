@@ -270,7 +270,7 @@ class Scraper(Component):
 
 
     @Component._manage_driver()
-    def _scrape_user_posts(self:'InstaClient', username:str, count:Optional[int]=30, deep_scrape:Optional[bool]=True, callback_frequency:int=100, callback=None, **callback_args) -> Union[List[str], List[Profile]]:
+    def _scrape_user_posts(self:'InstaClient', username:str, count:Optional[int]=30, deep_scrape:Optional[bool]=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[str], List[Profile]]]:
         # Nav to User Page
         self._nav_user(username)
 
@@ -278,15 +278,16 @@ class Scraper(Component):
         shortcodes = list()
         failed = list()
         last_callback = 0
+        finished_warning = False
         
         # Shortcodes scraper loop
         try:
             while len(shortcodes) < count:
-                finished_warning = False
+                
                 
 
                 loop = time.time() # TODO
-                LOGGER.debug(f'Starting Scrape Loop. Followers: {len(shortcodes)}')
+                LOGGER.debug(f'Starting Post Scrape Loop. Posts: {len(shortcodes)}')
                 
                 scraped_count = len(shortcodes)
                 divs = self._find_element(EC.presence_of_all_elements_located((By.XPATH, Paths.SHORTCODE_DIV)), wait_time=2)
@@ -318,12 +319,14 @@ class Scraper(Component):
                     break
 
                 if not finished_warning and len(shortcodes) == scraped_count:
-                    LOGGER.info('Detected End of Followers Page')
+                    LOGGER.info('Detected End of Posts Page')
                     finished_warning = True
                     time.sleep(3)
                 elif finished_warning:
-                    LOGGER.info('Finished Followers')
+                    LOGGER.info('Finished Posts')
                     break
+                else:
+                    finished_warning = False
 
                 LOGGER.debug('Scroll')
                 self._scroll(mode=self.END_PAGE_SCROLL, times=2, interval=1)
@@ -336,14 +339,16 @@ class Scraper(Component):
             return shortcodes
         else:
             # For every shortlink, scrape Post
-            profiles = list()
-            for shortcode in shortcodes:
-                profiles.append(self._scrape_post(shortcode))
-            return profiles
+            LOGGER.info('Deep scraping posts...')
+            posts = list()
+            for index, shortcode in enumerate(shortcodes):
+                LOGGER.debug(f'Deep scraped {index} posts out of {len(shortcodes)}')
+                posts.append(self._scrape_post(shortcode))
+            return posts
  
 
     @Component._manage_driver(login=False)
-    def _scrape_followers(self:'InstaClient', user:str, count:int, check_user=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[list]:
+    def _scrape_followers(self:'InstaClient', user:str, count:int, deep_scrape:Optional[bool]=True, check_user=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
         """
         scrape_followers: Scrape an instagram user's followers and return them as a list of strings.
 
@@ -425,9 +430,19 @@ class Scraper(Component):
                 
 
         end = time.time() # TODO
-        LOGGER.info(f'Scraped Followers:. Total: {end - start}')
+        LOGGER.info(f'Scraped Followers: Total: {len(followers)}')
         LOGGER.debug(f'Failed: {len(failed)}')
-        return followers
+
+        if not deep_scrape:
+            return followers
+        else:
+            LOGGER.info('Deep scraping profiles...')
+            # For every shortlink, scrape Post
+            profiles = list()
+            for index, follower in enumerate(followers):
+                LOGGER.debug(f'Deep scraped {index} profiles out of {len(followers)}')
+                profiles.append(self._scrape_profile(follower))
+            return profiles
 
     
     

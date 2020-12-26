@@ -184,10 +184,11 @@ class InstaClient(Auth, Interactions, Scraper):
 
 
     def like_post(self, shortcode: str) -> Optional[Post]:
-        if super()._like_post(shortcode):
-            return self._scrape_post(shortcode)
-        else:
-            return None
+        return super()._like_post(shortcode=shortcode)
+
+    
+    def unlike_post(self, shortocde: str) -> Optional[Post]:
+        return super()._unlike_post(shortcode=shortocde)
 
 
     def like_user_posts(self, user: str, n_posts: int, like: bool=True):

@@ -2,6 +2,7 @@ from typing import Optional, TYPE_CHECKING, Union, List
 
 if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
+    from instaclient.instagram import Post
 from instaclient.instagram.instaobject import InstaBaseObject
 
 class Profile(InstaBaseObject):
@@ -71,16 +72,21 @@ class Profile(InstaBaseObject):
 
 
     @staticmethod
-    def from_username(client:'InstaClient', username:str, context:bool=True):
+    def from_username(client:'InstaClient', username:str, context:bool=True) -> Optional['Profile']:
         return client._scrape_profile(username, context=context)
 
+
+    def refresh(self, context:bool=True):
+        refreshed = self.client._scrape_profile(self.username, context)
+        return self._update(refreshed)
+
     
-    def get_posts(self, count:Optional[int], deep_scrape:Optional[bool]=True, callback_frequency:int=100, callback=None, **callback_args) -> Union[List[str], List['Profile']]:
+    def get_posts(self, count:Optional[int], deep_scrape:Optional[bool]=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List['Post'], List[str]]]:
         return self.client._scrape_user_posts(self.username, count, deep_scrape, callback_frequency, callback, **callback_args)
 
     
-    def get_followers(self, count: int, callback_frequency: int=100, callback=None, **callback_args) -> Optional[list]:
-        return self.client._scrape_followers(user=self.username, count=count, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
+    def get_followers(self, count: int, deep_scrape:Optional[bool]=True, callback_frequency: int=100, callback=None, **callback_args) -> Optional[Union[List['Profile'], List[str]]]:
+        return self.client._scrape_followers(user=self.username, count=count, deep_scrape=deep_scrape, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
         
 
     def get_username(self):

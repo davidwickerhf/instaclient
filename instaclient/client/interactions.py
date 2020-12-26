@@ -4,6 +4,9 @@ from instaclient.client import *
 from instaclient.client.component import Component
 from instaclient.client.navigator import Navigator
 
+if TYPE_CHECKING:
+    from instaclient import InstaClient
+
 
 class Interactions(Navigator):
     PIXEL_SCROLL=3
@@ -182,18 +185,45 @@ class Interactions(Navigator):
 
 
     @Component._manage_driver()
-    def _like_post(self, shortcode:str):
+    def _like_post(self:'InstaClient', shortcode:str) -> Optional[Post]:
         # Nav Post Page
+        post:Post = self._scrape_post(shortcode=shortcode)
+        if post and post.viewer_has_liked:
+            return post
+
         self._nav_post(shortcode)
 
         try:
             like_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.LIKE_BTN)))
             self._press_button(like_btn)
             LOGGER.info(f'Liked Post<{shortcode}>')
-            return True
+            post.likes_count += 1
+            post.viewer_has_liked = True
+            return post
         except Exception as error:
             LOGGER.error(f'There was an error when liking the Post<{shortcode}>', exc_info=error)
-            return False
+            return post
+
+
+    @Component._manage_driver()
+    def _unlike_post(self:'InstaClient', shortcode:str) -> Optional[Post]:
+        # Nav Post Page
+        post:Post = self._scrape_post(shortcode=shortcode)
+        if post and not post.viewer_has_liked:
+            return post
+
+        self._nav_post(shortcode)
+
+        try:
+            like_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.LIKE_BTN)))
+            self._press_button(like_btn)
+            LOGGER.info(f'Unliked Post<{shortcode}>')
+            post.likes_count -= 1
+            post.viewer_has_liked = False
+            return post
+        except Exception as error:
+            LOGGER.error(f'There was an error when liking the Post<{shortcode}>', exc_info=error)
+            return None
 
 
     @Component._manage_driver()

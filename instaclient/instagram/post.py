@@ -95,8 +95,12 @@ class Post(InstaBaseObject):
         return None
 
     def like(self):
-        self.client._like_post(self.shortcode)
-        return self.refresh()
+        post = self.client._like_post(self.shortcode)
+        return self._update(post)
+
+    def unlike(self):
+        post = self.client._unlike_post(self.shortcode)
+        return self._update(post)
 
 
     
