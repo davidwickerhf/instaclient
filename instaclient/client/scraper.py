@@ -308,7 +308,7 @@ class Scraper(Component):
                             if (last_callback + new) % callback_frequency == 0:
                                 if callable(callback):
                                     LOGGER.debug('Called Callback')
-                                    callback(**callback_args)
+                                    callback(scraped = shortcodes, **callback_args)
 
                     except:
                         failed.append(div)
@@ -352,7 +352,7 @@ class Scraper(Component):
             count (int): Number of followers to scrape
             check_user (bool, optional): If set to True, checks if the `user` is a valid instagram username. Defaults to True.
             callback_frequency (int, optional): Number of scraped followers between updates
-            callback (function): Function with no parameters that gets called with the frequency set by ``callback_frequency``
+            callback (function): Function with no parameters that gets called with the frequency set by ``callback_frequency``. This method must take a ``scraped`` argument.
 
         Returns:
             list: List of instagram usernames
@@ -399,7 +399,7 @@ class Scraper(Component):
                             if (last_callback + new) % callback_frequency == 0:
                                 if callable(callback):
                                     LOGGER.debug('Called Callback')
-                                    callback(**callback_args)
+                                    callback(scraped = followers, **callback_args)
 
                     except:
                         failed.append(div)
