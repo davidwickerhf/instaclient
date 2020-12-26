@@ -80,7 +80,7 @@ class Profile(InstaBaseObject):
 
     
     def get_followers(self, count: int, callback_frequency: int=100, callback=None, **callback_args) -> Optional[list]:
-        return super()._scrape_followers(user=self.username, count=count, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
+        return self.client._scrape_followers(user=self.username, count=count, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
         
 
     def get_username(self):
