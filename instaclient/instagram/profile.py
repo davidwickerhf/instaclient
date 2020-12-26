@@ -77,6 +77,10 @@ class Profile(InstaBaseObject):
     
     def get_posts(self, count:Optional[int], deep_scrape:Optional[bool]=True, callback_frequency:int=100, callback=None, **callback_args) -> Union[List[str], List['Profile']]:
         return self.client._scrape_user_posts(self.username, count, deep_scrape, callback_frequency, callback, **callback_args)
+
+    
+    def get_followers(self, count: int, callback_frequency: int=100, callback=None, **callback_args) -> Optional[list]:
+        return super()._scrape_followers(user=self.username, count=count, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
         
 
     def get_username(self):
