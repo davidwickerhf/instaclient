@@ -270,7 +270,7 @@ class Scraper(Component):
 
 
     @Component._manage_driver()
-    def _scrape_user_posts(self:'InstaClient', username:str, count:Optional[int]=30, deep_scrape:Optional[bool]=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[str], List[Profile]]]:
+    def _scrape_user_posts(self:'InstaClient', username:str, count:Optional[int]=30, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[str], List[Profile]]]:
         # Nav to User Page
         self._nav_user(username)
 
@@ -348,7 +348,7 @@ class Scraper(Component):
  
 
     @Component._manage_driver(login=False)
-    def _scrape_followers(self:'InstaClient', user:str, count:int, deep_scrape:Optional[bool]=True, check_user=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
+    def _scrape_followers(self:'InstaClient', user:str, count:int, deep_scrape:Optional[bool]=False, check_user=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
         """
         scrape_followers: Scrape an instagram user's followers and return them as a list of strings.
 

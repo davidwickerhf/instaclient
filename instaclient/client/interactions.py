@@ -227,7 +227,7 @@ class Interactions(Navigator):
 
 
     @Component._manage_driver()
-    def _comment_on_post(self, shortcode:str, text:str) -> bool:
+    def _comment_on_post(self:'InstaClient', shortcode:str, text:str) -> bool:
         # Load Page
         self._nav_post_comments(shortcode)
 
@@ -246,4 +246,4 @@ class Interactions(Navigator):
             self._press_button(send_btn)
 
         LOGGER.info(f'Successfully commented on Post<{shortcode}>')
-        return True # TODO Return Comment Instance
+        return Comment(self, None, InstaBaseObject.GRAPH_COMMENT, self.username, self.username, shortcode, text) # TODO Return Comment Instance

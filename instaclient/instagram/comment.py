@@ -14,8 +14,8 @@ class Comment(InstaBaseObject):
     owner:str,
     post_shortcode:str,
     text:str,
-    created_at:int,
-    likes_count:int,
+    created_at:Optional[int]=None,
+    likes_count:Optional[int]=None,
     # Optional
     did_report_as_spam:Optional[bool]=None,
     viewer_has_liked:Optional[bool]=None,

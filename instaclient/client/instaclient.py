@@ -178,10 +178,7 @@ class InstaClient(Auth, Interactions, Scraper):
 
 
     def comment_post(self, shortcode: str, text: str) -> Optional[Comment]:
-        result = super()._comment_on_post(shortcode, text)
-        # Return Comment Object
-        return self._find_comment(shortcode, self.username, text)
-
+        return super()._comment_on_post(shortcode, text)
 
     def like_post(self, shortcode: str) -> Optional[Post]:
         return super()._like_post(shortcode=shortcode)
