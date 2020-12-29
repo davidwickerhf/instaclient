@@ -147,8 +147,8 @@ class InstaClient(Auth, Interactions, Scraper):
         return super()._scrape_profile(username, context=context)
 
 
-    def get_followers(self, user: str, count: int, check_user:bool=True, callback_frequency: int=100, callback=None, **callback_args) -> Optional[list]:
-        return super()._scrape_followers(user, count, check_user=check_user, callback_frequency=callback_frequency, callback=callback, **callback_args)
+    def get_followers(self, user: str, count: int, deep_scrape:bool=False, check_user:bool=True, callback_frequency: int=100, callback=None, **callback_args) -> Optional[list]:
+        return super()._scrape_followers(user, count, deep_scrape=deep_scrape, check_user=check_user, callback_frequency=callback_frequency, callback=callback, **callback_args)
 
     
     def get_post(self, shortcode:int, context:Optional[bool]=True) -> Optional[Post]:
