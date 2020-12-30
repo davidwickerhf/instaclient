@@ -233,6 +233,7 @@ class Auth(Checker):
         """
         LOGGER.debug('INSTACLIENT: LOGOUT')
         result = self._check_status()
+        username = self.username
         self.username = None
         self.password = None
         if result:
@@ -241,7 +242,7 @@ class Auth(Checker):
                 LOGGER.debug('INSTACLIENT: Logged Out')
                 return True
             else:
-                self.driver.get(ClientUrls.NAV_USER.format(self.username))
+                self.driver.get(ClientUrls.NAV_USER.format(username))
                 time.sleep(1)
                 settings_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SETTINGS_BTN)), wait_time=4)
                 self._press_button(settings_btn)

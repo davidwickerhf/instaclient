@@ -42,7 +42,7 @@ class Paths:
     # ENGAGEMENT PROCEDURES
     # Post Interactions
     COMMENT_TEXT_AREA = '//textarea[@class="Ypffh"]'
-    SEND_COMMENT_BTN = '//button[@="sqdOP yWX7d    y3zKF     "]'
+    SEND_COMMENT_BTN = '//button[@class="sqdOP yWX7d    y3zKF     "]'
     LIKE_BTN = '//span[@class="fr66n"]'
     COMMENT_BTN = '//span[@class="_15y0l"]'
 
