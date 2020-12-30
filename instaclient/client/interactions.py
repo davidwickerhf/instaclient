@@ -74,8 +74,7 @@ class Interactions(Navigator):
                 pass
             LOGGER.debug('INSTACLIENT: User <{}> is valid'.format(user))
 
-        if nav_to_user:
-            self._nav_user(user, check_user)
+        self._nav_user(user, check_user=False)
 
         if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN))):
             unfollow_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN)))
@@ -87,6 +86,8 @@ class Interactions(Navigator):
         elif self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
             requested_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN)))
             self._press_button(requested_btn)
+            confirm_unfollow = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_UNFOLLOW_BTN)))
+            self._press_button(confirm_unfollow)
             LOGGER.debug(f'Cancelled Follow Request for user <{user}>')
 
     

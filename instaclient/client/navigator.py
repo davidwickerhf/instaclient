@@ -24,8 +24,8 @@ class Navigator(Checker):
         """
         if check_user:
             result = self._is_valid_user(user=user)
-        self.driver.get(ClientUrls.NAV_USER.format(user))
-         # TODO OPTIMIZE  THIS 
+        if self.driver.current_url != ClientUrls.NAV_USER.format(user):
+            self.driver.get(ClientUrls.NAV_USER.format(user))
 
     
     def _nav_user_dm(self:'InstaClient', user:str, check_user:bool=True):
