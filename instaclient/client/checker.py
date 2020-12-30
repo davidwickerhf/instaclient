@@ -48,6 +48,8 @@ class Checker(Component):
         LOGGER.debug('INSTACLIENT: Checking user vadility')
         profile:Profile = self._scrape_profile(user)
         if not profile:
+            if ClientUrls.LOGIN_URL in self.driver.current_url:
+                raise NotLoggedInError()
             raise InvalidUserError(user)
         if profile.is_private:
             raise PrivateAccountError(user)
