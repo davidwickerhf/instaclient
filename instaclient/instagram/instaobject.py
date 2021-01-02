@@ -79,7 +79,7 @@ class InstaBaseObject(abc.ABC):
         return json.dumps(self.to_dict())
 
 
-    def to_dict(self) -> str:
+    def to_dict(self) -> dict:
         data = dict()
 
         for key in iter(self.__dict__):
