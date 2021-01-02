@@ -1,5 +1,3 @@
-from logging import currentframe, exception
-from typing import Literal
 from instaclient.client import *
 from instaclient.client.component import Component
 from instaclient.client.navigator import Navigator
