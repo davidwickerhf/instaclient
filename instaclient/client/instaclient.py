@@ -41,7 +41,7 @@ class InstaClient(Auth, Interactions, Scraper):
             raise InvalidDriverPathError(driver_path)
         self.driver_path = driver_path
         self.debug = debug
-        if error_callback or debug:
+        if error_callback:
             if not callable(error_callback):
                 raise InvalidErrorCallbackError()
         self.error_callback = error_callback 

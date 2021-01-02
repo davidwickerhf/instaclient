@@ -123,7 +123,7 @@ class Interactions(Navigator):
 
 
     @Component._manage_driver()
-    def _send_dm(self, user:str, message:str):
+    def _send_dm(self:'InstaClient', user:str, message:str):
         """
         Send an Instagram Direct Message to a user. 
 
@@ -144,7 +144,7 @@ class Interactions(Navigator):
             self._press_button(send_btn)
             time.sleep(1)
         except Exception as error: 
-            if self.debug:
+            if self.error_callback:
                 self.error_callback(self.driver)
             LOGGER.error('INSTACLIENT: An error occured when sending a DM to the user <{}>'.format(user))
             raise error
