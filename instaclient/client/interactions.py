@@ -239,10 +239,12 @@ class Interactions(Navigator):
 
         # Send Comment
         try:
-            comment_area.send_keys(Keys.ENTER)
-        except:
             send_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_COMMENT_BTN)))
-            self._press_button(send_btn)
-
+            self._press_button(send_btn) 
+        except:
+            comment_area.send_keys(Keys.ENTER)
+            time.sleep(1)
+            comment_area.send_keys(Keys.ENTER)
+            
         LOGGER.info(f'Successfully commented on Post<{shortcode}>')
         return Comment(self, None, InstaBaseObject.GRAPH_COMMENT, self.username, self.username, shortcode, text) # TODO Return Comment Instance
