@@ -215,8 +215,20 @@ class Profile(InstaBaseObject):
 
 
     def follow(self):
+        """Shortcut for::
+            client.follow_user(username)
+
+        for the full documentation of this method, please see
+        :meth:`instaclient.InstaClient.follow_user`.
+        """
         self.client.follow_user(user=self.username)
 
     
     def unfollow(self):
+        """Shortcut for::
+            client.unfollow_user(username)
+
+        for the full documentation of this method, please see
+        :meth:`instaclient.InstaClient.unfollow_user`.
+        """
         self.client.unfollow_user(user=self.username)
