@@ -10,7 +10,7 @@ class Scraper(Component):
     TYPES = [InstaBaseObject.GRAPH_IMAGE, InstaBaseObject.GRAPH_VIDEO, InstaBaseObject.GRAPH_SIDECAR]
 
     # SCRAPE USER DATA
-    @Component._manage_driver()
+    @Component._login_required
     def scrape_notifications(self:'InstaClient', types:Optional[list], count:int=None) -> Optional[List[Notification]]:
 
         if types is None or len(types) == 0:
@@ -65,7 +65,7 @@ class Scraper(Component):
         return notifications
 
 
-    @Component._manage_driver(login=False)
+    @Component._driver_required
     def get_profile(self:'InstaClient', username:str, context:bool=True) -> Optional['Profile']:
         
         if context and not self.logged_in and None not in (self.username, self.password):
@@ -110,7 +110,7 @@ class Scraper(Component):
             raise InvalidInstaSchemaError(__name__)
 
     
-    @Component._manage_driver(login=False)
+    @Component._driver_required
     def get_post(self:'InstaClient', shortcode:str, context:bool=True) -> Optional['Post']:
         if context and not self.logged_in and None not in (self.username, self.password):
             self.login(self.username, self.password)
@@ -259,7 +259,7 @@ class Scraper(Component):
             raise InvalidInstaSchemaError(__name__)
 
 
-    @Component._manage_driver()
+    @Component._login_required
     def _find_comment(self:'InstaClient', shortcode:str, owner:str, text:str) -> Optional['Comment']:
         post:Post = self.get_post(shortcode, context=True)
         if post.comments:
@@ -269,7 +269,7 @@ class Scraper(Component):
         return None
 
 
-    @Component._manage_driver()
+    @Component._login_required
     def get_user_posts(self:'InstaClient', username:str, count:Optional[int]=30, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[str], List[Profile]]]:
         # Nav to User Page
         self._nav_user(username)
@@ -347,7 +347,7 @@ class Scraper(Component):
             return posts
  
 
-    @Component._manage_driver(login=False)
+    @Component._login_required
     def get_followers(self:'InstaClient', user:str, count:int, deep_scrape:Optional[bool]=False, check_user=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
         """
         scrape_followers: Scrape an instagram user's followers and return them as a list of strings.
@@ -447,7 +447,7 @@ class Scraper(Component):
     
     
     # SCRAPE HASHTAG
-    @Component._manage_driver(login=False)
+    @Component._login_required
     def get_hashtag(self:'InstaClient', tag:str, viewer:str) -> Optional['Hashtag']:
         LOGGER.debug('INSTACLIENT: scrape hashtag')
         result = self._request(GraphUrls.GRAPH_TAGS.format(tag))

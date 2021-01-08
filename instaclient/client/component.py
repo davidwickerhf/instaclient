@@ -4,40 +4,52 @@ if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
 
 class Component:
-    
-    def _manage_driver(connect=True, login=True):
-        def outer(func):
-            __doc__ = func.__doc__
-            @wraps(func)
-            def wrapper(self: 'InstaClient', *args, **kwargs):
-                LOGGER.debug('INSTACLIENT: Mangage Driver, func: {} | Login: {}'.format(func.__name__, login))
-                if connect:
-                    if not self.driver:
-                        if login and (self.username is None or self.password is None):
-                            raise NotLoggedInError()
-                        self.connect(login, func=func.__name__)
-                    elif login:
-                        if not self.logged_in:
-                            if (self.username is None or self.password is None):
-                                raise NotLoggedInError()
-                            else:
-                                self.login(self.username, self.password)
 
-                error = False
-                result = None
-                try:
-                    result = func(self, *args, **kwargs)
-                    time.sleep(1)
-                except Exception as exception:
-                    error = exception
-                
-                time.sleep(randint(1, 2))
-                if error:
-                    raise error
-                else:
-                    return result
-            return wrapper
-        return outer
+    def _login_required(func):
+        @wraps(func)
+        def wrapper(self: 'InstaClient', *args, **kwargs):
+            if self.username is None or self.password is None:
+                    raise NotLoggedInError()
+
+            if not self.driver:
+                self.connect(True, func=func.__name__)
+            else:
+                self.login(self.username, self.password)
+
+            error = False
+            result = None
+            try:
+                result = func(self, *args, **kwargs)
+            except Exception as exception:
+                error = exception
+            
+            time.sleep(randint(1, 2))
+            if error:
+                raise error
+            else:
+                return result
+        return wrapper
+
+
+    def _driver_required(func):
+        @wraps(func)
+        def wrapper(self: 'InstaClient', *args, **kwargs):
+            if not self.driver:
+                self.connect(func=func.__name__)
+
+            error = False
+            result = None
+            try:
+                result = func(self, *args, **kwargs)
+            except Exception as exception:
+                error = exception
+            
+            time.sleep(randint(1, 2))
+            if error:
+                raise error
+            else:
+                return result
+        return wrapper
 
 
     def disconnect(self: 'InstaClient'):

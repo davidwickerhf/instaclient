@@ -7,8 +7,8 @@ if TYPE_CHECKING:
 
 
 class Auth(Checker):
-    @Component._manage_driver(login=False)
-    def login(self:'InstaClient', username:str, password:str, check_user:bool=True):
+    @Component._driver_required
+    def login(self:'InstaClient', username:str, password:str, check_user:bool=True) -> bool:
         """
         Sign Into Instagram with credentials. Go through 2FA if necessary. Sets the InstaClient variable `InstaClient.logged_in` to True if login was successful.
 
@@ -120,7 +120,7 @@ class Auth(Checker):
         return self.logged_in
 
 
-    @Component._manage_driver(login=False)
+    @Component._driver_required
     def resend_security_code(self:'InstaClient'):
         """
         Resend security code if code hasn't been sent successfully. The code is used to verify the login attempt if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised.
@@ -154,7 +154,7 @@ class Auth(Checker):
             return False
 
 
-    @Component._manage_driver(login=False)
+    @Component._driver_required
     def input_security_code(self:'InstaClient', code:int):
         """
         Complete login procedure started with `InstaClient_login()` and insert security code required if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised. Sets `InstaClient.logged_in` attribute to True if login was successful.
@@ -191,7 +191,7 @@ class Auth(Checker):
         return self.logged_in
 
 
-    @Component._manage_driver(login=False)
+    @Component._driver_required
     def input_verification_code(self:'InstaClient', code:int):
         """
         Complete login procedure started with `InstaClient_login()` and insert 2FA security code. Sets `instaclient.logged_in` to True if login was successful.
@@ -223,7 +223,6 @@ class Auth(Checker):
             return self.logged_in
 
 
-    @Component._manage_driver(login=False)
     def logout(self:'InstaClient', disconnect:bool=True):
         """
         Check if the client is currently connected to Instagram and logs of the current InstaClient session.
@@ -232,10 +231,11 @@ class Auth(Checker):
             bool: True if the 
         """
         LOGGER.debug('INSTACLIENT: LOGOUT')
+        result = None
         result = self.check_status()
         username = self.username
-        self.username = None
-        self.password = None
+        self.username, self.password = None
+
         if result:
             if disconnect:
                 self.disconnect()

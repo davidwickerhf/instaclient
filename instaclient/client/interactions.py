@@ -11,7 +11,7 @@ class Interactions(Navigator):
     END_PAGE_SCROLL=4
     PAGE_DOWN_SCROLL=5
     # FOLLOW PROCEDURE
-    @Component._manage_driver()
+    @Component._login_required
     def follow_user(self, user:str, nav_to_user:bool=True):
         """
         _follow_user follows the instagram user that matches the username in the `user` attribute.
@@ -51,7 +51,7 @@ class Interactions(Navigator):
             raise FollowRequestSentError(user)
 
     
-    @Component._manage_driver()
+    @Component._login_required
     def unfollow_user(self, user:str, nav_to_user=True, check_user=True):
         """
         Unfollows a given user.
@@ -89,7 +89,7 @@ class Interactions(Navigator):
             LOGGER.debug(f'Cancelled Follow Request for user <{user}>')
 
     
-    @Component._manage_driver()
+    @Component._login_required
     def like_user_posts(self, user:str, n_posts:int, like:bool=True):
         """
         Likes a number of a users latest posts, specified by n_posts.
@@ -122,7 +122,7 @@ class Interactions(Navigator):
             self.driver.find_elements_by_class_name('ckWGn')[0].click()
 
 
-    @Component._manage_driver()
+    @Component._login_required
     def send_dm(self:'InstaClient', user:str, message:str):
         """
         Send an Instagram Direct Message to a user. 
@@ -151,7 +151,7 @@ class Interactions(Navigator):
 
 
     # ENGAGEMENT PROCEDURES
-    @Component._manage_driver()
+    @Component._login_required
     def scroll(self, mode=PAGE_DOWN_SCROLL, size:int=500, times:int=1, interval:int=3):
         """
         Scrolls to the bottom of a users page to load all of their media
@@ -178,12 +178,12 @@ class Interactions(Navigator):
         return False
 
 
-    @Component._manage_driver()
+    @Component._login_required
     def like_feed_posts(self, count):
         LOGGER.debug('INSTACLIENT: like_feed_posts')
 
 
-    @Component._manage_driver()
+    @Component._login_required
     def like_post(self:'InstaClient', shortcode:str) -> Optional[Post]:
         # Nav Post Page
         post:Post = self.get_post(shortcode=shortcode)
@@ -204,7 +204,7 @@ class Interactions(Navigator):
             return post
 
 
-    @Component._manage_driver()
+    @Component._login_required
     def unlike_post(self:'InstaClient', shortcode:str) -> Optional[Post]:
         # Nav Post Page
         post:Post = self.get_post(shortcode=shortcode)
@@ -225,7 +225,7 @@ class Interactions(Navigator):
             return None
 
 
-    @Component._manage_driver()
+    @Component._login_required
     def comment_post(self:'InstaClient', shortcode:str, text:str) -> bool:
         # Load Page
         self._nav_post_comments(shortcode)

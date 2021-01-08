@@ -63,8 +63,7 @@ class InstaClient(Auth, Interactions, Scraper):
     # CLIENT PROPERTIES
     @property
     def logged_in(self) -> bool:
-        """
-        logged_in: Checks whether the client is currently logged in to Instagram.
+        """Checks whether the client is currently logged in to Instagram.
 
         Returns:
             bool: True if `driver` is open and user is logged into Instagram.
@@ -78,15 +77,14 @@ class InstaClient(Auth, Interactions, Scraper):
 
     @property
     def threads(self) -> Optional[list]:
-        """
-        threads: gets all the threads created and controlled by the client. All such threads include `instaclient` in their names.
+        """gets all the threads created and controlled by the client. All such threads include `instaclient` in their names.
 
         Returns:
             Optional[list]: A list of all sub-threads created and controlled by the client. Returns `None` if no thread is found.
         """
         running = list()
         for thread in threading.enumerate(): 
-            if thread is not threading.main_thread():
+            if thread is not threading.main_thread() and 'instaclient' in thread.getName():
                 running.append(thread)
         
         if len(running) < 1:

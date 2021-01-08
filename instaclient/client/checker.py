@@ -9,7 +9,6 @@ class Checker(Component):
 
     # INSTAGRAM FUNCTIONS
     # LOGIN PROCEDURE
-    @Component._manage_driver(login=False)
     def check_status(self: 'InstaClient') -> bool:
         """
         Check if account is currently logged in. Returns True if account is logged in. Sets the `instaclient.logged_in` variable accordingly.
@@ -28,7 +27,7 @@ class Checker(Component):
         pass """
 
 
-    @Component._manage_driver(login=False)
+    @Component._driver_required
     def is_valid_user(self:'InstaClient', user:str) -> bool:
         """
         _is_valid_user Checks if a given username is a valid Instagram user.
@@ -56,7 +55,7 @@ class Checker(Component):
         return True
 
 
-    @Component._manage_driver(login=False)
+    @Component._driver_required
     def _is_valid_page(self:'InstaClient', url:str=None):
         current = self.driver.current_url
         if url:
