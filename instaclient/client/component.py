@@ -53,6 +53,11 @@ class Component:
 
 
     def disconnect(self: 'InstaClient'):
+        """Disconnects the client from Instagram
+
+        If ``client.driver`` is not None, the currently connected Web Driver
+        will be closed.
+        """
         LOGGER.debug('INSTACLIENT: Discarding driver...')
         if self.driver:
             self.driver.quit()
@@ -61,6 +66,40 @@ class Component:
 
 
     def connect(self: 'InstaClient', login=False, retries=0, func=None):
+        """Connects the client to Instagram
+
+        if ``client.driver`` is None, a new connection will be created
+        with the ChromeDriver. This means a new chrome window will be
+        opened.
+
+        Args:
+            login (bool, optional): If this is set to True, 
+                the `instaclient.InstaClient` will try to log in. Defaults to False.
+
+            See the documentation for the ``login()`` method here:
+            :meth:`instaclient.InstaClient.login`
+
+            retries (int, optional): Defines the number of times to
+                retry connecting to the web driver before raising
+                an error. Defaults to 0.
+            func (str, optional): The name of the method where the 
+                `connect` method is called. This is used for debugging
+                purposes and is usually passed automatically by the decorators
+                :meth:`instaclient.InstaClient._driver_required` and
+                :meth:`instaclient.InstaClient._login_required`. Defaults to None.
+
+        Raises:
+            InvaildHostError: This is raised if the atrribute `host_type`, 
+                passed to the :meth:`instaclient.InstaClient.__init__` method,
+                is invalid.
+            InvaildDriverError: This is raised if the atrribute `driver_type`, 
+                passed to the :meth:`instaclient.InstaClient.__init__` method,
+                is invalid.
+            WebDriverException: This is raised if an error occures when
+                launching the WebDriver and connecting with Selenium.
+            InstaClientError: This is raised if an error occures when trying to
+                log in - if the `login` attribute is set to be True.
+        """
         LOGGER.debug('INSTACLIENT: Initiating Driver | attempt {} | func: {}'.format(retries, func))
         try:
             if self.driver_type == self.CHROMEDRIVER:
@@ -116,23 +155,27 @@ class Component:
     # IG PRIVATE UTILITIES (The client is considered initiated)
     
     def _find_element(self:'InstaClient', expectation, url:str=None, wait_time:int=5, retry=True, attempt=0):
-        """
-        _find_element finds and returns the `WebElement`(s) that match the expectation's XPATH.
+        """Finds and returns the `WebElement`(s) that match(es) the expectation's XPATH.
 
-        If a TimeoutException is raised by the driver, this method will take care of finding the reason of the exception and it will call itcls another time. If the second attemt fails as well, then the `NoSuchElementException` will be raised.
+        If the element is not found within the span of time defined by the 
+        `wait_time` attribute, the method will check if a few conditions are met, 
+        in which case it will call itself again if `retry` is set to True
 
         Args:
-            client (InstaClient): InstaClient instance to operate on.
-            expectation (expected_conditions class): Any class defined in ``selenium.webdriver.support.expected_conditions``
-            url (str): The url where the element is expected to be present
-            wait_time (int, optional): Time to wait to find the element. Defaults to 15.
-            attempt (int, optional): Number of attempts. IMPORTANT: don't change this attribute's value. Defaults to 0.
+            expectation (:class:expected_conditions): Any class 
+                defined in ``selenium.webdriver.support.expected_conditions``
+            url (str): The url at which the element is expected to be present
+            wait_time (int, optional): Time in seconds to wait to find the element. 
+                Defaults to 5 seconds.
+            attempt (int, optional): Number of failed attempts. 
+                Note:
+                    Do not insert a custom value for this attribute, leave it to 0.
 
         Raises:
             NoSuchElementException: Raised if the element is not found after two attempts.
 
         Returns:
-            WebElement: web element that matches the `expectation` xpath
+            :class:`WebElement`: web element that matches the `expectation` xpath
         """
         try:
             wait = WebDriverWait(self.driver, wait_time)
