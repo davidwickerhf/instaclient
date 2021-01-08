@@ -150,10 +150,10 @@ class Profile(InstaBaseObject):
     def from_username(client:'InstaClient', username:str, context:bool=True) -> Optional['Profile']:
         """Shortcut for::
 
-            client._scrape_profile(username, context)
+            client.get_profile(username, context)
 
         for the full documentation of this method, please see
-        :meth:`instaclient.InstaClient._scrape_profile`.
+        :meth:`instaclient.InstaClient.get_profile`.
 
         Returns:
             Optional[:class:`instagram.Profile`]: If the operation is successful, an instance of a 
@@ -178,10 +178,10 @@ class Profile(InstaBaseObject):
     
     def get_posts(self, count:Optional[int], deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List['Post'], List[str]]]:
         """Shortcut for::
-            client._scrape_user_posts(username, count, deep_scrape, callback_frequency, callback, **callback_args)
+            client.get_user_posts(username, count, deep_scrape, callback_frequency, callback, **callback_args)
 
         for the full documentation of this method, please see
-        :meth:`instaclient.InstaClient._scrape_user_posts`.
+        :meth:`instaclient.InstaClient.get_user_posts`.
 
         Returns:
             Optional[Union[List[`instagram.Post`], List[str]]]: If the `deep_scrape` attribute is set to true,
@@ -192,6 +192,17 @@ class Profile(InstaBaseObject):
 
     
     def get_followers(self, count: int, deep_scrape:Optional[bool]=False, callback_frequency: int=100, callback=None, **callback_args) -> Optional[Union[List['Profile'], List[str]]]:
+        """Shortcut for::
+            client.get_followers(username, count, deep_scrape, check_user=False, callback_frequency, callback, **callback_args)
+
+        for the full documentation of this method, please see
+        :meth:`instaclient.InstaClient.get_followers`.
+
+        Returns:
+            Optional[Union[List[`instagram.Profile`], List[str]]]: If the `deep_scrape` attribute is set to true,
+            this method will return a list of `instagram.Profile` objects. Else, a list of profile usernames 
+            will be returned instead.
+        """
         return self.client.get_followers(user=self.username, count=count, deep_scrape=deep_scrape, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
         
 
