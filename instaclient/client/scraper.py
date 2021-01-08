@@ -1,4 +1,4 @@
-import requests, json
+import json, requests
 
 from instaclient.client import *
 if TYPE_CHECKING:

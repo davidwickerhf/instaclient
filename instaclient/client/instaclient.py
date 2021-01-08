@@ -121,30 +121,6 @@ class InstaClient(Auth, Interactions, Scraper):
     # get_post()
     # get_user_posts()
     # get_hashtag()
-
-    def get_notifications(self: 'InstaClient', types: Optional[list]=None, count: Optional[int]=None) -> Optional[list]:
-        return super().scrape_notifications(types=types, count=count)
-
-
-    def get_profile(self: 'InstaClient', username: str, context: bool=True) -> Optional[Profile]:
-        return super().get_profile(username, context=context)
-
-
-    def get_followers(self, user: str, count: int, deep_scrape:bool=False, check_user:bool=True, callback_frequency: int=100, callback=None, **callback_args) -> Optional[list]:
-        return super().get_followers(user, count, deep_scrape=deep_scrape, check_user=check_user, callback_frequency=callback_frequency, callback=callback, **callback_args)
-
-    
-    def get_post(self, shortcode:int, context:Optional[bool]=True) -> Optional[Post]:
-        return super().get_post(shortcode=shortcode, context=context)
-
-    
-    def get_user_posts(self: 'InstaClient', username: str, count: Optional[int]=30, deep_scrape: Optional[bool]=True, callback_frequency: int=100, callback=None, **callback_args) -> Union[List[str], List[Post]]:
-        return super().get_user_posts(username, count, deep_scrape=deep_scrape, callback_frequency=callback_frequency, callback=callback, **callback_args)
-
-
-    def get_hashtag(self: 'InstaClient', tag: str) -> Optional[Hashtag]:
-        return super().get_hashtag(tag=tag, viewer=self.username)
-
     
 
     # INTERACTIONS
@@ -157,38 +133,4 @@ class InstaClient(Auth, Interactions, Scraper):
     # like_user_posts()
     # like_feed_posts()
     # scroll()
-    def follow(self, user: str, nav_to_user: bool=True):
-        return super().follow_user(user, nav_to_user=nav_to_user)
-
-
-    def unfollow(self, user: str, nav_to_user:bool=True, check_user:bool=True):
-        return super().unfollow_user(user, nav_to_user=nav_to_user, check_user=check_user)
-
-
-    def send_dm(self, user: str, message: str):
-        return super().send_dm(user, message)
-
-
-    def comment_post(self, shortcode: str, text: str) -> Optional[Comment]:
-        return super().comment_post(shortcode, text)
-
-    def like_post(self, shortcode: str) -> Optional[Post]:
-        return super().like_post(shortcode=shortcode)
-
-    
-    def unlike_post(self, shortocde: str) -> Optional[Post]:
-        return super().unlike_post(shortcode=shortocde)
-
-
-    def like_user_posts(self, user: str, n_posts: int, like: bool=True):
-        return super().like_user_posts(user, n_posts, like=like)
-
-
-    def like_feed_posts(self, count:int):
-        return super().like_feed_posts(count)
-
-
-    def scroll(self, mode:int=Interactions.PAGE_DOWN_SCROLL, size:int=500, times:int=1, interval:int=3):
-        return super().scroll(mode=mode, size=size, times=times, interval=interval)
-
     

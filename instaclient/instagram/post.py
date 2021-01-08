@@ -1,5 +1,4 @@
 # Others
-import requests
 from typing import TYPE_CHECKING, Type, List, Optional, Union
 
 # Objects
