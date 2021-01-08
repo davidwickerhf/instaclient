@@ -12,9 +12,10 @@ The only thing you need to worry about is to spread your requests throughout the
 2. [Installation](#installation)
 3. [Usage](#usage)
 4. [Contributing](#contributing)
-5. [Help - Community](#help-community)
-6. [Credits](#credits)
-7. [License](#license)
+5. [Changelog](#changelog)
+6. [Help - Community](#help-community)
+7. [Credits](#credits)
+8. [License](#license)
 
 ## Current Features
 - Scrape a user's followers
@@ -39,7 +40,7 @@ The only thing you need to worry about is to spread your requests throughout the
 - [x] Scrape Post by shorturl
 - [x] Add comment to post by shorturl
 - [x] Like post by shorturl
-- [ ] Unlike post by shorturl
+- [x] Unlike post by shorturl
 - [ ] Scrape Location
 
 
@@ -157,6 +158,20 @@ profile.unfollow()
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 Please make sure to update [tests](https://github.com/wickerdevs/instaclient/tree/master/tests) as appropriate.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+Hence, when pushing commits, it is encouraged to use the described formatting and use the following keywords:
+- ```Types``` of changes
+- ```Added``` for new features.
+- ```Changed``` for changes in existing functionality.
+- ```Deprecated``` for soon-to-be removed features.
+- ```Removed``` for now removed features.
+- ```Fixed``` for any bug fixes.
+- ```Security``` in case of vulnerabilities.
+
+## Changelog
+You can find this repository's changelog here: [CHANGELOG](https://github.com/wickerdevs/instaclient/blob/master/CHANGELOG.md)
 
 ## Help Community
 You can join this [Telegram Group](https://t.me/instaclient) to ask questions about the instabot's functionalities or to contribute to the package!

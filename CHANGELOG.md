@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 <small>[Compare with v2.7.24](https://github.com/wickerdevs/instaclient/compare/v2.7.24...v2.7.25)</small>
 
 ### Changed
+- Changed docs ([9b98452](https://github.com/wickerdevs/instaclient/commit/9b98452d23169961a25c46cb85b5034487846812) by David Wicker).
 - Changed insta methods decorator ([65000ef](https://github.com/wickerdevs/instaclient/commit/65000efcde6a29e30ddfcdb41e97f3fc2b895c1b) by David Wicker).
 
 
