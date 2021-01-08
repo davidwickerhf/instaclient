@@ -1,9 +1,8 @@
-"""This module contains the InstaClient class"""
+"""InstaClient class"""
 
 # IMPORT UTILITIES, DEPENDENCIES & MODELS
 from instaclient.instagram.comment import Comment
 from instaclient.client import *
-from instaclient.utilities.utilities import *
 
 # IMPORT CLIENT COMPONENTS
 from instaclient.client.scraper import Scraper
