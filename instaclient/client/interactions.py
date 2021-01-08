@@ -12,7 +12,7 @@ class Interactions(Navigator):
     PAGE_DOWN_SCROLL=5
     # FOLLOW PROCEDURE
     @Component._manage_driver()
-    def _follow_user(self, user:str, nav_to_user:bool=True):
+    def follow_user(self, user:str, nav_to_user:bool=True):
         """
         _follow_user follows the instagram user that matches the username in the `user` attribute.
         If the target account is private, a follow request will be sent to such user and a `PrivateAccountError` will be raised.
@@ -26,7 +26,7 @@ class Interactions(Navigator):
         """
         # Check User Vadility
         try:
-            result = self._is_valid_user(user)
+            result = self.is_valid_user(user)
             LOGGER.debug('INSTACLIENT: User <{}> is valid'.format(user))
             private = False
         # User is private
@@ -52,7 +52,7 @@ class Interactions(Navigator):
 
     
     @Component._manage_driver()
-    def _unfollow_user(self, user:str, nav_to_user=True, check_user=True):
+    def unfollow_user(self, user:str, nav_to_user=True, check_user=True):
         """
         Unfollows a given user.
 
@@ -67,7 +67,7 @@ class Interactions(Navigator):
         
         if check_user:
             try:
-                self._is_valid_user(user)
+                self.is_valid_user(user)
             except PrivateAccountError:
                 pass
             LOGGER.debug('INSTACLIENT: User <{}> is valid'.format(user))
@@ -90,7 +90,7 @@ class Interactions(Navigator):
 
     
     @Component._manage_driver()
-    def _like_latest_posts(self, user:str, n_posts:int, like:bool=True):
+    def like_user_posts(self, user:str, n_posts:int, like:bool=True):
         """
         Likes a number of a users latest posts, specified by n_posts.
 
@@ -123,7 +123,7 @@ class Interactions(Navigator):
 
 
     @Component._manage_driver()
-    def _send_dm(self:'InstaClient', user:str, message:str):
+    def send_dm(self:'InstaClient', user:str, message:str):
         """
         Send an Instagram Direct Message to a user. 
 
@@ -152,7 +152,7 @@ class Interactions(Navigator):
 
     # ENGAGEMENT PROCEDURES
     @Component._manage_driver()
-    def _scroll(self, mode=PAGE_DOWN_SCROLL, size=500, times=1, interval=3):
+    def scroll(self, mode=PAGE_DOWN_SCROLL, size:int=500, times:int=1, interval:int=3):
         """
         Scrolls to the bottom of a users page to load all of their media
 
@@ -179,14 +179,14 @@ class Interactions(Navigator):
 
 
     @Component._manage_driver()
-    def _like_feed_posts(self, count):
+    def like_feed_posts(self, count):
         LOGGER.debug('INSTACLIENT: like_feed_posts')
 
 
     @Component._manage_driver()
-    def _like_post(self:'InstaClient', shortcode:str) -> Optional[Post]:
+    def like_post(self:'InstaClient', shortcode:str) -> Optional[Post]:
         # Nav Post Page
-        post:Post = self._scrape_post(shortcode=shortcode)
+        post:Post = self.get_post(shortcode=shortcode)
         if post and post.viewer_has_liked:
             return post
 
@@ -205,9 +205,9 @@ class Interactions(Navigator):
 
 
     @Component._manage_driver()
-    def _unlike_post(self:'InstaClient', shortcode:str) -> Optional[Post]:
+    def unlike_post(self:'InstaClient', shortcode:str) -> Optional[Post]:
         # Nav Post Page
-        post:Post = self._scrape_post(shortcode=shortcode)
+        post:Post = self.get_post(shortcode=shortcode)
         if post and not post.viewer_has_liked:
             return post
 
@@ -226,7 +226,7 @@ class Interactions(Navigator):
 
 
     @Component._manage_driver()
-    def _comment_on_post(self:'InstaClient', shortcode:str, text:str) -> bool:
+    def comment_post(self:'InstaClient', shortcode:str, text:str) -> bool:
         # Load Page
         self._nav_post_comments(shortcode)
 

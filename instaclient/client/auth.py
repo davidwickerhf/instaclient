@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 class Auth(Checker):
     @Component._manage_driver(login=False)
-    def _login(self:'InstaClient', username:str, password:str, check_user:bool=True):
+    def login(self:'InstaClient', username:str, password:str, check_user:bool=True):
         """
         Sign Into Instagram with credentials. Go through 2FA if necessary. Sets the InstaClient variable `InstaClient.logged_in` to True if login was successful.
 
@@ -56,7 +56,7 @@ class Auth(Checker):
             raise InvaildPasswordError(password)
         except Exception as error:
             # User already logged in ?
-            result = self._check_status()
+            result = self.check_status()
             if not result:
                 raise error
             else:
@@ -121,7 +121,7 @@ class Auth(Checker):
 
 
     @Component._manage_driver(login=False)
-    def _resend_security_code(self):
+    def resend_security_code(self:'InstaClient'):
         """
         Resend security code if code hasn't been sent successfully. The code is used to verify the login attempt if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised.
 
@@ -155,7 +155,7 @@ class Auth(Checker):
 
 
     @Component._manage_driver(login=False)
-    def _input_security_code(self:'InstaClient', code:int):
+    def input_security_code(self:'InstaClient', code:int):
         """
         Complete login procedure started with `InstaClient_login()` and insert security code required if `instaclient.errors.common.SuspiciousLoginAttemptError` is raised. Sets `InstaClient.logged_in` attribute to True if login was successful.
 
@@ -192,7 +192,7 @@ class Auth(Checker):
 
 
     @Component._manage_driver(login=False)
-    def _input_verification_code(self, code:int):
+    def input_verification_code(self:'InstaClient', code:int):
         """
         Complete login procedure started with `InstaClient_login()` and insert 2FA security code. Sets `instaclient.logged_in` to True if login was successful.
 
@@ -224,7 +224,7 @@ class Auth(Checker):
 
 
     @Component._manage_driver(login=False)
-    def _logout(self:'InstaClient', disconnect:bool=True):
+    def logout(self:'InstaClient', disconnect:bool=True):
         """
         Check if the client is currently connected to Instagram and logs of the current InstaClient session.
 
@@ -232,13 +232,13 @@ class Auth(Checker):
             bool: True if the 
         """
         LOGGER.debug('INSTACLIENT: LOGOUT')
-        result = self._check_status()
+        result = self.check_status()
         username = self.username
         self.username = None
         self.password = None
         if result:
             if disconnect:
-                self._disconnect()
+                self.disconnect()
                 LOGGER.debug('INSTACLIENT: Logged Out')
                 return True
             else:

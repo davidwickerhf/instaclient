@@ -159,7 +159,7 @@ class Profile(InstaBaseObject):
             Optional[:class:`instagram.Profile`]: If the operation is successful, an instance of a 
             new `Profile` object matching the username provided in the attributes is returned.
         """
-        return client._scrape_profile(username, context=context)
+        return client.get_profile(username, context=context)
 
 
     def refresh(self, context:bool=True):
@@ -172,7 +172,7 @@ class Profile(InstaBaseObject):
             context (bool): Set this to True if you wish for the client to 
                 log in before scraping data.
         """
-        refreshed = self.client._scrape_profile(self.username, context)
+        refreshed = self.client.get_profile(self.username, context)
         return self._update(refreshed)
 
     
@@ -188,11 +188,11 @@ class Profile(InstaBaseObject):
             this method will return a list of `instagram.Post` objects. Else, a list of post shortcodes 
             will be returned instead.
         """
-        return self.client._scrape_user_posts(self.username, count, deep_scrape, callback_frequency, callback, **callback_args)
+        return self.client.get_user_posts(self.username, count, deep_scrape, callback_frequency, callback, **callback_args)
 
     
     def get_followers(self, count: int, deep_scrape:Optional[bool]=False, callback_frequency: int=100, callback=None, **callback_args) -> Optional[Union[List['Profile'], List[str]]]:
-        return self.client._scrape_followers(user=self.username, count=count, deep_scrape=deep_scrape, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
+        return self.client.get_followers(user=self.username, count=count, deep_scrape=deep_scrape, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
         
 
     def get_username(self):
@@ -204,8 +204,8 @@ class Profile(InstaBaseObject):
 
 
     def follow(self):
-        self.client._follow_user(user=self.username)
+        self.client.follow_user(user=self.username)
 
     
     def unfollow(self):
-        self.client._unfollow_user(user=self.username)
+        self.client.unfollow_user(user=self.username)

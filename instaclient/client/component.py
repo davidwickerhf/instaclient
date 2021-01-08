@@ -1,4 +1,3 @@
-from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from instaclient.client import *
 
 if TYPE_CHECKING:
@@ -8,6 +7,7 @@ class Component:
     
     def _manage_driver(connect=True, login=True):
         def outer(func):
+            __doc__ = func.__doc__
             @wraps(func)
             def wrapper(self: 'InstaClient', *args, **kwargs):
                 LOGGER.debug('INSTACLIENT: Mangage Driver, func: {} | Login: {}'.format(func.__name__, login))
@@ -15,13 +15,13 @@ class Component:
                     if not self.driver:
                         if login and (self.username is None or self.password is None):
                             raise NotLoggedInError()
-                        self._connect(login, func=func.__name__)
+                        self.connect(login, func=func.__name__)
                     elif login:
                         if not self.logged_in:
                             if (self.username is None or self.password is None):
                                 raise NotLoggedInError()
                             else:
-                                self._login(self.username, self.password)
+                                self.login(self.username, self.password)
 
                 error = False
                 result = None
@@ -40,7 +40,7 @@ class Component:
         return outer
 
 
-    def _disconnect(self: 'InstaClient'):
+    def disconnect(self: 'InstaClient'):
         LOGGER.debug('INSTACLIENT: Discarding driver...')
         if self.driver:
             self.driver.quit()
@@ -48,7 +48,7 @@ class Component:
         LOGGER.debug('INSTACLIENT: Driver Discarded')
 
 
-    def _connect(self: 'InstaClient', login=False, retries=0, func=None):
+    def connect(self: 'InstaClient', login=False, retries=0, func=None):
         LOGGER.debug('INSTACLIENT: Initiating Driver | attempt {} | func: {}'.format(retries, func))
         try:
             if self.driver_type == self.CHROMEDRIVER:
@@ -89,14 +89,14 @@ class Component:
         except WebDriverException as error:
             if retries < 2:
                 LOGGER.debug('INSTACLIENT: Error when initiating driver... Trying again')
-                self._connect(login=login, retries=retries+1, func='_connect')
+                self.connect(login=login, retries=retries+1, func='_connect')
             else:
                 raise error
 
         LOGGER.debug(f'Logging in: {login}')
         if login:
             try:
-                self._login(self.username, self.password)
+                self.login(self.username, self.password)
             except:
                 raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.')
 

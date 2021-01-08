@@ -97,7 +97,7 @@ class InstaBaseObject(abc.ABC):
 
     @property
     def viewer_profile(self):
-        return self.client._scrape_profile(self.viewer)
+        return self.client.get_profile(self.viewer)
         
 
     def get_id(self):

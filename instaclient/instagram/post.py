@@ -82,24 +82,24 @@ class Post(InstaBaseObject):
         return False
 
     def refresh(self, context:bool=True):
-        refreshed = self.client._scrape_post(self.shortcode, context)
+        refreshed = self.client.get_post(self.shortcode, context)
         return self._update(refreshed)
 
     def get_owner(self) -> Optional[Profile]:
-        return self.client._scrape_profile(self.owner)
+        return self.client.get_profile(self.owner)
 
     def add_comment(self, text) -> Optional[Comment]:
-        result = self.client._comment_on_post(self.shortcode, text)
+        result = self.client.comment_post(self.shortcode, text)
         if result:
             return self.client._find_comment(self.shortcode, self.client.username, text)
         return None
 
     def like(self):
-        post = self.client._like_post(self.shortcode)
+        post = self.client.like_post(self.shortcode)
         return self._update(post)
 
     def unlike(self):
-        post = self.client._unlike_post(self.shortcode)
+        post = self.client.unlike_post(self.shortcode)
         return self._update(post)
 
 

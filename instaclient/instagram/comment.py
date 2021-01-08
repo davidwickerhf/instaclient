@@ -40,10 +40,10 @@ class Comment(InstaBaseObject):
         return f'Comment<{self.owner}>'
 
     def get_owner(self, context:bool=True) -> Optional['Profile']:
-        return self.client._scrape_profile(username=self.owner, context=context)
+        return self.client.get_profile(username=self.owner, context=context)
 
     def get_post(self, context:bool=True):
-       return self.client._scrape_post(shortcode=self.post_shortcode, context=context)
+       return self.client.get_post(shortcode=self.post_shortcode, context=context)
 
 
         

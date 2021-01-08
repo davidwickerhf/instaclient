@@ -23,7 +23,7 @@ class Navigator(Checker):
             InvaildUserError if user does not exist
         """
         if check_user:
-            result = self._is_valid_user(user=user)
+            result = self.is_valid_user(user=user)
         if self.driver.current_url != ClientUrls.NAV_USER.format(user):
             self.driver.get(ClientUrls.NAV_USER.format(user))
 
