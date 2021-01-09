@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v2.7.26](https://github.com/wickerdevs/instaclient/releases/tag/v2.7.26) - 2021-01-09
+
+<small>[Compare with v2.7.25](https://github.com/wickerdevs/instaclient/compare/v2.7.25...v2.7.26)</small>
+
+### Changed
+- Changed behaviour of _reques() method. ([3e3d9da](https://github.com/wickerdevs/instaclient/commit/3e3d9daf1cab55503f9f9518e0738a44764015bb) by David Wicker).
+
+
 ## [v2.7.25](https://github.com/wickerdevs/instaclient/releases/tag/v2.7.25) - 2021-01-09
 
 <small>[Compare with v2.7.24](https://github.com/wickerdevs/instaclient/compare/v2.7.24...v2.7.25)</small>
