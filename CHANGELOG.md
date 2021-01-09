@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [v2.7.25](https://github.com/wickerdevs/instaclient/releases/tag/v2.7.25) - 2021-01-08
+## [v2.7.25](https://github.com/wickerdevs/instaclient/releases/tag/v2.7.25) - 2021-01-09
 
 <small>[Compare with v2.7.24](https://github.com/wickerdevs/instaclient/compare/v2.7.24...v2.7.25)</small>
 
@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed readme.md ([95fbf6a](https://github.com/wickerdevs/instaclient/commit/95fbf6a45e629f614907b242fb57e4ea0df55a6b) by David Wicker).
 - Changed docs ([9b98452](https://github.com/wickerdevs/instaclient/commit/9b98452d23169961a25c46cb85b5034487846812) by David Wicker).
 - Changed insta methods decorator ([65000ef](https://github.com/wickerdevs/instaclient/commit/65000efcde6a29e30ddfcdb41e97f3fc2b895c1b) by David Wicker).
+
+### Fixed
+- Fixed scraper.get_profile() ([be2bc65](https://github.com/wickerdevs/instaclient/commit/be2bc659917e2ee282dd4e9e095f1e48fbc74070) by David Wicker).
 
 
 ## [v2.7.24](https://github.com/wickerdevs/instaclient/releases/tag/v2.7.24) - 2021-01-04
