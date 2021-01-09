@@ -3,7 +3,6 @@ from urllib.parse import urlencode
 from instaclient.errors.common import InvalidInstaRequestError
 from instaclient.client.constants import GraphUrls
 from instaclient.instagram import InstaBaseObject, Post, Profile
-import requests
 
 class Hashtag(InstaBaseObject):
     def __init__(self, 
