@@ -13,63 +13,86 @@ class Profile(InstaBaseObject):
     This class should contain all methods related to actions that can be executed 
     on the profile page of a user on the Instagram website.
 
-    Two `instagram.Profilec` objects are considered equal if they share the 
+    Two `instagram.Profile` objects are considered equal if they share the 
     same ID or the same instagram username.
 
     Attributes:
         client (:class:`instaclient.InstaClient`): This is the client instance that 
             will be used to perform actions on the object. Many methods included in 
             this class are in fact shortcuts for the `instaclient.InstaClient` 's methods. 
+
         id (str): The unique ID of the profile, provided and defined by Instagram.
+
         viewer (str): The instagram account's username of the account the user is 
             currently logged in with, when loading this object from Instagram.
+
         username (str): The instagram profile's unique username.
             Note:
                 Instagram usernames are mutable, so don't rely on them too much for 
                 persistence. The instagram ID won't change when a user changes the 
                 account's username.
+
         name (str, optional): The instagram profile's name, seen at the top of the 
             profile page, under the profile picture and over the bio. Defaults to None.
             Note: 
                 Special characters, such as emojis, might be saved in unicode notation.
+
         biography (str, optional): The profile's bio. Also in this case, special 
             characters might be translated into unicode. Defaults to None.
+
         is_private (bool, optional): Variable retreived from Instagram. 
             Is `True` if the profile is private. Defaults to None.
+
         is_verified (bool, optional): Variable retreived from Instagram. 
             Is `True` if the profile is verified by instagram. Defaults to None.
+
         is_business_account (bool, optional): Variable retreived from Instagram. 
             Is `True` if the profile is a business account. Defaults to None.
+
         is_joined_recently (bool, optional): Variable retreived from Instagram. 
             Is `True` if the profile has been created recently. Defaults to None.
+
         follower_count (int, optional): The number of followers the profile has. 
             Defaults to None.
+
         followed_count (int, optional): The number of accounts a profile follows. 
             Defaults to None.
+
         post_count (int, optional): The number of posts on the profile. Defaults to None.
+
         business_category_name (str, optional): If the profile is a business account,
             the business category's name is saved in this attribute. Defaults to None.
+
         overall_category_name (str, optional): If the user has defined a category 
             for the profile, the value of such category will be saved in this attribute. 
             Defaults to None.
+
         external_url (str, optional): Optional URL that the user might have placed 
             under the bio. Defaults to None.
+
         fb_id (str, optional): Optional ID of the connected Facebook Page
             This attribute is valid only if the user has connected the account 
             to FB. Defaults to None.
+
         business_email (str, optional): If the profile is a business account
             and if the email is set to be public, it will be saved in this attribute. 
             Defaults to None.
+
         blocked_by_viewer (bool, optional): Is true if the `viewer` is currently 
             blocked by this profile. Defaults to None.
+
         restricted_by_viewer (bool, optional): Is true if the `viewer` has restricted 
             this profile. Defaults to None.
+
         has_blocked_viewer (bool, optional): Is true if the `viewer` has blocked this 
             profile. Defaults to None.
+
         has_requested_viewer (bool, optional): Is true if the `viewer` was  sent a 
             follow request by this profile. Defaults to None.
+
         mutual_followed (bool, optional): Is true if the `viewer` is followed by 
             this profile and viceversa. Defaults to None.
+
         requested_by_viewer (bool, optional): Is try if the `viewer` has sent a 
             follow request to this profile. Defaults to None.
 

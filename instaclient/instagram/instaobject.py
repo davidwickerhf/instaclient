@@ -1,5 +1,5 @@
 import abc, json
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
 
@@ -18,13 +18,28 @@ class InstaBaseObject(abc.ABC):
     GRAPH_COMMENT = 'GraphCommentMediaStory'
 
     def __init__(self, client:'InstaClient', id:str, type:str, viewer:str=None):
-        """
-        Reppresents an abstract instagram object.
+        """Base class for most Instagram objects
+
+        The base condition for two InstaBaseObjects to be equal is if they share
+        the same ID. This condition may be overriden by classes which inherit from
+        this base class.
 
         Args:
-            id (str): The ID of the object. Such ID is provided by Instagram.
-            viewer (BaseProfile or str): Reppresents the user account that is viewing this content. Can be either a str (username) or a `BaseProfile` object.
-            type (str): Instagram object type. Can be `GRAPTH_IMAGE`, `GRAPH_VIDEO`, `GRAPH_SIDECAR`,  `GRAPH_PROFILE`, `GRAPH_HASHTAG`
+            client (:class:`instaclient.InstaClient`): This is the client instance that 
+                will be used to perform actions on the object. Many methods included in 
+                this class are in fact shortcuts for the `instaclient.InstaClient` 's methods. 
+
+            id (str): Unique ID of the object, provided by instagram.
+
+            type (str): Object type. Can be:
+                `InstaBaseObject.GRAPH_IMAGE`,  `InstaBaseObject.GRAPH_VIDEO`,
+                `InstaBaseObject.GRAPH_SIDECAR`, `InstaBaseObject.GRAPH_PROFILE`,
+                `InstaBaseObject.GRAPH_HASHTAG`, `InstaBaseObject.GRAPH_LOCATION`,
+                `InstaBaseObject.GRAPH_FOLLOW`, `InstaBaseObject.GRAPH_LIKE`,
+                `InstaBaseObject.GRAPH_TAGGED`, `InstaBaseObject.GRAPH_MENTION`, 
+                `InstaBaseObject.GRAPH_COMMENT` 
+
+            viewer (str, optional): Username of the viewer account. Defaults to None.
         """
         # Required
         self.client = client
@@ -52,6 +67,18 @@ class InstaBaseObject(abc.ABC):
             
     
     def _update(self, o: object) -> object:
+        """Updates the current object instance with the values
+        of another object of the same class.
+
+        Args:
+            o (object): Instagram object.
+                Note:
+                    The provided object must be of the same class
+                    ass the object upon which this method is called.
+
+        Returns:
+            object: Updated instance of the current object.
+        """
         client = self.client
         if isinstance(o, self.__class__):
             args = o.to_dict()
@@ -63,11 +90,20 @@ class InstaBaseObject(abc.ABC):
 
 
     @classmethod
-    def de_json(cls, data: str, client: 'InstaClient'):
+    def de_json(cls, data: dict, client: 'InstaClient') -> Optional['InstaBaseObject']:
+        """Turns a valid json or dict reppresentation of the object
+        into an instance of the object.
 
+        Args:
+            data (dict): Dict reppresentation of the object
+            client (:class:`instaclient.InstaClient`): client object
+                that will be attached to this instagram object.
+
+        Returns:
+            Optional[:class:`instagram.InstaBaseObject`]: Instagram object
+        """
         if not data:
             return None
-
         return cls(client=client, **data)  # type: ignore[call-arg]
 
 
@@ -80,6 +116,10 @@ class InstaBaseObject(abc.ABC):
 
 
     def to_dict(self) -> dict:
+        """
+        Returns:
+            dict: Dict reppresentation of the object. Any 'client' attribute will be ignored.
+        """
         data = dict()
 
         for key in iter(self.__dict__):
@@ -97,6 +137,11 @@ class InstaBaseObject(abc.ABC):
 
     @property
     def viewer_profile(self):
+        """
+        Returns:
+            Optional[:class:`instagram.Profile`]: Profile object of the 
+                `viewer` of the current instagram object.
+        """
         return self.client.get_profile(self.viewer)
         
 

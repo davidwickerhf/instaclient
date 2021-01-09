@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Type, List, Optional, Union
 # Objects
 if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
-    from instaclient.instagram.location import Location
+from instaclient.instagram.location import Location
 from instaclient.instagram.postmedia import PostMedia
 from instaclient.instagram.instaobject import InstaBaseObject
 from instaclient.instagram.comment import Comment
@@ -16,6 +16,52 @@ from instaclient import LOGGER
 
 
 class Post(InstaBaseObject):
+    """Class reppresenting an Instagram Post
+
+    The instagram post class inherits from the `instagram.InstaBaseObjects` class.
+    This class should contain all methods related to actions one can execute on 
+    posts on Instagram (such as liking, commenting, etc).
+
+    Two `instagram.Post` objects are considered equal if they share the 
+    same `shortcode` and the same `owner`.
+
+    Attributes:
+        client (:class:`instaclient.InstaClient`): This is the client instance that 
+            will be used to perform actions on the object. Many methods included in 
+            this class are in fact shortcuts for the `instaclient.InstaClient` 's methods. 
+
+        id (str): The unique ID of the post, provided and defined by Instagram.
+
+        type (str): Type of Post. This can be:
+            `InstaBaseObject.GRAPH_IMAGE`,  `InstaBaseObject.GRAPH_VIDEO`,
+            `InstaBaseObject.GRAPH_SIDECAR`
+
+        viewer (str): The instagram account's username of the account the user is 
+            currently logged in with, when loading this object from Instagram.
+        
+        owner (str): The username of the instagram account this Post belongs to.
+
+        shortcode (str): Unique identifier of the Post.
+
+        timestamp (int): Timestamp of the date of pubblication of the post on IG.
+
+        likes_count (int): Number of likes a post has received.
+        
+        comments_disabled (bool): [description]
+        is_ad (bool): [description]
+        media (List[PostMedia]): [description]
+        caption (str, optional): [description]. Defaults to None.
+        comments_count (int, optional): [description]. Defaults to None.
+        tagged_users (List[str], optional): [description]. Defaults to None.
+        comments (List[Comment], optional): [description]. Defaults to None.
+        location (Location, optional): [description]. Defaults to None.
+        commenting_disabled_for_viewer (bool, optional): [description]. Defaults to None.
+        viewer_has_liked (bool, optional): [description]. Defaults to None.
+        viewer_has_saved (bool, optional): [description]. Defaults to None.
+        viewer_has_saved_to_collection (bool, optional): [description]. Defaults to None.
+        viewer_in_photo_of_you (bool, optional): [description]. Defaults to None.
+        viewer_can_reshare (bool, optional): [description]. Defaults to None.
+     """
     def __init__(self, 
     # Required
     client:'InstaClient',
@@ -31,19 +77,19 @@ class Post(InstaBaseObject):
     media:List[PostMedia],
 
     # Optional
-    caption:Optional[str]=None,
-    comments_count:Optional[int]=None,
-    tagged_users:Optional[List[str]]=None,
-    comments:Optional[List[Comment]]=None,
-    location:Optional['Location']=None,
+    caption:str=None,
+    comments_count:int=None,
+    tagged_users:List[str]=None,
+    comments:List[Comment]=None,
+    location:Location=None,
      
     # Context Based
-    commenting_disabled_for_viewer:Optional[bool]=None,
-    viewer_has_liked:Optional[bool]=None,
-    viewer_has_saved:Optional[bool]=None,
-    viewer_has_saved_to_collection:Optional[bool]=None,
-    viewer_in_photo_of_you:Optional[bool]=None,
-    viewer_can_reshare:Optional[bool]=None,
+    commenting_disabled_for_viewer:bool=None,
+    viewer_has_liked:bool=None,
+    viewer_has_saved:bool=None,
+    viewer_has_saved_to_collection:bool=None,
+    viewer_in_photo_of_you:bool=None,
+    viewer_can_reshare:bool=None,
     ):  
         super().__init__(id=id, type=type, viewer=viewer, client=client)
         # Required
