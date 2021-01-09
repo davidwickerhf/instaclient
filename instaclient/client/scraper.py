@@ -490,7 +490,7 @@ class Scraper(Component):
         if use_driver:
             try:
                 self.driver.get(url)
-                element:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.QUERY_ELEMENT)))
+                element:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.QUERY_ELEMENT)), wait_time=2, retry=False)
                 source = element.text
                 return json.loads(source)
             except:

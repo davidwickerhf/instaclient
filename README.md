@@ -162,7 +162,6 @@ Please make sure to update [tests](https://github.com/wickerdevs/instaclient/tre
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 Hence, when pushing commits, it is encouraged to use the described formatting and use the following keywords:
-- ```Types``` of changes
 - ```Added``` for new features.
 - ```Changed``` for changes in existing functionality.
 - ```Deprecated``` for soon-to-be removed features.
