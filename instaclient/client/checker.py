@@ -57,6 +57,17 @@ class Checker(Component):
 
     @Component._driver_required
     def _is_valid_page(self:'InstaClient', url:str=None):
+        """Checks if a page is valid.
+
+        Args:
+            url (str, optional): Expected current url. Defaults to None.
+
+        Returns:
+            bool: True if the current page exists and is loaded.
+                False if the current url doesn\'t match the expected
+                url or if a PAGE NOT FOUND warning is showed
+                on the page itself.
+        """
         current = self.driver.current_url
         if url:
             if url != current:

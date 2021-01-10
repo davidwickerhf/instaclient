@@ -11,10 +11,11 @@ class Component:
             if self.username is None or self.password is None:
                     raise NotLoggedInError()
 
-            if not self.driver:
-                self.connect(True, func=func.__name__)
-            else:
-                self.login(self.username, self.password)
+            if not self.logged_in:
+                if not self.driver:
+                    self.connect(True, func=func.__name__)
+                else:
+                    self.login(self.username, self.password)
 
             error = False
             result = None

@@ -173,8 +173,8 @@ class Interactions(Navigator):
                 url = self.driver.current_url
                 body = self._find_element(EC.presence_of_element_located((By.TAG_NAME, 'body')), retry=True, url=url)
                 body.send_keys(Keys.END)
-
             time.sleep(interval)
+        LOGGER.info('Scrolled')
         return False
 
 

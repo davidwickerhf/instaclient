@@ -117,8 +117,7 @@ class Navigator(Checker):
         
      
     def _nav_tag(self:'InstaClient', tag:str):
-        """
-        Naviagtes to a search for posts with a specific tag on IG.
+        """Navigates to a search for posts with a specific tag on IG.
 
         Args:
             tag:str: Tag to search for
@@ -132,3 +131,12 @@ class Navigator(Checker):
         else: 
             # Operation Successful
             return True
+
+
+    def _nav_explore(self:'InstaClient'):
+        """Navigates to the explore page
+        """
+        self.driver.get(ClientUrls.EXPLORE_PAGE)
+        if self._is_valid_page(ClientUrls.EXPLORE_PAGE):
+            return True
+        return False
