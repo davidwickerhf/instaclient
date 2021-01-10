@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v2.8.0](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.0) - 2021-01-10
+
+<small>[Compare with v2.7.26](https://github.com/wickerdevs/instaclient/compare/v2.7.26...v2.8.0)</small>
+
+### Added
+- Added _nav_explore() method; fixed _login_required() decorator. ([79b57b8](https://github.com/wickerdevs/instaclient/commit/79b57b8ab55233317817975a00b776e0b7e9fac8) by David Wicker).
+
+
 ## [v2.7.26](https://github.com/wickerdevs/instaclient/releases/tag/v2.7.26) - 2021-01-09
 
 <small>[Compare with v2.7.25](https://github.com/wickerdevs/instaclient/compare/v2.7.25...v2.7.26)</small>
