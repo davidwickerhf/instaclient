@@ -20,6 +20,7 @@ class Paths:
     DISMISS_DIALOGUE = '//button[@class="aOOlW   HoLwm "]'
 
     # NAV TO USER PROCEDURE 
+    WAIT_BEFORE_LOGIN = '//p[contains(text(), "Please wait")]'
     INCORRECT_USERNAME_ALERT = '//p[@role="alert" and @id="slfErrorAlert"]'
     INCORRECT_PASSWORD_ALERT = '//div[@class="piCib"]'
     INCORRECT_PASSWORD_ALERT_BTNS = '{}//button[contains(@class, "aOOlW")]'

@@ -120,6 +120,12 @@ class InvalidVerificationCodeError(InstaClientError):
     def __init__(self):
         super().__init__(message='The used verification code is invalid. Please try entering the code correctly or ask the user to input one of their backup codes')
 
+    
+class LoginFloodException(InstaClientError):
+    """Raised if a user attempts to log in too many times in a row."""
+    def __init__(self):
+        super().__init__(message='Please wait a few minutes before trying to log in again.')
+
 
 class InvaildTagError(InstaClientError):
     """Raised when searching for an incorrect tag

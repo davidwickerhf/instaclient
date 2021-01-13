@@ -16,6 +16,8 @@ class Auth(Checker):
             username (str): The instagram account's username
             password (str): The instagram account's password
             check_user (bool, optional): If False, the username will be considered as valid and will not be checked. If the user is invalid, the login procedure will not be completed. Defaults to True.
+            retry (:class:`instaclient.Retry`): retry object that defines the amount of times to retry 
+                the method before raising an exception
 
         Raises:
             InvalidUserError: Raised if the user is not valid and `check_user` is set to True. Warning: if check_user is set to False and the user is invalid, the login procedure will not be completed.
@@ -25,6 +27,7 @@ class Auth(Checker):
         Returns:
             bool: Returns True if login was successful.
         """
+
         self.username = username
         self.password = password
 
@@ -64,8 +67,13 @@ class Auth(Checker):
                 return self.logged_in
         
         # Detect correct Login
+
+        waitalert:WebElement = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.WAIT_BEFORE_LOGIN)), wait_time=2)
+        if waitalert:
+            raise LoginFloodException()
+
         if check_user:
-            usernamealert: WebElement = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.INCORRECT_USERNAME_ALERT)), wait_time=3)
+            usernamealert: WebElement = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.INCORRECT_USERNAME_ALERT)), wait_time=2)
             if usernamealert:
                 # Username is invalid
                 self.driver.get(ClientUrls.LOGIN_URL)

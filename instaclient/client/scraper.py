@@ -107,8 +107,10 @@ class Scraper(Component):
                 mutual_followed = user['edge_mutual_followed_by']['count'],
                 requested_by_viewer = user['requested_by_viewer']
             )
+            LOGGER.debug(f'Loaded profile: {profile}')
             return profile
         except Exception as error:
+            LOGGER.exception(f'Error loading profile with username {username}')
             raise InvalidInstaSchemaError(__name__)
 
     
