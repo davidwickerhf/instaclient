@@ -78,7 +78,8 @@ class Paths:
 
     # SCRAPING
     # Scrape Followers Procedure
-    FOLLOWERS_BTN = '//li[@class=" LH36I"]//descendant::a'
+    FOLLOWERS_BTN = '//a[contains(@href, "followers")  and not(contains(@href, "mutual"))]'
+    FOLLOWED_BTN = '//a[contains(@href, "following") and not(contains(@href, "mutual"))]'
     FOLLOWERS_LIST_MAIN = '//main[@role="main"]'
     FOLLOWERS_LIST = '//ul[@class=" jjbaz _6xe7A"]'
     FOLLOWER_USER_DIV = '{}//li'.format(FOLLOWERS_LIST)

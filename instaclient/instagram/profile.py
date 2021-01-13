@@ -214,7 +214,7 @@ class Profile(InstaBaseObject):
         return self.client.get_user_posts(self.username, count, deep_scrape, callback_frequency, callback, **callback_args)
 
     
-    def get_followers(self, count: int, deep_scrape:Optional[bool]=False, callback_frequency: int=100, callback=None, **callback_args) -> Optional[Union[List['Profile'], List[str]]]:
+    def get_followers(self, count: int=None, deep_scrape:Optional[bool]=False, callback_frequency: int=100, callback=None, **callback_args) -> Optional[Union[List['Profile'], List[str]]]:
         """Shortcut for::
             client.get_followers(username, count, deep_scrape, check_user=False, callback_frequency, callback, **callback_args)
 
@@ -226,7 +226,26 @@ class Profile(InstaBaseObject):
             this method will return a list of `instagram.Profile` objects. Else, a list of profile usernames 
             will be returned instead.
         """
+        if not count:
+            count = self.follower_count
         return self.client.get_followers(user=self.username, count=count, deep_scrape=deep_scrape, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
+
+    
+    def get_following(self, count: int=None, deep_scrape:Optional[bool]=False, callback_frequency: int=100, callback=None, **callback_args) -> Optional[Union[List['Profile'], List[str]]]:
+        """Shortcut for::
+            client.get_followers(username, count, deep_scrape, check_user=False, callback_frequency, callback, **callback_args)
+
+        for the full documentation of this method, please see
+        :meth:`instaclient.InstaClient.get_following`.
+
+        Returns:
+            Optional[Union[List[`instagram.Profile`], List[str]]]: If the `deep_scrape` attribute is set to true,
+            this method will return a list of `instagram.Profile` objects. Else, a list of profile usernames 
+            will be returned instead.
+        """
+        if not count:
+            count = self.followed_count
+        return self.client.get_following(user=self.username, count=count, deep_scrape=deep_scrape, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
         
 
     def get_username(self):
