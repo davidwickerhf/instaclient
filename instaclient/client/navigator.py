@@ -124,13 +124,10 @@ class Navigator(Checker):
         """
 
         self.driver.get(ClientUrls.SEARCH_TAGS.format(tag))
-        alert: WebElement = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.PAGE_NOT_FOUND)))
-        if alert:
-            # Tag does not exist
-            raise InvaildTagError(tag=tag)
-        else: 
-            # Operation Successful
+        if self._is_valid_page(ClientUrls.SEARCH_TAGS.format(tag)):
             return True
+        else:
+            raise InvaildTagError(tag)
 
 
     def _nav_explore(self:'InstaClient'):

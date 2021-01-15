@@ -71,6 +71,8 @@ class Checker(Component):
         current = self.driver.current_url
         if url:
             if url != current:
+                if ClientUrls.LOGIN_URL in current:
+                    raise NotLoggedInError()
                 self.driver.get(url)
                 current = self.driver.current_url
 

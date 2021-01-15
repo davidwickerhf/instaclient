@@ -16,14 +16,14 @@ class Location(InstaBaseObject):
     has_public_page:bool,
     slug:str,
     # Optional
-    lat:Optional[int]=None,
-    lng:Optional[int]=None,
-    posts_count:Optional[int]=None,
-    blurb:Optional[str]=None,
-    website:Optional[str]=None,
-    primary_alias_on_fb:Optional[str]=None,
-    phone:Optional[str]=None,
-    address:Optional[Address]=None,
+    lat:int=None,
+    lng:int=None,
+    posts_count:int=None,
+    blurb:str=None,
+    website:str=None,
+    primary_alias_on_fb:str=None,
+    phone:str=None,
+    address:Address=None,
     ):
         super().__init__(client, id, type, viewer=viewer)
         self.name = name

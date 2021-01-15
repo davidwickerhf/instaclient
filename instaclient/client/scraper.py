@@ -149,7 +149,6 @@ class Scraper(Component):
                     Comment(
                         client=self,
                         id=node['id'],
-                        type=InstaBaseObject.GRAPH_COMMENT,
                         viewer=self.username,
                         owner=node['owner']['username'],
                         post_shortcode=data['shortcode'],
@@ -451,6 +450,7 @@ class Scraper(Component):
             return profiles
 
 
+    @Component._login_required
     def get_following(self:'InstaClient', user:str, count:int, deep_scrape:Optional[bool]=False, check_user=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
         """Scrape an instagram user's following.
 
@@ -551,8 +551,8 @@ class Scraper(Component):
     
     
     # SCRAPE HASHTAG
-    @Component._login_required
-    def get_hashtag(self:'InstaClient', tag:str, viewer:str) -> Optional['Hashtag']:
+    @Component._driver_required
+    def get_hashtag(self:'InstaClient', tag:str) -> Optional['Hashtag']:
         LOGGER.debug('INSTACLIENT: scrape hashtag')
         result = self._request(GraphUrls.GRAPH_TAGS.format(tag))
 
@@ -560,10 +560,12 @@ class Scraper(Component):
             data = result['graphql']['hashtag']
             tag:Hashtag = Hashtag(
                 id=data['id'],
-                viewer=viewer,
+                viewer=self.username,
                 name=data['name'],
-                count=data['edge_hashtag_to_media']['count'],
-                posts_data=data['edge_hashtag_to_media']
+                posts_count=data['edge_hashtag_to_media']['count'],
+                allow_following=data['allow_following'],
+                is_top_media_only=data['is_top_media_only'],
+                is_following=data['is_following'],
             )
             LOGGER.info('Scraped hashtag: {}'.format(tag))
             return tag
@@ -571,8 +573,89 @@ class Scraper(Component):
             raise InvalidInstaSchemaError(__name__)
 
 
+    @Component._driver_required
+    def get_hashtag_posts(self:'InstaClient', tag:str, count:int, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[str], List[Post]]]:
+        # Nav to Tag Page
+        self._nav_tag(tag)
+
+        # Scroll down and save shortcodes
+        shortcodes = list()
+        failed = list()
+        last_callback = 0
+        finished_warning = False
+        
+        # Shortcodes scraper loop
+        try:
+            while len(shortcodes) < count:
+                
+                
+
+                loop = time.time() # TODO
+                LOGGER.debug(f'Starting Post Scrape Loop. Posts: {len(shortcodes)}')
+                
+                scraped_count = len(shortcodes)
+                divs = self._find_element(EC.presence_of_all_elements_located((By.XPATH, Paths.SHORTCODE_DIV)), wait_time=2)
+
+                got_elements = time.time() # TODO
+                LOGGER.debug(f'Got Divs in {got_elements - loop}')
+
+                new = 0
+                for div in divs:
+                    try:
+                        shortcode = div.get_attribute('href')
+                        if shortcode:
+                            shortcode = shortcode.replace('https://www.instagram.com/p/', '')
+                            shortcode = shortcode.replace('/', '')
+                        if shortcode not in shortcodes and shortcode not in (None,) and len(shortcodes) < count:
+                            shortcodes.append(shortcode)
+                            new += 1
+
+                            if (last_callback + new) % callback_frequency == 0:
+                                if callable(callback):
+                                    LOGGER.debug('Called Callback')
+                                    callback(scraped = shortcodes, **callback_args)
+
+                    except:
+                        failed.append(div)
+                        pass
+                
+                if len(shortcodes) >= count:
+                    break
+
+                if not finished_warning and len(shortcodes) == scraped_count:
+                    LOGGER.info('Detected End of Posts Page')
+                    finished_warning = True
+                    time.sleep(3)
+                elif finished_warning:
+                    LOGGER.info('Finished Posts')
+                    break
+                else:
+                    finished_warning = False
+
+                LOGGER.debug('Scroll')
+                self.scroll(mode=self.END_PAGE_SCROLL, times=2, interval=1)
+        except Exception as error:
+            LOGGER.error('ERROR IN SCRAPING POSTS', exc_info=error)
+                
+        LOGGER.warn(f'Failed: {len(failed)}')
+
+        if not deep_scrape:
+            return shortcodes
+        else:
+            # For every shortlink, scrape Post
+            LOGGER.info('Deep scraping posts...')
+            posts = list()
+            for index, shortcode in enumerate(shortcodes):
+                LOGGER.debug(f'Deep scraped {index} posts out of {len(shortcodes)}')
+                posts.append(self.get_post(shortcode))
+            return posts
+
     
-    
+    # SCRAPE LOCATION
+    def get_location(self:'InstaClient') -> Optional['Location']:
+        pass
+
+
     # GENERAL TOOLS
     def _request(self: 'InstaClient', url:str, use_driver:bool=False) -> Optional[dict]:
         if not use_driver:
@@ -599,3 +682,13 @@ class Scraper(Component):
                 return json.loads(source)
             except:
                 return None
+
+
+    def get_search_results(self:'InstaClient', search:str):
+        self._nav_explore()
+
+        search_input = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.EXPLORE_SEARCH_INPUT)))
+        search_input.send_keys(search)
+        time.sleep(1)
+
+        # TODO Load outputs

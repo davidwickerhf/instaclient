@@ -89,6 +89,9 @@ class Paths:
     # Scrape User Posts Procedure
     SHORTCODE_DIV = '//div[@class="v1Nh3 kIKUG  _bz0w"]//descendant::a'
 
+    # EXPLORE PAGE
+    EXPLORE_SEARCH_INPUT = '//input[@class="j_2Hd    iwQA6 RO68f  M5V28"]'
+
     
 
 class ClientUrls:

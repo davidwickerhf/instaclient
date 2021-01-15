@@ -247,4 +247,4 @@ class Interactions(Navigator):
             comment_area.send_keys(Keys.ENTER)
             
         LOGGER.info(f'Successfully commented on Post<{shortcode}>')
-        return Comment(self, None, InstaBaseObject.GRAPH_COMMENT, self.username, self.username, shortcode, text) # TODO Return Comment Instance
+        return Comment(self, None, self.username, self.username, shortcode, text) # TODO Return Comment Instance
