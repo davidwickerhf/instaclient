@@ -13,9 +13,9 @@ class Location(InstaBaseObject):
     type: str, 
     viewer: str,
     name:str,
-    has_public_page:bool,
     slug:str,
     # Optional
+    has_public_page:bool=None,
     lat:int=None,
     lng:int=None,
     posts_count:int=None,
@@ -27,11 +27,12 @@ class Location(InstaBaseObject):
     ):
         super().__init__(client, id, type, viewer=viewer)
         self.name = name
-        self.posts_count = posts_count
+        self.slug = slug
+        # Optional
         self.has_public_page = has_public_page
         self.latitude = lat
         self.longitude = lng
-        self.slug = slug
+        self.posts_count = posts_count
         self.blurb = blurb
         self.website = website
         self.primary_alias_on_fb = primary_alias_on_fb

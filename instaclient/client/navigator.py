@@ -52,7 +52,7 @@ class Navigator(Checker):
         # TODO NEW VERSION: Opens DM page and creates new DM
         try:
             # LOAD PAGE
-            LOGGER.debug('\n\nLOADING PAGE')
+            LOGGER.debug('LOADING PAGE')
             self.driver.get(ClientUrls.NEW_DM)
             user_div:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.USER_DIV)), wait_time=10)
             LOGGER.debug('Page Loaded')

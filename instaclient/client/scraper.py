@@ -1,3 +1,4 @@
+from instaclient.instagram import hashtag
 import json, requests
 
 from instaclient.client import *
@@ -559,6 +560,7 @@ class Scraper(Component):
         try:
             data = result['graphql']['hashtag']
             tag:Hashtag = Hashtag(
+                client=self,
                 id=data['id'],
                 viewer=self.username,
                 name=data['name'],
@@ -569,11 +571,12 @@ class Scraper(Component):
             )
             LOGGER.info('Scraped hashtag: {}'.format(tag))
             return tag
-        except:
+        except Exception as error:
+            LOGGER.exception('Error scraping hashtag', exc_info=error)
             raise InvalidInstaSchemaError(__name__)
 
 
-    @Component._driver_required
+    @Component._login_required
     def get_hashtag_posts(self:'InstaClient', tag:str, count:int, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[str], List[Post]]]:
         # Nav to Tag Page
         self._nav_tag(tag)
@@ -652,11 +655,84 @@ class Scraper(Component):
 
     
     # SCRAPE LOCATION
-    def get_location(self:'InstaClient') -> Optional['Location']:
+    @Component._driver_required
+    def get_location(self:'InstaClient', slug:str, context:bool=False) -> Optional['Location']:
         pass
 
 
     # GENERAL TOOLS
+    @Component._driver_required
+    def get_search_results(self:'InstaClient', query:str):
+        result = self._request(GraphUrls.GRAPH_SEARCH.format(query))
+
+        if not result:
+            return None
+
+        users_data = result.get('users')
+        locations_data = result.get('places')
+        hashtags_data = result.get('hashtags')
+
+        data = dict()
+
+        users = list()
+        for item in users_data:
+            try:
+                item = item['user']
+                friendship_status = item.get('friendship_status')
+                users.append(Profile(
+                    self,
+                    id=item['pk'],
+                    viewer=self.username,
+                    username=item['username'],
+                    name=item['full_name'],
+                    is_private=item['is_private'],
+                    is_verified=item['is_verified'],
+                    has_requested_viewer=friendship_status.get('incoming_request') if friendship_status else None,
+                    requested_by_viewer=friendship_status.get('outgoing_request') if friendship_status else None,
+                ))
+            except:
+                LOGGER.warning('Skipping user due to schema error...')
+                pass
+
+        locations = list()
+        for item in locations_data:
+            try:
+                item = item['place']
+                locations.append(Location(
+                    client=self,
+                    id=item['location']['pk'],
+                    type=InstaBaseObject.GRAPH_LOCATION,
+                    viewer=self.username,
+                    name=item['title'],
+                    slug=item['slug'],
+                    lat=item['location']['lat'],
+                    lng=item['location']['lng'],
+                ))
+            except:
+                LOGGER.warning('Skipping location due to schema error...')
+                pass
+
+        tags = list()
+        for item in hashtags_data:
+            try:
+                item = item['hashtag']
+                tags.append(Hashtag(
+                    client=self,
+                    id=item['id'],
+                    viewer=self.username,
+                    name=item['name'],
+                    posts_count=item['media_count'],
+                ))
+            except:
+                LOGGER.warning('Skipping hashtag due to schema error...')
+                pass
+
+        data['users'] = users
+        data['locations'] = locations
+        data['hashtags'] = tags
+        return data
+
+
     def _request(self: 'InstaClient', url:str, use_driver:bool=False) -> Optional[dict]:
         if not use_driver:
             if self.proxy:
@@ -684,11 +760,4 @@ class Scraper(Component):
                 return None
 
 
-    def get_search_results(self:'InstaClient', search:str):
-        self._nav_explore()
-
-        search_input = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.EXPLORE_SEARCH_INPUT)))
-        search_input.send_keys(search)
-        time.sleep(1)
-
-        # TODO Load outputs
+    

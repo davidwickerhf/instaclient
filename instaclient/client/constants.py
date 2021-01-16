@@ -114,3 +114,4 @@ class GraphUrls:
     GRAPH_TAGS='https://www.instagram.com/explore/tags/{}/?__a=1'
     GRAPH_ACTIVITY = 'https://www.instagram.com/accounts/activity/?__a=1'
     GRAPH_POST = 'https://www.instagram.com/p/{}/?__a=1'
+    GRAPH_SEARCH = 'https://www.instagram.com/web/search/topsearch/?query={}'
