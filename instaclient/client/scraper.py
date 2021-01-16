@@ -1,4 +1,3 @@
-from instaclient.instagram import hashtag
 import json, requests
 
 from instaclient.client import *
@@ -557,6 +556,9 @@ class Scraper(Component):
         LOGGER.debug('INSTACLIENT: scrape hashtag')
         result = self._request(GraphUrls.GRAPH_TAGS.format(tag))
 
+        if not result:
+            return None
+
         try:
             data = result['graphql']['hashtag']
             tag:Hashtag = Hashtag(
@@ -656,8 +658,35 @@ class Scraper(Component):
     
     # SCRAPE LOCATION
     @Component._driver_required
-    def get_location(self:'InstaClient', slug:str, context:bool=False) -> Optional['Location']:
-        pass
+    def get_location(self:'InstaClient', id:str, slug:str) -> Optional[Location]:
+        result = self._request(GraphUrls.GRAPH_LOCATION.format(id, slug))
+
+        if not result:
+            return None
+
+        try:
+            data = result['graphql']['location']
+            address = Address(data['address_json'])
+            location:Location = Location(
+                client=self,
+                id=data['id'],
+                type=InstaBaseObject.GRAPH_LOCATION,
+                viewer=self.username, 
+                name=data['name'],
+                slug=data['slug'],
+                has_public_page=data['has_public_page'],
+                lat=data['lat'],
+                lng=data['lng'],
+                posts_count=data['edge_location_to_media']['count'],
+                blurb=data['blurb'],
+                website=data['website'],
+                primary_alias_on_fb=data['primary_alias_on_fb'],
+                address=address
+            )
+            return location
+        except Exception as error:
+            LOGGER.exception('Error scraping location', exc_info=error)
+            raise InvalidInstaSchemaError(__name__)
 
 
     # GENERAL TOOLS

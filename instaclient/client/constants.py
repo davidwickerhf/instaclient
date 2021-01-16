@@ -115,3 +115,4 @@ class GraphUrls:
     GRAPH_ACTIVITY = 'https://www.instagram.com/accounts/activity/?__a=1'
     GRAPH_POST = 'https://www.instagram.com/p/{}/?__a=1'
     GRAPH_SEARCH = 'https://www.instagram.com/web/search/topsearch/?query={}'
+    GRAPH_LOCATION = 'https://www.instagram.com/explore/locations/{}/{}/?__a=1'
