@@ -8,7 +8,7 @@ The only thing you need to worry about is to spread your requests throughout the
 
 ## Table of Contents
 
-1. [Current Features](#current-features)
+1. [Features](#current-features)
 2. [Installation](#installation)
 3. [Usage](#usage)
 4. [Contributing](#contributing)
@@ -17,19 +17,24 @@ The only thing you need to worry about is to spread your requests throughout the
 7. [Credits](#credits)
 8. [License](#license)
 
-## Current Features
-- Scrape a user's followers
-- Scrape a Hashtag
-- Scrape a profile
-- Scrape a user's posts
-- Scrape a post's info via its shortcode
-- Follow a user
-- Unfollow a user
-- Send DMs to users (both Private & Public)
-- Check Incoming Notifications
-- Like a post
-- Add a comment on a post
-
+## Features
+- Scraping
+    - Scrape a user's followers
+    - Scrape a Hashtag
+    - Scrape a Location
+    - Scrape a Profile
+    - Scrape a user's posts
+    - Scrape a hashtag's posts
+    - Scrape a location's posts
+    - Scrape a post's info via its shortcode
+- Interacting
+    - Follow a user
+    - Unfollow a user
+    - Like a post
+    - Unlike a post
+    - Add a comment on a post
+    - Send DMs to users (both Private & Public)
+    - Check Incoming Notifications
 
 #### TO DO:
 - [x] Define Classes:
@@ -41,8 +46,13 @@ The only thing you need to worry about is to spread your requests throughout the
 - [x] Add comment to post by shorturl
 - [x] Like post by shorturl
 - [x] Unlike post by shorturl
-- [ ] Scrape Location
-
+- [x] Scrape Location
+- [ ] Scrape explore page
+- [ ] Upload posts
+- [ ] Scrape feed
+- [ ] Interact with posts on feed 
+- [ ] View feed stories
+- [ ] View user stories
 
 ## Installation
 
