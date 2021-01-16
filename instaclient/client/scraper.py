@@ -658,6 +658,22 @@ class Scraper(Component):
     # SCRAPE LOCATION
     @Component._driver_required
     def get_location(self:'InstaClient', id:str, slug:str) -> Optional[Location]:
+        """Get information about an instagram Location
+
+        Args:
+            id (str): `id` of the instagram location
+            slug (str): `slug` of the instagram location
+
+        Raises:
+            InvalidInstaSchemaError: error raised if there is an error
+                in the graphql instagram response. This error might be caused by changes
+                in the instagram API. If you receive this error, contact
+                the developers of this package.
+
+        Returns:
+            Optional[:class:`Location`]: If the `id` and `slug` attributes are valid,
+                a :meth:`instagram.Location` object is returned.
+        """
         result = self._request(GraphUrls.GRAPH_LOCATION.format(id, slug))
 
         if not result:
@@ -690,6 +706,16 @@ class Scraper(Component):
     # GENERAL TOOLS
     @Component._driver_required
     def get_search_results(self:'InstaClient', query:str):
+        """Get the results of a search query on Instagram.
+
+        Args:
+            query (str): Query to search on Instagram.
+
+        Returns:
+            dict: A dictionary with 3 keys: ``users``, ``locations``
+                and ``hashtags``. Each respective value holds a list with
+                the respective object types.
+        """
         result = self._request(GraphUrls.GRAPH_SEARCH.format(query))
 
         if not result:
