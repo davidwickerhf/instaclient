@@ -4,9 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [v2.8.0](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.0) - 2021-01-10
+## [v2.8.0](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.0) - 2021-01-16
 
-<small>[Compare with v2.7.26](https://github.com/wickerdevs/instaclient/compare/v2.7.26...v2.8.0)</small>
+<small>[Compare with v2.7.27](https://github.com/wickerdevs/instaclient/compare/v2.7.27...v2.8.0)</small>
+
+### Added
+- Added get_location_posts method ([f0e3f08](https://github.com/wickerdevs/instaclient/commit/f0e3f084c4bebfcf343a1fd107030aef93776144) by David Wicker).
+- Added get_location() method ([cc10422](https://github.com/wickerdevs/instaclient/commit/cc104224e3717d76469b9d0863b0963b983711a8) by David Wicker).
+- Added get_search_result() method ([740671e](https://github.com/wickerdevs/instaclient/commit/740671ea106ec0e2be241feb9e8acf2a99809a95) by David Wicker).
+- Add client.get_following() method ([cfed3f5](https://github.com/wickerdevs/instaclient/commit/cfed3f53a227d2e4ced65c04d6ed5a66e604ac7b) by David Wicker).
+
+### Changed
+- Change hashtag definition and methods ([c3f1b77](https://github.com/wickerdevs/instaclient/commit/c3f1b7756023a295d88ac334c3fcaeff437773ca) by David Wicker).
+- Changed comment.py docs and __eq__ ([3f34a77](https://github.com/wickerdevs/instaclient/commit/3f34a7774342177f2dcd08c8eaad575efcbef1e8) by David Wicker).
+
+### Fixed
+- Fixed minor issues ([8e31351](https://github.com/wickerdevs/instaclient/commit/8e31351cb9d4fd700820215ccc6400bc07e8163a) by David Wicker).
+
+
+## [v2.7.27](https://github.com/wickerdevs/instaclient/releases/tag/v2.7.27) - 2021-01-10
+
+<small>[Compare with v2.7.26](https://github.com/wickerdevs/instaclient/compare/v2.7.26...v2.7.27)</small>
 
 ### Added
 - Added _nav_explore() method; fixed _login_required() decorator. ([79b57b8](https://github.com/wickerdevs/instaclient/commit/79b57b8ab55233317817975a00b776e0b7e9fac8) by David Wicker).
