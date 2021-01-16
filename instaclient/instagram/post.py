@@ -33,8 +33,8 @@ class Post(InstaBaseObject):
         id (str): The unique ID of the post, provided and defined by Instagram.
 
         type (str): Type of Post. This can be:
-            `InstaBaseObject.GRAPH_IMAGE`,  `InstaBaseObject.GRAPH_VIDEO`,
-            `InstaBaseObject.GRAPH_SIDECAR`
+            ``InstaBaseObject.GRAPH_IMAGE``,  ``InstaBaseObject.GRAPH_VIDEO``,
+            ``InstaBaseObject.GRAPH_SIDECAR``
 
         viewer (str): The instagram account's username of the account the user is 
             currently logged in with, when loading this object from Instagram.
@@ -47,20 +47,48 @@ class Post(InstaBaseObject):
 
         likes_count (int): Number of likes a post has received.
         
-        comments_disabled (bool): [description]
-        is_ad (bool): [description]
-        media (List[PostMedia]): [description]
-        caption (str, optional): [description]. Defaults to None.
-        comments_count (int, optional): [description]. Defaults to None.
-        tagged_users (List[str], optional): [description]. Defaults to None.
-        comments (List[Comment], optional): [description]. Defaults to None.
-        location (Location, optional): [description]. Defaults to None.
-        commenting_disabled_for_viewer (bool, optional): [description]. Defaults to None.
-        viewer_has_liked (bool, optional): [description]. Defaults to None.
-        viewer_has_saved (bool, optional): [description]. Defaults to None.
-        viewer_has_saved_to_collection (bool, optional): [description]. Defaults to None.
-        viewer_in_photo_of_you (bool, optional): [description]. Defaults to None.
-        viewer_can_reshare (bool, optional): [description]. Defaults to None.
+        comments_disabled (bool): IF set to True, the owner of this post has
+            disabled comments for this post.
+
+        is_ad (bool): If True, this post is an Advertisement.
+
+        media (List[:class:`PostMedia`]): List of :class:`PostMedia` objects, which
+            contain information about the post media.
+
+        caption (str, optional): The caption of the post. Defaults to None.
+
+        comments_count (int, optional): The number of comments under the post. 
+            Defaults to None.
+
+        tagged_users (List[str], optional): A list of usernames of the 
+            instagram users tagged on this post. Defaults to None.
+
+        comments (List[:class:`Comment`], optional): List of available comments,
+            present in the graphql response. Defaults to None.
+
+            Note:
+                Not all comments on this post might be included in this list.
+
+        location (:class:`Location`, optional): Location attached to this post. 
+            Defaults to None.
+    
+        commenting_disabled_for_viewer (bool, optional): If True, the viewer is
+            not allowed to comment on this post. Defaults to None.
+
+        viewer_has_liked (bool, optional): If True, the viewer has liked this
+            post. Defaults to None.
+
+        viewer_has_saved (bool, optional): If True, the viewer has saved this
+            post. Defaults to None.
+
+        viewer_has_saved_to_collection (bool, optional): If True, the viewer
+            has saved this post to a collection. Defaults to None.
+
+        viewer_in_photo_of_you (bool, optional): If True, the viwer has been
+            tagged in this post. Defaults to None.
+
+        viewer_can_reshare (bool, optional): If True, the viewer can share
+            this post. Defaults to None.
      """
     def __init__(self, 
     # Required

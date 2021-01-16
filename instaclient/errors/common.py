@@ -140,6 +140,22 @@ class InvaildTagError(InstaClientError):
         return f'{self.tag} -> {self.message}'
 
 
+class InvaildLocationError(InstaClientError):
+    """Raised when searching for an incorrect location
+    
+    Args:
+        id (str): ID that caused the error.
+        slug (str): Slug that caused the error.
+    """
+    def __init__(self, id:str, slug:str):
+        self.id = id
+        self.slug = slug
+        super().__init__(message='The tag you searched for does not exist.')
+
+    def __str__(self):
+        return f'{self.id} | {self.slug} -> {self.message}'
+
+
 class PrivateAccountError(InstaClientError):
     """Raise when trying to access a private account's followers
     Args: 

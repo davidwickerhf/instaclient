@@ -273,6 +273,24 @@ class Scraper(Component):
 
     @Component._login_required
     def get_user_posts(self:'InstaClient', username:str, count:Optional[int]=30, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[str], List[Profile]]]:
+        """Get a list of posts of a specified user.
+
+        Args:
+            username (str): User to scrape from.
+            count (int): Number of posts to load.
+            deep_scrape (Optional[bool], optional): If set to True, every scraped post will
+                be fully loaded into :class:`instaclient.Post` objects. Defaults to False.
+            callback_frequency (int, optional): Frequency with which the method will
+                call a specified callback method. The assigned value reflects the
+                number of objects to scrape before calling the method. Defaults to 100.
+            callback (callable, optional): Callable method that gets called with the frequency
+                set by `callback_frequency`. Defaults to None.
+
+        Returns:
+            Optional[Union[List[str], List[Post]]]: Optional list of scraped posts. 
+                The list may either contain a list of shortcodes or of :class:`instaclient.Post`
+                based on the value of the attribute `deep_scrape`.
+        """
         # Nav to User Page
         self._nav_user(username)
 
@@ -579,6 +597,24 @@ class Scraper(Component):
 
     @Component._login_required
     def get_hashtag_posts(self:'InstaClient', tag:str, count:int, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[str], List[Post]]]:
+        """Get a list of posts that match a specified hashtag.
+
+        Args:
+            tag (str): Hashtag to scrape from.
+            count (int): Number of posts to load.
+            deep_scrape (Optional[bool], optional): If set to True, every scraped post will
+                be fully loaded into :class:`instaclient.Post` objects. Defaults to False.
+            callback_frequency (int, optional): Frequency with which the method will
+                call a specified callback method. The assigned value reflects the
+                number of objects to scrape before calling the method. Defaults to 100.
+            callback (callable, optional): Callable method that gets called with the frequency
+                set by `callback_frequency`. Defaults to None.
+
+        Returns:
+            Optional[Union[List[str], List[Post]]]: Optional list of scraped posts. 
+                The list may either contain a list of shortcodes or of :class:`instaclient.Post`
+                based on the value of the attribute `deep_scrape`.
+        """
         # Nav to Tag Page
         self._nav_tag(tag)
 
@@ -702,10 +738,104 @@ class Scraper(Component):
             LOGGER.exception('Error scraping location', exc_info=error)
             raise InvalidInstaSchemaError(__name__)
 
+    
+    @Component._driver_required
+    def get_location_posts(self:'InstaClient', id:str, slug:str, count:int, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[str], List[Post]]]:
+        """Get a list of posts that match a specified location.
+
+        Args:
+            id (str): ID of the location to scrape from.
+            slug (str): Slug of the location to scrape from.
+            count (int): Number of posts to load.
+            deep_scrape (Optional[bool], optional): If set to True, every scraped post will
+                be fully loaded into :class:`instaclient.Post` objects. Defaults to False.
+            callback_frequency (int, optional): Frequency with which the method will
+                call a specified callback method. The assigned value reflects the
+                number of objects to scrape before calling the method. Defaults to 100.
+            callback (callable, optional): Callable method that gets called with the frequency
+                set by `callback_frequency`. Defaults to None.
+
+        Returns:
+            Optional[Union[List[str], List[Post]]]: Optional list of scraped posts. 
+                The list may either contain a list of shortcodes or of :class:`instaclient.Post`
+                based on the value of the attribute `deep_scrape`.
+        """
+        # Nav to Tag Page
+        self._nav_location(id, slug)
+
+        # Scroll down and save shortcodes
+        shortcodes = list()
+        failed = list()
+        last_callback = 0
+        finished_warning = False
+        
+        # Shortcodes scraper loop
+        try:
+            while len(shortcodes) < count:
+                loop = time.time() # TODO
+                LOGGER.debug(f'Starting Post Scrape Loop. Posts: {len(shortcodes)}')
+                
+                scraped_count = len(shortcodes)
+                divs = self._find_element(EC.presence_of_all_elements_located((By.XPATH, Paths.SHORTCODE_DIV)), wait_time=2)
+
+                got_elements = time.time() # TODO
+                LOGGER.debug(f'Got Divs in {got_elements - loop}')
+
+                new = 0
+                for div in divs:
+                    try:
+                        shortcode = div.get_attribute('href')
+                        if shortcode:
+                            shortcode = shortcode.replace('https://www.instagram.com/p/', '')
+                            shortcode = shortcode.replace('/', '')
+                        if shortcode not in shortcodes and shortcode not in (None,) and len(shortcodes) < count:
+                            shortcodes.append(shortcode)
+                            new += 1
+
+                            if (last_callback + new) % callback_frequency == 0:
+                                if callable(callback):
+                                    LOGGER.debug('Called Callback')
+                                    callback(scraped = shortcodes, **callback_args)
+
+                    except:
+                        failed.append(div)
+                        pass
+                
+                if len(shortcodes) >= count:
+                    break
+
+                if not finished_warning and len(shortcodes) == scraped_count:
+                    LOGGER.info('Detected End of Posts Page')
+                    finished_warning = True
+                    time.sleep(3)
+                elif finished_warning:
+                    LOGGER.info('Finished Posts')
+                    break
+                else:
+                    finished_warning = False
+
+                LOGGER.debug('Scroll')
+                self.scroll(mode=self.END_PAGE_SCROLL, times=2, interval=1)
+        except Exception as error:
+            LOGGER.error('ERROR IN SCRAPING POSTS', exc_info=error)
+                
+        LOGGER.warn(f'Failed: {len(failed)}')
+
+        if not deep_scrape:
+            return shortcodes
+        else:
+            # For every shortlink, scrape Post
+            LOGGER.info('Deep scraping posts...')
+            posts = list()
+            for index, shortcode in enumerate(shortcodes):
+                LOGGER.debug(f'Deep scraped {index} posts out of {len(shortcodes)}')
+                posts.append(self.get_post(shortcode))
+            return posts
+
 
     # GENERAL TOOLS
     @Component._driver_required
-    def get_search_results(self:'InstaClient', query:str):
+    def get_search_results(self:'InstaClient', query:str) -> dict:
         """Get the results of a search query on Instagram.
 
         Args:

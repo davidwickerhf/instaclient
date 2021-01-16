@@ -1,7 +1,8 @@
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
+    from instaclient.instagram.post import Post
 from instaclient.instagram.instaobject import InstaBaseObject
 from instaclient.instagram.address import Address
 
@@ -82,14 +83,17 @@ class Location(InstaBaseObject):
         self.phone = phone
         self.address = address
 
+
     def __repr__(self) -> str:
         return f'Location<{self.slug}>'
+
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, Location):
             if o.id == self.id or o.slug == self.slug:
                 return True
         return False
+
 
     def refresh(self):
         """Syncs this object instance with Instagram.
@@ -99,4 +103,21 @@ class Location(InstaBaseObject):
         """
         refreshed = self.client.get_location(self.id, self.slug)
         return self._update(refreshed)
+
+    
+    def get_posts(self, count:Optional[int]=None, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List['Post'], List[str]]]:
+        """Shortcut for::
+            client.get_location_posts(username, count, deep_scrape, callback_frequency, callback, **callback_args)
+
+        for the full documentation of this method, please see
+        :meth:`instaclient.InstaClient.get_location_posts`.
+
+        Returns:
+            Optional[Union[List[`instagram.Post`], List[str]]]: If the `deep_scrape` attribute is set to true,
+            this method will return a list of `instagram.Post` objects. Else, a list of post shortcodes 
+            will be returned instead.
+        """
+        if not count:
+            count = self.posts_count
+        return self.client.get_location_posts(self.id, self.slug, count, deep_scrape, callback_frequency, callback, **callback_args)
         

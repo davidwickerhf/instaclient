@@ -169,22 +169,6 @@ class Profile(InstaBaseObject):
         return False
 
 
-    @staticmethod
-    def from_username(client:'InstaClient', username:str, context:bool=True) -> Optional['Profile']:
-        """Shortcut for::
-
-            client.get_profile(username, context)
-
-        for the full documentation of this method, please see
-        :meth:`instaclient.InstaClient.get_profile`.
-
-        Returns:
-            Optional[:class:`instagram.Profile`]: If the operation is successful, an instance of a 
-            new `Profile` object matching the username provided in the attributes is returned.
-        """
-        return client.get_profile(username, context=context)
-
-
     def refresh(self, context:bool=True):
         """Syncs this object instance with Instagram.
 
@@ -246,14 +230,6 @@ class Profile(InstaBaseObject):
         if not count:
             count = self.followed_count
         return self.client.get_following(user=self.username, count=count, deep_scrape=deep_scrape, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
-        
-
-    def get_username(self):
-        return self.username
-
-
-    def get_name(self):
-        return self.name
 
 
     def follow(self):

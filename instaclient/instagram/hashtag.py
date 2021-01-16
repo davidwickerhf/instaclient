@@ -1,8 +1,5 @@
 import json
-from typing import TYPE_CHECKING
-from urllib.parse import urlencode
-from instaclient.errors.common import InvalidInstaRequestError
-from instaclient.client.constants import GraphUrls
+from typing import TYPE_CHECKING, Optional, Union, List
 from instaclient.instagram import InstaBaseObject, Post, Profile
 if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
@@ -37,10 +34,21 @@ class Hashtag(InstaBaseObject):
         return False
 
 
-    def get_posts(self, count:int=None, deep_scrape:bool=False, callback_frequency:int=100, callback=None, **callback_args):
+    def get_posts(self, count:Optional[int]=None, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List['Post'], List[str]]]:
+        """Shortcut for::
+            client.get_hashtag_posts(username, count, deep_scrape, callback_frequency, callback, **callback_args)
+
+        for the full documentation of this method, please see
+        :meth:`instaclient.InstaClient.get_hashtag_posts`.
+
+        Returns:
+            Optional[Union[List[`instagram.Post`], List[str]]]: If the `deep_scrape` attribute is set to true,
+            this method will return a list of `instagram.Post` objects. Else, a list of post shortcodes 
+            will be returned instead.
+        """
         if not count:
             count = self.posts_count
-        return self.client.get_hashtag_posts(self.name, count, deep_scrape, callback_frequency, callback, **callback_args)
+        return self.client.get_location_posts(self.name, count, deep_scrape, callback_frequency, callback, **callback_args)
 
     
 

@@ -129,6 +129,23 @@ class Navigator(Checker):
         else:
             raise InvaildTagError(tag)
 
+    
+    def _nav_location(self:'InstaClient', id:str, slug:str):
+        """Navigates to the page of the location specified by
+        the `id` and `slug`.
+
+        Args:
+            id (str): ID of the location to navigate to.
+            slug (str): Slug of the location to navigate to.
+        """
+
+        self.driver.get(ClientUrls.LOCATION_PAGE.format(id, slug))
+        if self._is_valid_page(ClientUrls.LOCATION_PAGE.format(id, slug)):
+            return True
+        else:
+            raise InvaildLocationError(id, slug)
+
+
 
     def _nav_explore(self:'InstaClient'):
         """Navigates to the explore page

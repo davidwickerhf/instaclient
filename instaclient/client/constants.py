@@ -107,6 +107,7 @@ class ClientUrls:
     POST_URL = 'https://www.instagram.com/p/{}/'
     COMMENTS_URL = 'https://www.instagram.com/p/{}/comments/'
     EXPLORE_PAGE = 'https://www.instagram.com/explore/'
+    LOCATION_PAGE = 'https://www.instagram.com/explore/locations/{}/{}/'
 
 
 class GraphUrls:
