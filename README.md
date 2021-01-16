@@ -8,7 +8,7 @@ The only thing you need to worry about is to spread your requests throughout the
 
 ## Table of Contents
 
-1. [Features](#current-features)
+1. [Features](#features)
 2. [Installation](#installation)
 3. [Usage](#usage)
 4. [Contributing](#contributing)
