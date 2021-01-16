@@ -6,11 +6,54 @@ from instaclient.instagram.instaobject import InstaBaseObject
 from instaclient.instagram.address import Address
 
 class Location(InstaBaseObject):
+    """Class reppresenting an Instagram profile.
+
+    The instagram profile class inherits from the `instagram.InstaBaseObjects` class.
+    This class should contain all methods related to actions that can be executed 
+    on the profile page of a user on the Instagram website.
+
+    Two `instagram.Location` objects are considered equal if they share the 
+    same `id` or the same `slug`.
+
+    Attributes:
+        client (:class:`instaclient.InstaClient`): This is the client instance that 
+            will be used to perform actions on the object. Many methods included in 
+            this class are in fact shortcuts for the `instaclient.InstaClient` 's methods. 
+
+        id (str): The unique ID of the location, provided and defined by Instagram.
+
+        viewer (str): The instagram account's username of the account the user is 
+            currently logged in with, when loading this object from Instagram.
+
+        name (str): Name of the location on Instagram.
+
+        slug (str): Unique instagram location identifier
+
+        has_public_page (bool): True if the location info is accessible by everyone
+            on Instagram. Defaults to None.
+
+        lat (int): Latitude of the location
+
+        lng (int): Longitude of the location
+
+        posts_count (int): Number of instagram posts that present this location.
+
+        blurb (str): Location blurb. Defaults to None.
+
+        website (str): Optional website link attached to the Location page.
+            Defaults to None.
+
+        primary_alias_on_fb (str): If this location has an alias on Facebook, it
+            will be saved in this attribute.
+
+        phone (str): Optional phone number attached to the Location.
+
+        address (:class:`instaclient.Address`): Address of the Location.
+    """
     def __init__(self, 
     # Required
     client: 'InstaClient',
     id: str, 
-    type: str, 
     viewer: str,
     name:str,
     slug:str,
@@ -25,7 +68,7 @@ class Location(InstaBaseObject):
     phone:str=None,
     address:Address=None,
     ):
-        super().__init__(client, id, type, viewer=viewer)
+        super().__init__(client, id, InstaBaseObject.GRAPH_LOCATION, viewer=viewer)
         self.name = name
         self.slug = slug
         # Optional
@@ -47,4 +90,13 @@ class Location(InstaBaseObject):
             if o.id == self.id or o.slug == self.slug:
                 return True
         return False
+
+    def refresh(self):
+        """Syncs this object instance with Instagram.
+
+        The object instance on which this method is called on will be
+        refreshed to match the data available on the instagram website.
+        """
+        refreshed = self.client.get_location(self.id, self.slug)
+        return self._update(refreshed)
         

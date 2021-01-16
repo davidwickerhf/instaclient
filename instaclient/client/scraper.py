@@ -132,7 +132,6 @@ class Scraper(Component):
                 location = Location(
                     client=self,
                     id=location['id'],
-                    type=InstaBaseObject.GRAPH_LOCATION,
                     viewer=self.username,
                     name=location['name'],
                     slug=location['slug'],
@@ -670,7 +669,6 @@ class Scraper(Component):
             location:Location = Location(
                 client=self,
                 id=data['id'],
-                type=InstaBaseObject.GRAPH_LOCATION,
                 viewer=self.username, 
                 name=data['name'],
                 slug=data['slug'],
@@ -730,7 +728,6 @@ class Scraper(Component):
                 locations.append(Location(
                     client=self,
                     id=item['location']['pk'],
-                    type=InstaBaseObject.GRAPH_LOCATION,
                     viewer=self.username,
                     name=item['title'],
                     slug=item['slug'],
