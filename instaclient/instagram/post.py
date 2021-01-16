@@ -154,24 +154,81 @@ class Post(InstaBaseObject):
                 return True
         return False
 
+
     def refresh(self, context:bool=True):
+        """Syncs this object instance with Instagram.
+
+        The object instance on which this method is called on will be
+        refreshed to match the data available on the instagram website.
+
+        Args:
+            context (bool): Set this to True if you wish for the client to 
+                log in before scraping data.
+        """
         refreshed = self.client.get_post(self.shortcode, context)
         return self._update(refreshed)
 
+
     def get_owner(self) -> Optional[Profile]:
+        """Shortcut for::
+            client.get_profile(owner, context=True)
+
+        for the full documentation of this method, please see
+        :meth:`instaclient.InstaClient.get_profile`.
+
+        Returns:
+            Optional[:class:`instagram.Profile`]: If the owner of this post
+                is valid, its Profile object will be returned.
+        """
         return self.client.get_profile(self.owner)
 
+
     def add_comment(self, text) -> Optional[Comment]:
+        """Shortcut for::
+            client.comment_post(shortcode, text)
+
+        for the full documentation of this method, please see
+        :meth:`instaclient.InstaClient.comment_post`.
+
+        Returns:
+            Optional[:class:`instagram.Comment`]: If the comment
+                is posted correctly, it will be returned.
+        """
         result = self.client.comment_post(self.shortcode, text)
         if result:
+            self.comments_count += 1
             return self.client._find_comment(self.shortcode, self.client.username, text)
         return None
 
+
     def like(self):
+        """Shortcut for::
+            client.like_post(shortcode)
+
+        for the full documentation of this method, please see
+        :meth:`instaclient.InstaClient.like_post`.
+
+        Returns:
+            Optional[:class:`instagram.Post`]: If the post is
+                liked successfully, the instace this method is
+                called on will be refreshed.
+        """
         post = self.client.like_post(self.shortcode)
         return self._update(post)
 
+
     def unlike(self):
+        """Shortcut for::
+            client.unlike_post(shortcode)
+
+        for the full documentation of this method, please see
+        :meth:`instaclient.InstaClient.inlike_post`.
+
+        Returns:
+            Optional[:class:`instagram.Post`]: If the post is
+                unliked successfully, the instace this method is
+                called on will be refreshed.
+        """
         post = self.client.unlike_post(self.shortcode)
         return self._update(post)
 

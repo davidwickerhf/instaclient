@@ -34,6 +34,16 @@ class Hashtag(InstaBaseObject):
         return False
 
 
+    def refresh(self):
+        """Syncs this object instance with Instagram.
+
+        The object instance on which this method is called on will be
+        refreshed to match the data available on the instagram website.
+        """
+        refreshed = self.client.get_hashtag(self.name)
+        return self._update(refreshed)
+
+
     def get_posts(self, count:Optional[int]=None, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List['Post'], List[str]]]:
         """Shortcut for::
             client.get_hashtag_posts(username, count, deep_scrape, callback_frequency, callback, **callback_args)

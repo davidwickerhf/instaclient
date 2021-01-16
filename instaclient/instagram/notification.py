@@ -17,8 +17,10 @@ class Notification(InstaBaseObject):
                         return True
         return False
 
+
     def __repr__(self) -> str:
         return f'Notification<{self.type} | {self.from_user}>'
+
 
     def __lt__(self, o) -> bool:
         if self.timestamp < o.timestamp:
@@ -26,11 +28,25 @@ class Notification(InstaBaseObject):
         else:
             return False
 
+
     def __gt__(self, o) -> bool:
         if self.timestamp > o.timestamp:
             return True
         else:
             return False
 
-    def get_timestamp(self):
-        return self.timestamp
+
+    def refresh(self):
+        """Syncs this object instance with Instagram.
+
+        The object instance on which this method is called on will be
+        refreshed to match the data available on the instagram website.
+        """
+        notifications = self.client.get_notifications(types=[self.type])
+        for noti in notifications:
+            if noti == self:
+                return self._update(noti)
+        return None
+
+    
+    

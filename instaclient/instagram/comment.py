@@ -106,6 +106,7 @@ class Comment(InstaBaseObject):
         """
         return self.client.get_profile(username=self.owner, context=context)
 
+
     def get_post(self, context:bool=True):
         """Shortcut for::
 

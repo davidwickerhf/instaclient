@@ -92,6 +92,15 @@ except SuspisciousLoginAttemptError as error:
         code = input('Enter the security code that was sent to you via SMS: ')
     client.input_security_code(code)
 ```
+#### INSTAGRAM OBJECTS
+Many client methods return objects defined in the [instagram](https://github.com/wickerdevs/instaclient/tree/main/instaclient/instagram) package of this library.
+Such objects are reppresentations of the data returned by instagram, but they are not continuesly synced with Instagram, hence the data may not always be updated. To sync the local object to instagram, most objects have `.refresh()` method, as seen in the example below:
+```python
+profile = client.get_profile('<username>')
+# Other code here
+profile.refresh() # syncing with instagram
+```
+
 #### SEND A DIRECT MESSAGE
 ```python
 result = client.send_dm('<username>', '<Message to send>') # send a DM to a user
@@ -119,14 +128,33 @@ profile = client.get_profile('<username>')
 posts = client.get_user_posts('<username>', count=10)
 # or:
 profile = client.get_profile('<username>')
-profile.get_posts(30)
+posts = profile.get_posts(30)
 ```
 > This returns a list of Post objects.
 #### SCRAPE A HASHTAG
 ```python
 hashtag = client.get_hashtag(tag='<tag>')
+# This returns a Hashtag object, from which you can get the posts data. 
+posts = hashtag.get_posts(count=25)
 ```
-> This returns a Hashtag object, from which you can get the posts data. Using load_posts(), you get a list of BasePost objects, from which you can get the owner of the post
+#### SCRAPE A LOCATION
+##### BY ID & SLUG
+Every Instagram Location is defined by a slug and an ID.
+You can find these two pieces of information in the URL of the location page on Instagram:
+```https://www.instagram.com/explore/locations/270531492/italy/```
+from this example, the ID would be `270531492` and the slug would be `italy`
+```python
+location = client.get_location(id='270531492', slug='italy')
+posts = location.get_posts(count=25)
+```
+
+##### BY SEARCH RESULT
+If you don't have access to either the ID or the slug of a location, you can still scrape such location by finding it on the search page.
+```python
+result = client.get_search_result('italy')
+location = result.get('locations')[0]
+```
+
 #### ADD A COMMENT
 ```python
 client.comment_post('<post_shortcode>', text='Nice post!')

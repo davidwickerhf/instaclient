@@ -11,7 +11,7 @@ class Scraper(Component):
 
     # SCRAPE USER DATA
     @Component._login_required
-    def scrape_notifications(self:'InstaClient', types:Optional[list], count:int=None) -> Optional[List[Notification]]:
+    def get_notifications(self:'InstaClient', types:Optional[list], count:int=None) -> Optional[List[Notification]]:
 
         if types is None or len(types) == 0:
             types = [InstaBaseObject.GRAPH_FOLLOW, InstaBaseObject.GRAPH_LIKE, InstaBaseObject.GRAPTH_TAGGED, InstaBaseObject.GRAPH_COMMENT, InstaBaseObject.GRAPH_MENTION]
