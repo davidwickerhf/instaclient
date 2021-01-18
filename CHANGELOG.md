@@ -4,12 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [v2.8.0](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.0) - 2021-01-17
+## [v2.8.2](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.2) - 2021-01-18
 
-<small>[Compare with v2.7.27](https://github.com/wickerdevs/instaclient/compare/v2.7.27...v2.8.0)</small>
+<small>[Compare with v2.8](https://github.com/wickerdevs/instaclient/compare/v2.8...v2.8.2)</small>
 
 ### Added
 - Added refresh method to hashtag & comment ([70065cf](https://github.com/wickerdevs/instaclient/commit/70065cf56a56a989f8d3751c0c0b682b5d048423) by David Wicker).
+
+### Changed
+- Changed get_followers & get_following to include ability to scrape through the graphql api ([7e5860b](https://github.com/wickerdevs/instaclient/commit/7e5860b72c80cd882a9f92e4004a03fe41c06908) by David Wicker).
+
+
+## [v2.8](https://github.com/wickerdevs/instaclient/releases/tag/v2.8) - 2021-01-16
+
+<small>[Compare with v2.7.27](https://github.com/wickerdevs/instaclient/compare/v2.7.27...v2.8)</small>
+
+### Added
 - Added get_location_posts method ([f0e3f08](https://github.com/wickerdevs/instaclient/commit/f0e3f084c4bebfcf343a1fd107030aef93776144) by David Wicker).
 - Added get_location() method ([cc10422](https://github.com/wickerdevs/instaclient/commit/cc104224e3717d76469b9d0863b0963b983711a8) by David Wicker).
 - Added get_search_result() method ([740671e](https://github.com/wickerdevs/instaclient/commit/740671ea106ec0e2be241feb9e8acf2a99809a95) by David Wicker).
