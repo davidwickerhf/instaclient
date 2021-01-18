@@ -3,20 +3,21 @@
 [logo]: https://github.com/davidwickerhf/instaclient/blob/main/images/instaclient.png
 
 
-<p>
-    <a href="https://pypi.org/project/instaclient/">
-    <img alt="PyPi" src="https://img.shields.io/pypi/v/instaclient.svg"/>
-    </a>
-    <a href="https://pepy.tech/project/instaclient">
-    <img alt="Downloads" src="https://pepy.tech/badge/instaclient"/>
-    </a>
-    <a href="https://github.com/wickerdevs/instaclient/blob/master/LICENSE.txt">
-    <img alt="GitHub license" src="https://img.shields.io/github/license/wickerdevs/instaclient?style=plastic"/>
-    </a>
-    <img alt="Chat" src="https://img.shields.io/badge/Telegram-20%20members-blue" href="https://t.me/instaclient/"/>
-    </a>
-    <img alt="GitHub Repo Size" src="https://img.shields.io/github/repo-size/wickerdevs/instaclient"/>
-</p>
+<a href="https://pypi.org/project/instaclient/">
+<img alt="PyPi" src="https://img.shields.io/pypi/v/instaclient.svg"/>
+</a>
+<a href="https://pepy.tech/project/instaclient">
+<img alt="Downloads" src="https://pepy.tech/badge/instaclient"/>
+</a>
+<a href="https://github.com/wickerdevs/instaclient/blob/master/LICENSE.txt">
+<img alt="GitHub license" src="https://img.shields.io/github/license/wickerdevs/instaclient?style=plastic"/>
+</a>
+<a href="https://t.me/instaclient">
+<img alt="Chat" src="https://img.shields.io/badge/chat-Telegram-2CA5E0?logo=Telegram"/>
+</a>
+
+</a>
+<img alt="GitHub Repo Size" src="https://img.shields.io/github/repo-size/wickerdevs/instaclient"/>
 
 **instaclient** is a Python library for accessing Instagram's features.
 With this library you can create Instagram Bots with ease and simplicity. The InstaClient takes advantage of the selenium library to excecute tasks which are not allowed in the Instagram Graph API (such as sending DMs).
