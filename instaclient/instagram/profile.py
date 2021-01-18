@@ -202,9 +202,9 @@ class Profile(InstaBaseObject):
         return self.client.get_user_posts(self.username, count, deep_scrape, callback_frequency, callback, **callback_args)
 
     
-    def get_followers(self, count: int=None, deep_scrape:Optional[bool]=False, callback_frequency: int=100, callback=None, **callback_args) -> Optional[Union[List['Profile'], List[str]]]:
+    def get_followers(self, count: int=None, use_api:bool=True, deep_scrape:Optional[bool]=False, callback_frequency: int=100, callback=None, **callback_args) -> Optional[Union[List['Profile'], List[str]]]:
         """Shortcut for::
-            client.get_followers(username, count, deep_scrape, check_user=False, callback_frequency, callback, **callback_args)
+            client.get_followers(username, count, use_api, deep_scrape, callback_frequency, callback, **callback_args)
 
         for the full documentation of this method, please see
         :meth:`instaclient.InstaClient.get_followers`.
@@ -216,12 +216,12 @@ class Profile(InstaBaseObject):
         """
         if not count:
             count = self.follower_count
-        return self.client.get_followers(user=self.username, count=count, deep_scrape=deep_scrape, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
+        return self.client.get_followers(user=self.username, count=count, use_api=use_api, deep_scrape=deep_scrape, callback_frequency=callback_frequency, callback=callback, **callback_args)
 
     
-    def get_following(self, count: int=None, deep_scrape:Optional[bool]=False, callback_frequency: int=100, callback=None, **callback_args) -> Optional[Union[List['Profile'], List[str]]]:
+    def get_following(self, count: int=None, use_api:bool=True, deep_scrape:Optional[bool]=False, callback_frequency: int=100, callback=None, **callback_args) -> Optional[Union[List['Profile'], List[str]]]:
         """Shortcut for::
-            client.get_followers(username, count, deep_scrape, check_user=False, callback_frequency, callback, **callback_args)
+            client.get_followers(username, count, use_api, deep_scrape, callback_frequency, callback, **callback_args)
 
         for the full documentation of this method, please see
         :meth:`instaclient.InstaClient.get_following`.
@@ -233,7 +233,7 @@ class Profile(InstaBaseObject):
         """
         if not count:
             count = self.followed_count
-        return self.client.get_following(user=self.username, count=count, deep_scrape=deep_scrape, check_user=False, callback_frequency=callback_frequency, callback=callback, **callback_args)
+        return self.client.get_following(user=self.username, count=count, use_api=use_api,  deep_scrape=deep_scrape, callback_frequency=callback_frequency, callback=callback, **callback_args)
 
 
     def follow(self):

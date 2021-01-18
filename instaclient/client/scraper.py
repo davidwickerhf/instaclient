@@ -371,7 +371,7 @@ class Scraper(Component):
  
 
     @Component._login_required
-    def get_followers(self:'InstaClient', user:str, count:int, use_api:bool=False, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
+    def get_followers(self:'InstaClient', user:str, count:int, use_api:bool=True, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
         """Scrape an instagram user's followers.
 
         Args:
@@ -537,7 +537,7 @@ class Scraper(Component):
 
 
     @Component._login_required
-    def get_following(self:'InstaClient', user:str, count:int, use_api:bool=False, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
+    def get_following(self:'InstaClient', user:str, count:int, use_api:bool=True, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
         """Scrape an instagram user's following.
 
         Args:
