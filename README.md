@@ -1,9 +1,9 @@
 <p>
-![InstaClient](https://github.com/davidwickerhf/instaclient/blob/main/images/instaclient.png)
-<h1> instaclient </h1>
+    <img alt="InstaClient" src="https://github.com/davidwickerhf/instaclient/blob/main/images/instaclient.png"/>
+    <h1> instaclient </h1>
 </p>
 
----
+
 <p>
     <a href="https://pypi.org/project/instaclient/">
     <img alt="PyPi" src="https://img.shields.io/pypi/v/instaclient.svg"/>
