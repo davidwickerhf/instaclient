@@ -1,7 +1,6 @@
-<p>
-    <img alt="InstaClient" src="https://github.com/davidwickerhf/instaclient/blob/main/images/instaclient.png"/>
-    <h1> instaclient </h1>
-</p>
+[logo]: https://github.com/davidwickerhf/instaclient/blob/main/images/instaclient.png {: width=26 height=26 style="float:left; padding:16px"}
+
+![InstaClient][logo] # instaclient
 
 
 <p>
