@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [v2.8.4](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.4) - 2021-01-18
+
+<small>[Compare with v2.8.3](https://github.com/wickerdevs/instaclient/compare/v2.8.3...v2.8.4)</small>
+
+### Fixed
+- Fixed graphql issues ([da18780](https://github.com/wickerdevs/instaclient/commit/da18780b98a84d8a3257b23e8e33bb96c10af556) by David Wicker).
+
+
 ## [v2.8.3](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.3) - 2021-01-18
 
 <small>[Compare with v2.8.2](https://github.com/wickerdevs/instaclient/compare/v2.8.2...v2.8.3)</small>
