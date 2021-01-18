@@ -19,7 +19,8 @@ The only thing you need to worry about is to spread your requests throughout the
 
 ## Features
 - Scraping
-    - Scrape a user's followers
+    - Scrape a user's followers (Via scrolling or with GraphQL)
+    - Scraoe a user's following (Via scrolling or with GraphQL)
     - Scrape a Hashtag
     - Scrape a Location
     - Scrape a Profile
@@ -53,7 +54,8 @@ The only thing you need to worry about is to spread your requests throughout the
 - [ ] Interact with posts on feed 
 - [ ] View feed stories
 - [ ] View user stories
-
+- [ ] Save/Unsave posts
+ 
 ## Installation
 
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install instaclient.

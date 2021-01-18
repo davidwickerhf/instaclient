@@ -121,6 +121,7 @@ class Component:
                     if self.proxy:
                         chrome_options.add_argument('--proxy-server=%s' % self.proxy)
                     self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
+                    return self
                 elif self.host_type == self.LOCAHOST:
                     # Running locally
                     chrome_options = webdriver.ChromeOptions()
@@ -134,6 +135,7 @@ class Component:
                         chrome_options.add_argument('--proxy-server=%s' % self.proxy)
                     
                     self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options)
+                    return self
                 else:
                     raise InvaildHostError(self.host_type)
             else:
@@ -149,6 +151,7 @@ class Component:
         if login:
             try:
                 self.login(self.username, self.password)
+                return self
             except:
                 raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.')
 

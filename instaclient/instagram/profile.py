@@ -74,6 +74,8 @@ class Profile(InstaBaseObject):
             This attribute is valid only if the user has connected the account 
             to FB. Defaults to None.
 
+        profile_pic_url (str, optional): Optional url of the profile picture.
+
         business_email (str, optional): If the profile is a business account
             and if the email is set to be public, it will be saved in this attribute. 
             Defaults to None.
@@ -122,6 +124,7 @@ class Profile(InstaBaseObject):
     overall_category_name:str=None,
     external_url:str=None,
     fb_id:str=None,
+    profile_pic_url:str=None,
 
     business_email:str=None,
     blocked_by_viewer:bool=None,
@@ -148,6 +151,7 @@ class Profile(InstaBaseObject):
         self.overall_category_name = overall_category_name
         self.external_url = external_url
         self.fb_id = fb_id
+        self.profile_pic_url = profile_pic_url
 
         self.business_email = business_email
         self.blocked_by_viewer = blocked_by_viewer

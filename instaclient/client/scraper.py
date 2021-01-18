@@ -1,3 +1,4 @@
+from instaclient.client.constants import QueryHashes
 import json, requests
 
 from instaclient.client import *
@@ -11,7 +12,7 @@ class Scraper(Component):
 
     # SCRAPE USER DATA
     @Component._login_required
-    def get_notifications(self:'InstaClient', types:Optional[list], count:int=None) -> Optional[List[Notification]]:
+    def get_notifications(self:'InstaClient', types:list=None, count:int=None) -> Optional[List[Notification]]:
 
         if types is None or len(types) == 0:
             types = [InstaBaseObject.GRAPH_FOLLOW, InstaBaseObject.GRAPH_LIKE, InstaBaseObject.GRAPTH_TAGGED, InstaBaseObject.GRAPH_COMMENT, InstaBaseObject.GRAPH_MENTION]
@@ -52,7 +53,8 @@ class Scraper(Component):
                 id=node['user']['id'],
                 viewer=self.username,
                 username=node['user']['username'],
-                name=node['user']['full_name']
+                name=node['user']['full_name'],
+                profile_pic_url= node['user'].get('profile_pic_url')
             )
             notifications.append(Notification(
                 client=self,
@@ -97,6 +99,7 @@ class Scraper(Component):
                 overall_category_name = user['overall_category_name'],
                 external_url = user['external_url'],
                 fb_id = user.get('fbid'),
+                profile_pic_url= user.get('profile_pic_url'),
                 
                 # Context Based
                 business_email = user.get('business_email'),
@@ -368,13 +371,14 @@ class Scraper(Component):
  
 
     @Component._login_required
-    def get_followers(self:'InstaClient', user:str, count:int, deep_scrape:Optional[bool]=False, check_user=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
+    def get_followers(self:'InstaClient', user:str, count:int, use_api:bool=False, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
         """Scrape an instagram user's followers.
 
         Args:
             user (str): User to scrape
             count (int): Number of followers to scrape
-            check_user (bool, optional): If set to True, checks if the `user` is a valid instagram username. Defaults to True.
+            use_api (bool): If set to True, the instaclient module will take advantage
+                of instagram graphql requests to scrape followers. Defaults to False.
             callback_frequency (int, optional): Number of scraped followers between updates
             callback (function): Function with no parameters that gets called with the frequency set by ``callback_frequency``. This method must take a ``scraped`` argument.
 
@@ -387,12 +391,9 @@ class Scraper(Component):
             PrivateAccountError: Raised if the user is a private account
             NoSuchElementException: Raised if an element is not found when compiling operation.
         """
-        self._nav_user(user, check_user=check_user)
-        followers_btn:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), url=ClientUrls.NAV_USER.format(user))
-        # Click followers btn
-        self._press_button(followers_btn)
-        time.sleep(2)
-        LOGGER.debug(f'Got Followers page for <{user}>')
+        profile = self.get_profile(user)
+        if not profile:
+            raise InvalidUserError(user)
 
         followers = list()
         failed = list()
@@ -401,52 +402,117 @@ class Scraper(Component):
 
         start = time.time() # TODO
         
-        try:
-            while len(followers) < count:
-                loop = time.time() # TODO
-                LOGGER.debug(f'Starting Scrape Loop. Followers: {len(followers)}')
-                
-                scraped_count = len(followers)
-                divs = self._find_element(EC.presence_of_all_elements_located((By.XPATH, Paths.FOLLOWER_USER_DIV)), wait_time=2)
+        if not use_api:
+            # Nav User Page
+            self._nav_user(user, check_user=False)
 
-                got_elements = time.time() # TODO
-                LOGGER.debug(f'Got Divs in {got_elements - loop}')
+            # Nav Followers Page
+            followers_btn:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWERS_BTN)), url=ClientUrls.NAV_USER.format(user))
+            # Click followers btn
+            self._press_button(followers_btn)
+            time.sleep(2)
+            LOGGER.debug(f'Got Followers page for <{user}>')
 
-                new = 0
-                for div in divs:
-                    try:
-                        username = div.text.split('\n')[0]
-                        if username not in followers and username not in('Follow',) and len(followers) < count:
-                            followers.append(username)
-                            new += 1
+            # Scrape
+            try:
+                while len(followers) < count:
+                    loop = time.time() # TODO
+                    LOGGER.debug(f'Starting Scrape Loop. Followers: {len(followers)}')
+                    
+                    scraped_count = len(followers)
+                    divs = self._find_element(EC.presence_of_all_elements_located((By.XPATH, Paths.FOLLOWER_USER_DIV)), wait_time=2)
 
-                            if (last_callback + new) % callback_frequency == 0:
-                                if callable(callback):
-                                    LOGGER.debug('Called Callback')
-                                    callback(scraped = followers, **callback_args)
+                    got_elements = time.time() # TODO
+                    LOGGER.debug(f'Got Divs in {got_elements - loop}')
 
-                    except:
-                        failed.append(div)
-                        pass
-                
-                if len(followers) >= count:
+                    for div in divs:
+                        try:
+                            username = div.text.split('\n')[0]
+                            if username not in followers and username not in('Follow',) and len(followers) < count:
+                                followers.append(username)
+
+                                if len(followers) % callback_frequency == 0:
+                                    if callable(callback):
+                                        LOGGER.debug('Called Callback')
+                                        callback(scraped = followers, **callback_args)
+                                    else:
+                                        LOGGER.info(f'Scraped {len(followers)} followers so far...')
+
+                        except:
+                            failed.append(div)
+                            pass
+                    
+                    if len(followers) >= count:
+                        break
+
+                    if not finished_warning and len(followers) == scraped_count:
+                        if len(followers) == profile.follower_count:
+                            LOGGER.info('Finished Followers')
+                            break
+                        LOGGER.info('Detected End of Followers Page')
+                        finished_warning = True
+                        time.sleep(3)
+                    elif finished_warning:
+                        LOGGER.info('Finished Followers')
+                        break
+                    else:
+                        finished_warning = False
+
+                    LOGGER.debug('Scroll')
+                    self.scroll(mode=self.END_PAGE_SCROLL, times=2, interval=1)
+            except Exception as error:
+                LOGGER.error('ERROR IN SCRAPING FOLLOWERS', exc_info=error)
+        else:
+            request = GraphUrls.GRAPH_FIRST_FOLLOWERS.format(QUERY_HASH=QueryHashes.FOLLOWERS_HASH, ID=profile.id)
+            looping = True
+            while looping:
+                result = self._request(request, use_driver=True)
+
+                if not result:
                     break
 
-                if not finished_warning and len(followers) == scraped_count:
-                    LOGGER.info('Detected End of Followers Page')
-                    finished_warning = True
-                    time.sleep(3)
-                elif finished_warning:
-                    LOGGER.info('Finished Followers')
+                status = result.get('status')
+                if not status == 'ok':
+                    break
+
+                data = result['data']['user']['edge_followed_by']
+                # Load users
+                
+                for user_data in data['edges']:
+                    user = user_data['node']
+                    follower = Profile(
+                        client = self,
+                        id = user['id'],
+                        viewer = self.username,
+                        username = user['username'],
+                        name = user['full_name'],
+                        is_private = user['is_private'],
+                        is_verified = user['is_verified'],
+                        requested_by_viewer = user['requested_by_viewer'],
+                        profile_pic_url= user.get('profile_pic_url')
+                    )
+                    if len(followers) >= count:
+                        looping = False
+                        break
+                    if follower not in followers:
+                        followers.append(follower)
+
+                        if len(followers) % callback_frequency == 0:
+                            if callable(callback):
+                                LOGGER.debug('Called Callback')
+                                callback(scraped = followers, **callback_args)
+                            else:
+                                LOGGER.info(f'Scraped {len(followers)} followers so far...')
+
+                # Get Page Info
+                page_info = data['page_info']
+                if not page_info['has_next_page']:
                     break
                 else:
-                    finished_warning = False
-
-                LOGGER.debug('Scroll')
-                self.scroll(mode=self.END_PAGE_SCROLL, times=2, interval=1)
-        except Exception as error:
-            LOGGER.error('ERROR IN SCRAPING FOLLOWERS', exc_info=error)
-                
+                    cursor = page_info['end_cursor'].replace('==', '')
+                    request = GraphUrls.GRAPH_CURSOR_FOLLOWERS.format(QUERY_HASH=QueryHashes.FOLLOWERS_HASH, ID=profile.id, END_CURSOR=cursor)
+                    continue
+ 
 
         end = time.time() # TODO
         LOGGER.info(f'Scraped Followers: Total: {len(followers)}')
@@ -459,8 +525,11 @@ class Scraper(Component):
             profiles = list()
             for index, follower in enumerate(followers):
                 try:
+                    if isinstance(follower, Profile):
+                        profiles.append(follower.refresh())
+                    else:
+                        profiles.append(self.get_profile(follower))
                     LOGGER.debug(f'Deep scraped {index} profiles out of {len(followers)}')
-                    profiles.append(self.get_profile(follower))
                 except:
                     failed.append(follower)
             LOGGER.warning(f'Failed: {len(failed)}')
@@ -468,7 +537,170 @@ class Scraper(Component):
 
 
     @Component._login_required
-    def get_following(self:'InstaClient', user:str, count:int, deep_scrape:Optional[bool]=False, check_user=True, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
+    def get_following(self:'InstaClient', user:str, count:int, use_api:bool=False, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
+        """Scrape an instagram user's following.
+
+        Args:
+            user (str): User to scrape
+            count (int): Number of followers to scrape
+            use_api (bool): If set to True, the instaclient module will take advantage
+                of instagram graphql requests to scrape followers. Defaults to False.
+            callback_frequency (int, optional): Number of scraped followers between updates
+            callback (function): Function with no parameters that gets called with the frequency set by ``callback_frequency``. This method must take a ``scraped`` argument.
+
+        Returns:
+            Optional[Union[List[Profile], List[str]]]: List of instagram usernames or of instagram profile objects
+
+        Raises:
+            NotLoggedInError: Raised if you are not logged into any account
+            InvalidUserError: Raised if the user is invalid
+            PrivateAccountError: Raised if the user is a private account
+            NoSuchElementException: Raised if an element is not found when compiling operation.
+        """
+        profile = self.get_profile(user)
+        if not profile:
+            raise InvalidUserError(user)
+
+        following = list()
+        failed = list()
+        last_callback = 0
+        finished_warning = False
+
+        start = time.time() # TODO
+        
+        if not use_api:
+            # Nav User Page
+            self._nav_user(user, check_user=False)
+
+            # Nav Followers Page
+            following_btn:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOWED_BTN)), url=ClientUrls.NAV_USER.format(user))
+            # Click followers btn
+            self._press_button(following_btn)
+            time.sleep(2)
+            LOGGER.debug(f'Got Following page for <{user}>')
+
+            # Scrape
+            try:
+                while len(following) < count:
+                    loop = time.time() # TODO
+                    LOGGER.debug(f'Starting Scrape Loop. Following: {len(following)}')
+                    
+                    scraped_count = len(following)
+                    divs = self._find_element(EC.presence_of_all_elements_located((By.XPATH, Paths.FOLLOWER_USER_DIV)), wait_time=2)
+
+                    got_elements = time.time() # TODO
+                    LOGGER.debug(f'Got Divs in {got_elements - loop}')
+
+                    for div in divs:
+                        try:
+                            username = div.text.split('\n')[0]
+                            if username not in following and username not in('Follow',) and len(following) < count:
+                                following.append(username)
+
+                                if len(following) % callback_frequency == 0:
+                                    if callable(callback):
+                                        LOGGER.debug('Called Callback')
+                                        callback(scraped = following, **callback_args)
+                                    else:
+                                        LOGGER.info(f'Scraped {len(following)} following so far...')
+
+                        except:
+                            failed.append(div)
+                            pass
+                    
+                    if len(following) >= count:
+                        break
+
+                    if not finished_warning and len(following) == scraped_count:
+                        if len(following) == profile.follower_count:
+                            LOGGER.info('Finished Following')
+                            break
+                        LOGGER.info('Detected End of Following Page')
+                        finished_warning = True
+                        time.sleep(3)
+                    elif finished_warning:
+                        LOGGER.info('Finished Following')
+                        break
+                    else:
+                        finished_warning = False
+
+                    LOGGER.debug('Scroll')
+                    self.scroll(mode=self.END_PAGE_SCROLL, times=2, interval=1)
+            except Exception as error:
+                LOGGER.error('ERROR IN SCRAPING FOLLOWERS', exc_info=error)
+        else:
+            request = GraphUrls.GRAPH_FIRST_FOLLOWING.format(QUERY_HASH=QueryHashes.FOLLOWING_HASH, ID=profile.id)
+            looping = True
+            while looping:
+                result = self._request(request, use_driver=True)
+
+                if not result:
+                    break
+
+                status = result.get('status')
+                if not status == 'ok':
+                    break
+
+                data = result['data']['user']['edge_follow']
+                # Load users
+                
+                for user_data in data['edges']:
+                    user = user_data['node']
+                    follower = Profile(
+                        client = self,
+                        id = user['id'],
+                        viewer = self.username,
+                        username = user['username'],
+                        name = user['full_name'],
+                        is_private = user['is_private'],
+                        is_verified = user['is_verified'],
+                        requested_by_viewer = user['requested_by_viewer'],
+                        profile_pic_url= user.get('profile_pic_url')
+                    )
+                    if len(following) >= count:
+                        looping = False
+                        break
+                    if follower not in following:
+                        following.append(follower)
+
+                        if len(following) % callback_frequency == 0:
+                            if callable(callback):
+                                LOGGER.debug('Called Callback')
+                                callback(scraped = following, **callback_args)
+                            else:
+                                LOGGER.info(f'Scraped {len(following)} following so far...')
+
+                # Get Page Info
+                page_info = data['page_info']
+                if not page_info['has_next_page']:
+                    break
+                else:
+                    cursor = page_info['end_cursor'].replace('==', '')
+                    request = GraphUrls.GRAPH_CURSOR_FOLLOWING.format(QUERY_HASH=QueryHashes.FOLLOWING_HASH, ID=profile.id, END_CURSOR=cursor)
+                    continue
+ 
+
+        end = time.time() # TODO
+        LOGGER.info(f'Scraped Followers: Total: {len(following)}')
+
+        if not deep_scrape:
+            return following
+        else:
+            LOGGER.info('Deep scraping profiles...')
+            # For every shortlink, scrape Post
+            profiles = list()
+            for index, follower in enumerate(following):
+                try:
+                    if isinstance(follower, Profile):
+                        profiles.append(follower.refresh())
+                    else:
+                        profiles.append(self.get_profile(follower))
+                    LOGGER.debug(f'Deep scraped {index} profiles out of {len(following)}')
+                except:
+                    failed.append(follower)
+            LOGGER.warning(f'Failed: {len(failed)}')
+            return profiles
+
         """Scrape an instagram user's following.
 
         Args:
@@ -872,6 +1104,7 @@ class Scraper(Component):
                     is_verified=item['is_verified'],
                     has_requested_viewer=friendship_status.get('incoming_request') if friendship_status else None,
                     requested_by_viewer=friendship_status.get('outgoing_request') if friendship_status else None,
+                    profile_pic_url= item.get('profile_pic_url'),
                 ))
             except:
                 LOGGER.warning('Skipping user due to schema error...')

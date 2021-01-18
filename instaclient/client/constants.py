@@ -117,3 +117,14 @@ class GraphUrls:
     GRAPH_POST = 'https://www.instagram.com/p/{}/?__a=1'
     GRAPH_SEARCH = 'https://www.instagram.com/web/search/topsearch/?query={}'
     GRAPH_LOCATION = 'https://www.instagram.com/explore/locations/{}/{}/?__a=1'
+
+    GRAPH_FIRST_FOLLOWERS = 'https://www.instagram.com/graphql/query/?query_hash={QUERY_HASH}&variables=%7B%22id%22%3A%22{ID}%22%2C%22include_reel%22%3Atrue%2C%22fetch_mutual%22%3Atrue%2C%22first%22%3A24%7D'
+    GRAPH_CURSOR_FOLLOWERS = 'https://www.instagram.com/graphql/query/?query_hash={QUERY_HASH}&variables=%7B%22id%22%3A%22{ID}%22%2C%22include_reel%22%3Atrue%2C%22fetch_mutual%22%3Afalse%2C%22first%22%3A12%2C%22after%22%3A%22{END_CURSOR}%3D%3D%22%7D'
+
+    GRAPH_FIRST_FOLLOWING = 'https://www.instagram.com/graphql/query/?query_hash={QUERY_HASH}8&variables=%7B%22id%22%3A%22{ID}%22%2C%22include_reel%22%3Atrue%2C%22fetch_mutual%22%3Afalse%2C%22first%22%3A24%7D'
+    GRAPH_CURSOR_FOLLOWING = 'https://www.instagram.com/graphql/query/?query_hash={QUERY_HASH}8&variables=%7B%22id%22%3A%22{ID}%22%2C%22include_reel%22%3Atrue%2C%22fetch_mutual%22%3Afalse%2C%22first%22%3A12%2C%22after%22%3A%22{END_CURSOR}%3D%3D%22%7D'
+
+
+class QueryHashes:
+    FOLLOWERS_HASH = '5aefa9893005572d237da5068082d8d5'
+    FOLLOWING_HASH = '3dec7e2c57367ef3da3d987d89f9dbc'
