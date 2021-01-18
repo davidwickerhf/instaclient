@@ -4,9 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [v2.8.1](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.1) - 2021-01-18
+## [v2.8.3](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.3) - 2021-01-18
 
-<small>[Compare with v2.8.0](https://github.com/wickerdevs/instaclient/compare/v2.8.0...v2.8.1)</small>
+<small>[Compare with v2.8.2](https://github.com/wickerdevs/instaclient/compare/v2.8.2...v2.8.3)</small>
+
+### Changed
+- Changed chortcut methods for get_followers() & get_following() ([357075d](https://github.com/wickerdevs/instaclient/commit/357075d810d7418c798fa91c47f88ba6c9d5d17d) by David Wicker).
+
+
+## [v2.8.2](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.2) - 2021-01-18
+
+<small>[Compare with v2.8.0](https://github.com/wickerdevs/instaclient/compare/v2.8.0...v2.8.2)</small>
 
 
 ## [v2.8.0](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.0) - 2021-01-18
