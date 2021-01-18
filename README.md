@@ -1,4 +1,18 @@
 # instaclient
+---
+<p>
+    <a href="https://pypi.org/project/instaclient/">
+    <img alt="PyPi" src="https://img.shields.io/pypi/v/instaclient.svg"/>
+    </a>
+    <a href="https://pepy.tech/project/instaclient">
+    <img alt="Downloads" src="https://pepy.tech/badge/instaclient"/>
+    </a>
+    <a href="https://github.com/wickerdevs/instaclient/blob/master/LICENSE.txt">
+    <img alt="GitHub license" src="https://img.shields.io/github/license/wickerdevs/instaclient?style=plastic"/>
+    </a>
+    </a>
+    <img alt="GitHub Repo Size" src="https://img.shields.io/github/repo-size/wickerdevs/instaclient"/>
+</p>
 
 **instaclient** is a Python library for accessing Instagram's features.
 With this library you can create Instagram Bots with ease and simplicity. The InstaClient takes advantage of the selenium library to excecute tasks which are not allowed in the Instagram Graph API (such as sending DMs).
@@ -16,11 +30,12 @@ The only thing you need to worry about is to spread your requests throughout the
 6. [Help - Community](#help-community)
 7. [Credits](#credits)
 8. [License](#license)
+---
 
 ## Features
 - Scraping
     - Scrape a user's followers (Via scrolling or with GraphQL)
-    - Scraoe a user's following (Via scrolling or with GraphQL)
+    - Scrape a user's following (Via scrolling or with GraphQL)
     - Scrape a Hashtag
     - Scrape a Location
     - Scrape a Profile
@@ -48,6 +63,8 @@ The only thing you need to worry about is to spread your requests throughout the
 - [x] Like post by shorturl
 - [x] Unlike post by shorturl
 - [x] Scrape Location
+- [ ] Save cookies
+- [ ] Share/Forward a post
 - [ ] Scrape explore page
 - [ ] Upload posts
 - [ ] Scrape feed
