@@ -1,4 +1,8 @@
-# instaclient
+<p>
+![InstaClient](https://github.com/davidwickerhf/instaclient/blob/main/images/instaclient.png)
+<h1> instaclient </h1>
+</p>
+
 ---
 <p>
     <a href="https://pypi.org/project/instaclient/">
@@ -10,6 +14,7 @@
     <a href="https://github.com/wickerdevs/instaclient/blob/master/LICENSE.txt">
     <img alt="GitHub license" src="https://img.shields.io/github/license/wickerdevs/instaclient?style=plastic"/>
     </a>
+    <img alt="Chat" src="https://img.shields.io/badge/Telegram-20%20members-blue"/>
     </a>
     <img alt="GitHub Repo Size" src="https://img.shields.io/github/repo-size/wickerdevs/instaclient"/>
 </p>
