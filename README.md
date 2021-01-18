@@ -1,6 +1,6 @@
-[logo]: https://github.com/davidwickerhf/instaclient/blob/main/images/instaclient.png {: width=26 height=26 style="float:left; padding:16px"}
+<h1>instaclient</h1>
 
-![InstaClient][logo] # instaclient
+[logo]: https://github.com/davidwickerhf/instaclient/blob/main/images/instaclient.png
 
 
 <p>
@@ -13,7 +13,7 @@
     <a href="https://github.com/wickerdevs/instaclient/blob/master/LICENSE.txt">
     <img alt="GitHub license" src="https://img.shields.io/github/license/wickerdevs/instaclient?style=plastic"/>
     </a>
-    <img alt="Chat" src="https://img.shields.io/badge/Telegram-20%20members-blue"/>
+    <img alt="Chat" src="https://img.shields.io/badge/Telegram-20%20members-blue" href="https://t.me/instaclient/"/>
     </a>
     <img alt="GitHub Repo Size" src="https://img.shields.io/github/repo-size/wickerdevs/instaclient"/>
 </p>
