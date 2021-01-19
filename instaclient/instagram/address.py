@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
 
 class Address():
-    def __init__(self, address:str):
+    def __init__(self, address:str, **kwargs):
         try:
             data = json.loads(address)
             self.street_address = data.get('street_address')

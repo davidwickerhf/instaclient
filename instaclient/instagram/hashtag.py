@@ -13,7 +13,8 @@ class Hashtag(InstaBaseObject):
     posts_count:int=None,
     allow_following:bool=None,
     is_top_media_only:bool=None,
-    is_following:bool=None
+    is_following:bool=None,
+    **kwargs
     ):
         super().__init__(client, id, InstaBaseObject.GRAPH_HASHTAG, viewer)
         self.name = name

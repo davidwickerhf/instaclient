@@ -17,7 +17,7 @@ class InstaBaseObject(abc.ABC):
     GRAPH_MENTION = 'GraphMentionStory'
     GRAPH_COMMENT = 'GraphCommentMediaStory'
 
-    def __init__(self, client:'InstaClient', id:str, type:str, viewer:str=None):
+    def __init__(self, client:'InstaClient', id:str, type:str, viewer:str=None, **kwargs):
         """Base class for most Instagram objects
 
         The base condition for two InstaBaseObjects to be equal is if they share

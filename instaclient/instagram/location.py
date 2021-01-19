@@ -68,6 +68,7 @@ class Location(InstaBaseObject):
     primary_alias_on_fb:str=None,
     phone:str=None,
     address:Address=None,
+    **kwargs
     ):
         super().__init__(client, id, InstaBaseObject.GRAPH_LOCATION, viewer=viewer)
         self.name = name

@@ -118,6 +118,7 @@ class Post(InstaBaseObject):
     viewer_has_saved_to_collection:bool=None,
     viewer_in_photo_of_you:bool=None,
     viewer_can_reshare:bool=None,
+    **kwargs
     ):  
         super().__init__(id=id, type=type, viewer=viewer, client=client)
         # Required

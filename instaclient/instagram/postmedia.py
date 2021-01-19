@@ -18,7 +18,7 @@ class PostMedia(InstaBaseObject):
     has_audio:Optional[bool]=None,
     video_duration:Optional[float]=None,
     video_view_count:Optional[int]=None,
-
+    **kwargs
     ) -> None:
         super().__init__(client, id, type, viewer)
         self.shortcode = shortcode

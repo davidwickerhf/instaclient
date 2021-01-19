@@ -3,7 +3,7 @@ from instaclient.instagram.instaobject import InstaBaseObject
 
 
 class Notification(InstaBaseObject):
-    def __init__(self, client, id:str, viewer:str, from_user:Profile, type:str, timestamp):
+    def __init__(self, client, id:str, viewer:str, from_user:Profile, type:str, timestamp, **kwargs):
         super().__init__(client, id, type, viewer)
         # Required
         self.from_user = from_user

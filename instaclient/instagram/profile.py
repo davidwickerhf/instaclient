@@ -133,6 +133,7 @@ class Profile(InstaBaseObject):
     has_requested_viewer:bool=None,
     mutual_followed:bool=None,
     requested_by_viewer:bool=None,
+    **kwargs
     ):
         super().__init__(client, id, self.GRAPH_PROFILE, viewer)
         # Required

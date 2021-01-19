@@ -66,6 +66,7 @@ class Comment(InstaBaseObject):
     viewer_has_liked:bool=None,
     parent_comment:'Comment'=None,
     threaded_comments:List['Comment']=None,
+    **kwargs
     ):
         super().__init__(client, id, type=InstaBaseObject.GRAPH_COMMENT, viewer=viewer)
         # REQUIRED
