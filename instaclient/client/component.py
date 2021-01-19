@@ -116,6 +116,7 @@ class Component:
                     chrome_options.add_argument("--no-sandbox")
                     chrome_options.add_argument("--disable-setuid-sandbox") 
                     chrome_options.add_argument("--remote-debugging-port=9222")
+                    chrome_options.add_argument('--log-level=3')
                     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
                     chrome_options.add_experimental_option('useAutomationExtension', False)
                     if self.proxy:
@@ -129,6 +130,7 @@ class Component:
                     chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
                     chrome_options.add_argument("--headless") if self.localhost_headless else None
                     chrome_options.add_argument("--disable-dev-shm-usage")
+                    chrome_options.add_argument('--log-level=3')
                     chrome_options.add_argument("--no-sandbox")
                     LOGGER.debug('Path: {}'.format(self.driver_path))
                     if self.proxy:
