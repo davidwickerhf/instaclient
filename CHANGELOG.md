@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 <small>[Compare with v2.8.4](https://github.com/wickerdevs/instaclient/compare/v2.8.4...v2.9.0)</small>
 
 ### Added
+- Added **kwargs to all insta objects ([f07066a](https://github.com/wickerdevs/instaclient/commit/f07066a788f9c23d9b1aa1816b54b9a202522b38) by David Wicker).
 - Added set_logger() and logger to instaclient ([2634d3b](https://github.com/wickerdevs/instaclient/commit/2634d3b7ad8536e1fa698fc21cdbb9b29bc0cd17) by David Wicker).
 
 ### Changed
