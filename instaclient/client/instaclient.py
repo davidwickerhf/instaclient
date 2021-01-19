@@ -96,9 +96,9 @@ class InstaClient(Auth, Interactions, Scraper):
     def logger(self) -> Optional[logging.Logger]:
         return LOGGER
 
-    def set_logger(self, logger:logging.Logger):
+    def set_logger_level(self, level:Union[logging.WARNING, logging.DEBUG, logging.INFO]):
         global LOGGER
-        LOGGER = logger
+        LOGGER.setLevel(level)
 
 
 
