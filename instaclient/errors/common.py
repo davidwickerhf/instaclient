@@ -242,3 +242,14 @@ class InvalidInstaSchemaError(InstaClientError):
 
     def __str__(self):
         return f'{self.func} -> {self.message}'
+
+
+class InvalidCursorError(InstaClientError):
+    """Raised when an invalid cursor is used to scrape data.
+    """
+    def __init__(self, cursor):
+        self.cursor = cursor
+        super().__init__(message='Invalid end cursor')
+
+    def __str__(self):
+        return f'{self.message} -> {self.cursor}'

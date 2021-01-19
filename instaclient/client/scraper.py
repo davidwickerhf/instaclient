@@ -371,7 +371,7 @@ class Scraper(Component):
  
 
     @Component._login_required
-    def get_followers(self:'InstaClient', user:str, count:int, use_api:bool=True, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
+    def get_followers(self:'InstaClient', user:str, count:int, use_api:bool=True, deep_scrape:Optional[bool]=False, end_cursor:str=None, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
         """Scrape an instagram user's followers.
 
         Args:
@@ -380,11 +380,18 @@ class Scraper(Component):
                 to scrape all of the profile's followers.
             use_api (bool): If set to True, the instaclient module will take advantage
                 of instagram graphql requests to scrape followers. Defaults to False.
+            deep_scrape (bool, optional): If set to True, the instaclient module will
+                scrape each profile individually in order to get more information.
+            end_cursor (str, optional): The END CURSOR of the scrape pagination that can be
+                used to resume the scrape from a certain point.
             callback_frequency (int, optional): Number of scraped followers between updates
-            callback (function): Function with no parameters that gets called with the frequency set by ``callback_frequency``. This method must take a ``scraped`` argument.
+            callback (function): Function with no parameters that gets called with the frequency 
+                set by ``callback_frequency``. This method must take a ``scraped`` argument.
 
         Returns:
-            Optional[Union[List[Profile], List[str]]]: List of instagram usernames or of instagram profile objects
+            Union[Optional[Union[List[Profile], List[str]]], Optional[str]]: List of instagram 
+                usernames or of instagram profile objects and the last cursor used for the scrape
+                If the parameter `use_api` is set to True, the second returned value will be None.
 
         Raises:
             NotLoggedInError: Raised if you are not logged into any account
@@ -401,10 +408,8 @@ class Scraper(Component):
 
         followers = list()
         failed = list()
-        last_callback = 0
         finished_warning = False
-
-        start = time.time() # TODO
+        cursor = end_cursor
         
         if not use_api:
             # Nav User Page
@@ -467,8 +472,11 @@ class Scraper(Component):
             except Exception as error:
                 LOGGER.error('ERROR IN SCRAPING FOLLOWERS', exc_info=error)
         else:
+            if not cursor:
+                request = GraphUrls.GRAPH_FIRST_FOLLOWERS.format(QUERY_HASH=QueryHashes.FOLLOWERS_HASH, ID=profile.id)
+            else:
+                request = GraphUrls.GRAPH_CURSOR_FOLLOWERS.format(QUERY_HASH=QueryHashes.FOLLOWERS_HASH, ID=profile.id, END_CURSOR=cursor)
             requests = 1
-            request = GraphUrls.GRAPH_FIRST_FOLLOWERS.format(QUERY_HASH=QueryHashes.FOLLOWERS_HASH, ID=profile.id)
             looping = True
             stopping = False
             while looping:
@@ -485,11 +493,21 @@ class Scraper(Component):
                             break
                         LOGGER.debug('Waiting 120 seconds')
                         time.sleep(120)
+                        stopping = True
                         continue
-                    break
+                    else:
+                        LOGGER.exception(f'The request with cursor {cursor} failed')
+                        break
 
                 data = result['data']['user']['edge_followed_by']
-                # Load users
+
+                # Get Page Info
+                page_info = data['page_info']
+                if not page_info['has_next_page']:
+                    break
+                else:
+                    cursor = page_info['end_cursor'].replace('==', '')
+                    request = GraphUrls.GRAPH_CURSOR_FOLLOWERS.format(QUERY_HASH=QueryHashes.FOLLOWERS_HASH, ID=profile.id, END_CURSOR=cursor)
                 
                 for user_data in data['edges']:
                     user = user_data['node']
@@ -518,21 +536,12 @@ class Scraper(Component):
                             else:
                                 LOGGER.info(f'Scraped {len(followers)} followers so far...')
 
-                # Get Page Info
-                page_info = data['page_info']
-                if not page_info['has_next_page']:
-                    break
-                else:
-                    cursor = page_info['end_cursor'].replace('==', '')
-                    request = GraphUrls.GRAPH_CURSOR_FOLLOWERS.format(QUERY_HASH=QueryHashes.FOLLOWERS_HASH, ID=profile.id, END_CURSOR=cursor)
-                    continue
-
             LOGGER.debug(f'Requests made: {requests}')
 
         LOGGER.info(f'Scraped Followers: Total: {len(followers)}')
 
         if not deep_scrape:
-            return followers
+            return followers, cursor
         else:
             LOGGER.info('Deep scraping profiles...')
             # For every shortlink, scrape Post
@@ -547,11 +556,11 @@ class Scraper(Component):
                 except:
                     failed.append(follower)
             LOGGER.warning(f'Failed: {len(failed)}')
-            return profiles
+            return profiles, cursor
 
 
     @Component._login_required
-    def get_following(self:'InstaClient', user:str, count:int, use_api:bool=True, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
+    def get_following(self:'InstaClient', user:str, count:int, use_api:bool=True, deep_scrape:Optional[bool]=False, end_cursor:str=None, callback_frequency:int=100, callback=None, **callback_args) -> Union[Optional[Union[List[Profile], List[str]]], Optional[str]]:
         """Scrape an instagram user's following.
 
         Args:
@@ -560,11 +569,16 @@ class Scraper(Component):
                 None to get all of the profile's following.
             use_api (bool): If set to True, the instaclient module will take advantage
                 of instagram graphql requests to scrape followers. Defaults to False.
+            end_cursor (str, optional): The END CURSOR of the scrape pagination that can be
+                used to resume the scrape from a certain point.
             callback_frequency (int, optional): Number of scraped followers between updates
-            callback (function): Function with no parameters that gets called with the frequency set by ``callback_frequency``. This method must take a ``scraped`` argument.
+            callback (function): Function with no parameters that gets called with the frequency 
+                set by ``callback_frequency``. This method must take a ``scraped`` argument.
 
         Returns:
-            Optional[Union[List[Profile], List[str]]]: List of instagram usernames or of instagram profile objects
+            Union[Optional[Union[List[Profile], List[str]]], Optional[str]]: List of instagram 
+                usernames or of instagram profile objects and the last cursor used for the scrape
+                If the parameter `use_api` is set to True, the second returned value will be None.
 
         Raises:
             NotLoggedInError: Raised if you are not logged into any account
@@ -581,7 +595,7 @@ class Scraper(Component):
 
         following = list()
         failed = list()
-        last_callback = 0
+        cursor = None
         finished_warning = False
 
         start = time.time() # TODO
@@ -647,8 +661,12 @@ class Scraper(Component):
             except Exception as error:
                 LOGGER.error('ERROR IN SCRAPING FOLLOWERS', exc_info=error)
         else:
+            
+            if not end_cursor:
+                request = GraphUrls.GRAPH_FIRST_FOLLOWING.format(QUERY_HASH=QueryHashes.FOLLOWING_HASH, ID=profile.id)
+            else: 
+                request = GraphUrls.GRAPH_CURSOR_FOLLOWING.format(QUERY_HASH=QueryHashes.FOLLOWING_HASH, ID=profile.id, END_CURSOR=end_cursor)
             requests = 1
-            request = GraphUrls.GRAPH_FIRST_FOLLOWING.format(QUERY_HASH=QueryHashes.FOLLOWING_HASH, ID=profile.id)
             looping = True
             stopping = False
             while looping:
@@ -665,12 +683,23 @@ class Scraper(Component):
                             break
                         LOGGER.debug('Waiting 120 seconds')
                         time.sleep(120)
+                        stopping = True
                         continue
-                    break
-
+                    else:
+                        LOGGER.exception(f'The request with cursor {cursor} failed')
+                        break
                 data = result['data']['user']['edge_follow']
-                # Load users
                 
+
+                # Get Page Info
+                page_info = data['page_info']
+                if not page_info['has_next_page']:
+                    break
+                else:
+                    cursor = page_info['end_cursor'].replace('==', '')
+                    request = GraphUrls.GRAPH_CURSOR_FOLLOWING.format(QUERY_HASH=QueryHashes.FOLLOWING_HASH, ID=profile.id, END_CURSOR=cursor)
+
+                # Load users
                 for user_data in data['edges']:
                     user = user_data['node']
                     follower = Profile(
@@ -697,21 +726,14 @@ class Scraper(Component):
                             else:
                                 LOGGER.info(f'Scraped {len(following)} following so far...')
 
-                # Get Page Info
-                page_info = data['page_info']
-                if not page_info['has_next_page']:
-                    break
-                else:
-                    cursor = page_info['end_cursor'].replace('==', '')
-                    request = GraphUrls.GRAPH_CURSOR_FOLLOWING.format(QUERY_HASH=QueryHashes.FOLLOWING_HASH, ID=profile.id, END_CURSOR=cursor)
-                    continue
+                
 
             LOGGER.debug(f'Requests made: {requests}')
  
         LOGGER.info(f'Scraped Followers: Total: {len(following)}')
 
         if not deep_scrape:
-            return following
+            return following, cursor
         else:
             LOGGER.info('Deep scraping profiles...')
             # For every shortlink, scrape Post
@@ -726,7 +748,7 @@ class Scraper(Component):
                 except:
                     failed.append(follower)
             LOGGER.warning(f'Failed: {len(failed)}')
-            return profiles
+            return profiles, cursor
 
     
     # SCRAPE HASHTAG
