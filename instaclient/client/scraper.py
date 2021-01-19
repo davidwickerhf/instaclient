@@ -374,6 +374,12 @@ class Scraper(Component):
     def get_followers(self:'InstaClient', user:str, count:int, use_api:bool=True, deep_scrape:Optional[bool]=False, end_cursor:str=None, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List[Profile], List[str]]]:
         """Scrape an instagram user's followers.
 
+        If `use_api` is set to True, you may reach a rate limit after the first 200 requests.
+        Each request can hold up to 50 users, so you will be able to scrape a max of about 10000
+        users, in a matter of 2 minutes. When the rate limit is reached, a cursor will be returned 
+        along with the followers, so you can in a later time resume the scrape, placing that cursor
+        as the value for the `end_cursor` parameter.
+
         Args:
             user (str): User to scrape
             count (int): Number of followers to scrape. Insert None
@@ -489,12 +495,8 @@ class Scraper(Component):
                 status = result.get('status')
                 if not status == 'ok':
                     if result.get('message') == 'rate limited':
-                        if stopping:
-                            break
-                        LOGGER.debug('Waiting 120 seconds')
-                        time.sleep(120)
-                        stopping = True
-                        continue
+                        LOGGER.exception('Rate limit reached. Stopping scrape.')
+                        break
                     else:
                         LOGGER.exception(f'The request with cursor {cursor} failed')
                         break
@@ -562,6 +564,12 @@ class Scraper(Component):
     @Component._login_required
     def get_following(self:'InstaClient', user:str, count:int, use_api:bool=True, deep_scrape:Optional[bool]=False, end_cursor:str=None, callback_frequency:int=100, callback=None, **callback_args) -> Union[Optional[Union[List[Profile], List[str]]], Optional[str]]:
         """Scrape an instagram user's following.
+
+        If `use_api` is set to True, you may reach a rate limit after the first 200 requests.
+        Each request can hold up to 50 users, so you will be able to scrape a max of about 10000
+        users, in a matter of 2 minutes. When the rate limit is reached, a cursor will be returned 
+        along with the followers, so you can in a later time resume the scrape, placing that cursor
+        as the value for the `end_cursor` parameter.
 
         Args:
             user (str): User to scrape
@@ -668,7 +676,6 @@ class Scraper(Component):
                 request = GraphUrls.GRAPH_CURSOR_FOLLOWING.format(QUERY_HASH=QueryHashes.FOLLOWING_HASH, ID=profile.id, END_CURSOR=end_cursor)
             requests = 1
             looping = True
-            stopping = False
             while looping:
                 result = self._request(request, use_driver=True)
                 requests += 1
@@ -679,12 +686,8 @@ class Scraper(Component):
                 status = result.get('status')
                 if not status == 'ok':
                     if result.get('message') == 'rate limited':
-                        if stopping:
-                            break
-                        LOGGER.debug('Waiting 120 seconds')
-                        time.sleep(120)
-                        stopping = True
-                        continue
+                        LOGGER.exception('Rate Limited. Stopping scrape')
+                        break
                     else:
                         LOGGER.exception(f'The request with cursor {cursor} failed')
                         break
