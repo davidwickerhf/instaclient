@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change set_logger() to set_logger_level() ([93bfbb8](https://github.com/wickerdevs/instaclient/commit/93bfbb8408c8d19448656a8e56235d6d6408bb18) by David Wicker).
 - Changed get_followers() & get_following() ([a54b9af](https://github.com/wickerdevs/instaclient/commit/a54b9af49db882a347da812c67f1aa1df2ebd987) by David Wicker).
 
+### Fixed
+- Fix set_logger_level() ([00736b4](https://github.com/wickerdevs/instaclient/commit/00736b49be11c20bef08691d0de145b0f44b9935) by David Wicker).
+
 
 ## [v2.8.4](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.4) - 2021-01-18
 
