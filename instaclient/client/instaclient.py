@@ -92,6 +92,14 @@ class InstaClient(Auth, Interactions, Scraper):
         else:
             return running
 
+    @property
+    def logger(self) -> Optional[logging.Logger]:
+        return LOGGER
+
+    def set_logger(self, logger:logging.Logger):
+        global LOGGER
+        LOGGER = logger
+
 
 
     # DRIVER METHODS

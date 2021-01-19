@@ -540,7 +540,7 @@ class Scraper(Component):
 
             LOGGER.debug(f'Requests made: {requests}')
 
-        LOGGER.info(f'Scraped Followers: Total: {len(followers)}')
+        LOGGER.info(f'Scraped: {len(followers)}')
 
         if not deep_scrape:
             return followers, cursor
@@ -733,7 +733,7 @@ class Scraper(Component):
 
             LOGGER.debug(f'Requests made: {requests}')
  
-        LOGGER.info(f'Scraped Followers: Total: {len(following)}')
+        LOGGER.info(f'Scraped: {len(following)}')
 
         if not deep_scrape:
             return following, cursor
