@@ -4,14 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [v2.8.5](https://github.com/wickerdevs/instaclient/releases/tag/v2.8.50) - 2021-01-19
+## [v2.9.0](https://github.com/wickerdevs/instaclient/releases/tag/v2.9.0) - 2021-01-19
 
-<small>[Compare with v2.8.4](https://github.com/wickerdevs/instaclient/compare/v2.8.4...v2.8.5)</small>
+<small>[Compare with v2.8.4](https://github.com/wickerdevs/instaclient/compare/v2.8.4...v2.9.0)</small>
 
 ### Added
 - Added set_logger() and logger to instaclient ([2634d3b](https://github.com/wickerdevs/instaclient/commit/2634d3b7ad8536e1fa698fc21cdbb9b29bc0cd17) by David Wicker).
 
 ### Changed
+- Change set_logger() to set_logger_level() ([93bfbb8](https://github.com/wickerdevs/instaclient/commit/93bfbb8408c8d19448656a8e56235d6d6408bb18) by David Wicker).
 - Changed get_followers() & get_following() ([a54b9af](https://github.com/wickerdevs/instaclient/commit/a54b9af49db882a347da812c67f1aa1df2ebd987) by David Wicker).
 
 
