@@ -18,8 +18,8 @@ setup(
   long_description_content_type="text/markdown",
   author = 'David Wicker',                   # Type in your name
   author_email = 'davidwickerhf@gmail.com',      # Type in your E-Mail
-  url = 'https://github.com/wickerdevs/instaclient',   # Provide either the link to your github or to your website
-  download_url = 'https://github.com/wickerdevs/py-instaclient/archive/v2.8.9.tar.gz',    # I explain this later on
+  url = 'https://github.com/davidwickerhf/instaclient',   # Provide either the link to your github or to your website
+  download_url = 'https://github.com/davidwickerhf/instaclient/archive/v2.8.9.tar.gz',    # I explain this later on
   keywords = ['INSTAGRAM', 'BOT', 'INSTAGRAM BOT', 'INSTAGRAM CLIENT'],   # Keywords that define your package best
   install_requires=[            # I get to this in a second
           'selenium',
