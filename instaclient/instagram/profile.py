@@ -92,8 +92,7 @@ class Profile(InstaBaseObject):
         has_requested_viewer (bool, optional): Is true if the `viewer` was  sent a 
             follow request by this profile. Defaults to None.
 
-        mutual_followed (bool, optional): Is true if the `viewer` is followed by 
-            this profile and viceversa. Defaults to None.
+        mutual_followed (int, optional): Number of mutual followers. Defaults to None.
 
         requested_by_viewer (bool, optional): Is try if the `viewer` has sent a 
             follow request to this profile. Defaults to None.
@@ -131,7 +130,7 @@ class Profile(InstaBaseObject):
     restricted_by_viewer:bool=None,
     has_blocked_viewer:bool=None,
     has_requested_viewer:bool=None,
-    mutual_followed:bool=None,
+    mutual_followed:int=None,
     requested_by_viewer:bool=None,
     **kwargs
     ):

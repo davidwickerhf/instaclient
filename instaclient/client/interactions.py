@@ -12,7 +12,7 @@ class Interactions(Navigator):
     PAGE_DOWN_SCROLL=5
     # FOLLOW PROCEDURE
     @Component._login_required
-    def follow_user(self, user:str, nav_to_user:bool=True):
+    def follow_user(self:'InstaClient', user:str, nav_to_user:bool=True):
         """
         _follow_user follows the instagram user that matches the username in the `user` attribute.
         If the target account is private, a follow request will be sent to such user and a `PrivateAccountError` will be raised.
@@ -25,34 +25,27 @@ class Interactions(Navigator):
             InvalidUserError: Raised if the `user` is invalid
         """
         # Check User Vadility
-        try:
-            result = self.is_valid_user(user)
-            LOGGER.debug('INSTACLIENT: User <{}> is valid'.format(user))
-            private = False
-        # User is private
-        except PrivateAccountError:
-            private = True
+        profile = self.get_profile(user)
+        if not profile:
+            raise InvalidUserError(user)
 
         # Navigate to User Page
-        if nav_to_user:
-            self._nav_user(user, check_user=False)
-
-        if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
-            # Follow request already sent
-            pass
-        elif self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN))):
+        self._nav_user(user, check_user=False)
+        
+        if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.MESSAGE_USER_BTN))):
             # User already followed
             pass
         else:
             follow_button = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)), url=ClientUrls.NAV_USER.format(user))
             self._press_button(follow_button)
+            profile.requested_by_viewer = True
+        return profile
 
-        if private:
-            raise FollowRequestSentError(user)
+
 
     
     @Component._login_required
-    def unfollow_user(self, user:str, nav_to_user=True, check_user=True):
+    def unfollow_user(self:'InstaClient', user:str, nav_to_user=True, check_user=True):
         """
         Unfollows a given user.
 
@@ -64,29 +57,27 @@ class Interactions(Navigator):
         Raises:
             InvalidUserError: raised if the user specified by the `user` argument is invalid.
         """
-        
-        if check_user:
-            try:
-                self.is_valid_user(user)
-            except PrivateAccountError:
-                pass
-            LOGGER.debug('INSTACLIENT: User <{}> is valid'.format(user))
+        profile = self.get_profile(user)
+        if not profile:
+            raise InvalidUserError(user)
 
+        LOGGER.debug('INSTACLIENT: User <{}> is valid'.format(user))
         self._nav_user(user, check_user=False)
-
-        if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN))):
+        
+        if profile.requested_by_viewer:
+            requested_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN)))
+            self._press_button(requested_btn)
+            confirm_unfollow = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_UNFOLLOW_BTN)))
+            self._press_button(confirm_unfollow)
+            LOGGER.debug(f'Cancelled Follow Request for user <{user}>')
+        
+        elif self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN))):
             unfollow_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN)))
             self._press_button(unfollow_btn)
             time.sleep(1)
             confirm_unfollow = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_UNFOLLOW_BTN)))
             self._press_button(confirm_unfollow)
             LOGGER.debug('INSTACLIENT: Unfollowed user <{}>'.format(user))
-        elif self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN))):
-            requested_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.REQUESTED_BTN)))
-            self._press_button(requested_btn)
-            confirm_unfollow = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_UNFOLLOW_BTN)))
-            self._press_button(confirm_unfollow)
-            LOGGER.debug(f'Cancelled Follow Request for user <{user}>')
 
     
     @Component._login_required
