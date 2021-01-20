@@ -27,7 +27,9 @@ class Auth(Checker):
         Returns:
             bool: Returns True if login was successful.
         """
-
+        if len(password) < 6:
+            raise InvaildPasswordError(password)
+        
         self.username = username
         self.password = password
 
