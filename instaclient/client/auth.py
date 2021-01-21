@@ -132,6 +132,28 @@ class Auth(Checker):
 
     @Component._driver_required
     def set_session_cookies(self:'InstaClient', cookies:list):
+        """Add instagram.com session cookies to the client.
+
+        Adding the cookies will make it so the client won't have to go 
+        through the login procedure again.
+
+        You can get your session cookies when you are logged in, with ``client.session_cookies``
+        See :meth:`instaclient.InstaClient.session_cookies` for more information.
+
+        The cookies you insert will have to be inside of a list. You must not change the cookies you get with ``client.session_cookies``, as they are all essential.
+
+        Args:
+            cookies (list): The session cookies the client can use
+                to login. This will be a list of dictionaries.
+
+        Raises:
+            NotLoggedInError: If by adding the cookies the client
+                still cannot login, this error will be raised. Be sure to
+                check your cookies are valid.
+
+        Returns:
+            :class:`instaclient.InstaClient`: Returns the client's instance.
+        """
         self._nav_home()
         for cookie in cookies:
             try:
