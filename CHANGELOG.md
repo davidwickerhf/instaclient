@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [v2.8.10](https://github.com/davidwickerhf/instaclient/releases/tag/v2.8.10) - 2021-01-20
+## [v2.9.0](https://github.com/davidwickerhf/instaclient/releases/tag/v2.9.0) - 2021-01-21
 
-<small>[Compare with v2.8.9](https://github.com/davidwickerhf/instaclient/compare/v2.8.9...v2.8.10)</small>
+<small>[Compare with v2.8.9](https://github.com/davidwickerhf/instaclient/compare/v2.8.9...v2.9.0)</small>
+
+### Added
+- Added forward_post() & set_session_cookies() ([b94278e](https://github.com/davidwickerhf/instaclient/commit/b94278e2ab2e388c94d978c2e87bde77f07c8089) by David Wicker).
+- Added load_page() methods for location, post, profile & hashtag ([63639e1](https://github.com/davidwickerhf/instaclient/commit/63639e12283850b4e1abcb2aed605cf0c92b65a2) by David Wicker).
 
 ### Fixed
 - Fix password input ([692c75f](https://github.com/davidwickerhf/instaclient/commit/692c75f4452375e8f93bb4b9163f0e803fd90f7b) by David Wicker).
