@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 class Auth(Checker):
     @Component._driver_required
-    def login(self:'InstaClient', username:str, password:str, check_user:bool=True) -> bool:
+    def login(self:'InstaClient', username:str, password:str) -> bool:
         """
         Sign Into Instagram with credentials. Go through 2FA if necessary. Sets the InstaClient variable `InstaClient.logged_in` to True if login was successful.
 
@@ -74,9 +74,8 @@ class Auth(Checker):
         if waitalert:
             raise LoginFloodException()
 
-        if check_user:
-            usernamealert: WebElement = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.INCORRECT_USERNAME_ALERT)), wait_time=2)
-            if usernamealert:
+        usernamealert: WebElement = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.INCORRECT_USERNAME_ALERT)), wait_time=2)
+        if usernamealert:
                 # Username is invalid
                 self.driver.get(ClientUrls.LOGIN_URL)
                 self.username = None
@@ -118,9 +117,9 @@ class Auth(Checker):
         LOGGER.debug('INSTACLIENT: Credentials are Correct')
 
         # Discard Driver or complete login
-        not_now = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_INFO_BTN)))
+        not_now = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.SAVE_INFO_BTN)))
         if not_now:
-            not_now = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_INFO_BTN)))
+            not_now = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SAVE_INFO_BTN)))
             self._press_button(not_now)
             LOGGER.debug('Dismissed Dialogue')
 
@@ -130,6 +129,24 @@ class Auth(Checker):
             self._press_button(not_now)
             LOGGER.debug('Dismissed Dialogue')
         return self.logged_in
+
+    @Component._driver_required
+    def set_session_cookies(self:'InstaClient', cookies:list):
+        self._nav_home()
+        for cookie in cookies:
+            try:
+                if 'instagram.com' not in cookie['domain']:
+                    continue
+                self.driver.add_cookie(cookie)
+            except Exception as error:
+                LOGGER.warning(f'Error setting cookie: {str(error)}: {cookie}')
+        self.driver.refresh()
+        if self.logged_in:
+            LOGGER.info('Logged in with cookies')
+        else:
+            raise NotLoggedInError()
+        self._nav_home()
+        return self
 
 
     @Component._driver_required

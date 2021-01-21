@@ -42,11 +42,12 @@ class Paths:
 
     # ENGAGEMENT PROCEDURES
     # Post Interactions
+    POST_DIV = '//a[@href="/p/{}/"]'
     COMMENT_TEXT_AREA = '//textarea[@class="Ypffh"]'
     SEND_COMMENT_BTN = '//button[@class="sqdOP yWX7d    y3zKF     "]'
-    LIKE_BTN = '//span[@class="fr66n"]'
+    LIKE_BTN = '//span[@class="fr66n"]//descendant::button'
     COMMENT_BTN = '//span[@class="_15y0l"]'
-    SHARE_POST_BTN = '//span[@class="_8-yf5 "]'
+    SHARE_POST_BTN = '//*[@id="react-root"]/section/main/div/div/article/div[3]/section[1]/button' # TODO critical
 
     # Follow User Procedure
     FOLLOW_BTN = '//button[@class="sqdOP  L3NKy _4pI4F  y3zKF     " or @class="_5f5mN       jIbKX  _6VtSN     yZn4P   "]'
@@ -60,6 +61,7 @@ class Paths:
     DM_USERNAME_DIV = '//div[@class="_7UhW9   xLCgt      MMzan  KV-D4              fDxYl     "]'
 
     # GENERAL
+    DIALOGUE = '//button[contains(text(), "Cancel") or contains(text(), "Not Now")]'
     USE_THE_APP = '//button[@class="sqdOP yWX7d    y3zKF   cB_4K  "]' #TODO
     X = '//div[@class="storiesSpriteX__outline__44 u-__7"]'
     USE_APP_BAR = '//button[@class="dCJp8 "]'
@@ -68,11 +70,14 @@ class Paths:
     SETTINGS_BTN = '//button[@class="Q46SR"]'
     BUTTON = '//button[text()="{}"]'
     NOT_NOW_BTN = '//button[@class="aOOlW   HoLwm "]'
-    NOT_NOW_INFO_BTN = '//button[@class="sqdOP yWX7d    y3zKF     "]'
+    SAVE_INFO_BTN = '//button[@class="sqdOP  L3NKy   y3zKF     "]'
     RESTRICTION_DIALOG = '//div[@class="_7UhW9   xLCgt      MMzan   _0PwGv         uL8Hv         " and contains(text(), "restrict")]'
     RESTRICTION_DIALOGUE_BTNS = '//div[@class="pbNvD  fPMEg    " and @role="dialog"]//descendant::button'
     BLOCK_DIV = '//div[@class="_7UhW9    vy6Bb     MMzan  KV-D4          uL8Hv     l4b0S    " and contains(text(), "unusual activity")]'
     QUERY_ELEMENT = '//body//descendant::pre'
+    # Navigation Bar
+    HOME_BTN = '//a[@href="/"]'
+    EXPLORE_BTN = '//a[@href="/explore/"]'
 
     # SETTINGS OPTIONS
     LOG_OUT_BTN = '//a[@class="_34G9B H0ovd"]'
@@ -91,7 +96,8 @@ class Paths:
     SHORTCODE_DIV = '//div[@class="v1Nh3 kIKUG  _bz0w"]//descendant::a'
 
     # EXPLORE PAGE
-    EXPLORE_SEARCH_INPUT = '//input[@class="j_2Hd    iwQA6 RO68f  M5V28"]'
+    EXPLORE_SEARCH_INPUT = '//label[@class="NcCcD"]//descendant::input'
+    SEARCH_USER_DIV = '//div[@class="_7UhW9   xLCgt       qyrsm KV-D4          uL8Hv         " and contains(text(), {})]'
 
     
 
@@ -101,7 +107,7 @@ class ClientUrls:
     NEW_DM = 'https://www.instagram.com/direct/new/'
     SEARCH_TAGS='https://www.instagram.com/explore/tags/{}/'
     FOLLOWERS_URL = 'https://www.instagram.com/{}/followers/'
-    HOME_URL =  'https://www.instagram.com/'
+    HOME_URL =  'https://www.instagram.com'
     LOGIN_THEN_USER = 'https://www.instagram.com/accounts/login/?next=/{}/'
     SECURITY_CODE_URL = 'https://www.instagram.com/challenge/'
     DM_URL  = 'https://www.instagram.com/direct/t/'

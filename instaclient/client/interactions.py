@@ -139,14 +139,73 @@ class Interactions(Navigator):
             raise error
 
 
-    """ @Component._login_required
-    def forward_post(self:'InstaClient', shortcode:str, user:str, message:str):
+    @Component._login_required
+    def forward_post(self:'InstaClient', shortcode:str, user:str, message:str=None):
         # Load Post Page
         post = self.get_post(shortcode)
         if not post:
             raise InvalidShortCodeError(shortcode)
 
-        # Forward """
+        # Nav home page
+        self._nav_home(manual=True)
+        # Nav search page
+        self._nav_explore(manual=True)
+        # Insert username in field
+        input_bar:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.EXPLORE_SEARCH_INPUT)))
+        input_bar.send_keys(post.owner)
+        # Click user div
+        user_div:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SEARCH_USER_DIV.format(post.owner))))
+        self._press_button(user_div)
+        self._dismiss_useapp_bar()
+        # Scroll through posts to find correct one
+        last = None
+        break_warning = False
+        while True:
+            self.scroll(interval=1)
+            posts:WebElement = self._find_element(EC.presence_of_all_elements_located((By.XPATH, Paths.SHORTCODE_DIV)))
+            if posts[-1] == last:
+                if break_warning:
+                    raise InvalidShortCodeError(shortcode)
+                else:
+                    break_warning = True
+            last = posts[-1]
+            
+            for post in posts:
+                pshortcode = post.get_attribute('href')
+                pshortcode = pshortcode.replace('https://www.instagram.com/p/', '')
+                pshortcode = pshortcode.replace('/', '')
+                if shortcode == pshortcode:
+                    # Open Post
+                    post:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.POST_DIV.format(pshortcode))))
+                    post.click()
+                    break
+                else:
+                    continue
+            break
+        # Forward
+        share_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SHARE_POST_BTN)))
+        LOGGER.debug("Found share button")
+        self._press_button(share_btn)
+        LOGGER.debug("Pressed Share button")
+
+        user_input = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SEARCH_USER_INPUT)))
+        user_input.send_keys(user)
+        LOGGER.debug("Found user input div")
+
+        user_div = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SEARCH_USER_DIV.format(user))))
+        self._press_button(user_div)
+        LOGGER.debug("Selected target user")
+
+        send_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.NEXT_BUTTON)))
+        self._press_button(send_btn)
+
+        if message:
+            self.send_dm(user, message)
+        return True
+
+        
+
+
 
     # ENGAGEMENT PROCEDURES
     @Component._login_required

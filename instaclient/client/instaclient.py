@@ -1,6 +1,7 @@
 """InstaClient class"""
 
 # IMPORT UTILITIES, DEPENDENCIES & MODELS
+from selenium.webdriver.remote.webdriver import WebDriver
 from instaclient.instagram.comment import Comment
 from instaclient.client import *
 
@@ -46,7 +47,7 @@ class InstaClient(Auth, Interactions, Scraper):
         self.error_callback = error_callback 
         self.localhost_headless = localhost_headless
         self.proxy = proxy
-        self.driver = None
+        self.driver:WebDriver = None
         self.username = None
         self.password = None
 
@@ -71,8 +72,10 @@ class InstaClient(Auth, Interactions, Scraper):
         if self.driver:
             if self.username and self.password:
                 url = self.driver.current_url
-                if 'https://www.instagram.com/' in url and ClientUrls.LOGIN_URL not in url:
+                if 'https://www.instagram.com' in url and ClientUrls.LOGIN_URL not in url:
                     return True
+            elif self.session_cookies:
+                return True
         return False
 
     @property
@@ -91,6 +94,13 @@ class InstaClient(Auth, Interactions, Scraper):
             return None
         else:
             return running
+
+    @property
+    def session_cookies(self):
+        if not self.driver:
+            return None
+        # TODO Filter cookies
+        return self.driver.get_cookies()
 
     @property
     def logger(self) -> Optional[logging.Logger]:

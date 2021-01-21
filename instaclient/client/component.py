@@ -8,10 +8,10 @@ class Component:
     def _login_required(func):
         @wraps(func)
         def wrapper(self: 'InstaClient', *args, **kwargs):
-            if self.username is None or self.password is None:
-                    raise NotLoggedInError()
 
             if not self.logged_in:
+                if not self.username or not self.password:
+                    raise NotLoggedInError()
                 if not self.driver:
                     self.connect(True, func=func.__name__)
                 else:
@@ -122,7 +122,6 @@ class Component:
                     if self.proxy:
                         chrome_options.add_argument('--proxy-server=%s' % self.proxy)
                     self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
-                    return self
                 elif self.host_type == self.LOCAHOST:
                     # Running locally
                     chrome_options = webdriver.ChromeOptions()
@@ -137,7 +136,6 @@ class Component:
                         chrome_options.add_argument('--proxy-server=%s' % self.proxy)
                     
                     self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options)
-                    return self
                 else:
                     raise InvaildHostError(self.host_type)
             else:
@@ -149,13 +147,15 @@ class Component:
             else:
                 raise error
 
+        self.driver.get(ClientUrls.HOME_URL)
+        self._dismiss_cookies()
         LOGGER.debug(f'Logging in: {login}')
         if login:
             try:
                 self.login(self.username, self.password)
-                return self
             except:
                 raise InstaClientError(message='Tried logging in when initiating driver, but username and password are not defined.')
+        return self
 
 
     # IG PRIVATE UTILITIES (The client is considered initiated)
@@ -252,28 +252,24 @@ class Component:
         LOGGER.debug('Dismissed Cookies')
 
     
-    def _dismiss_useapp_bar(self):
-        dismiss_bar = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.USE_APP_BAR)))
+    def _dismiss_useapp_bar(self, wait_time=1.5):
+        dismiss_bar = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.USE_APP_BAR)), wait_time=wait_time)
         if dismiss_bar:
+            LOGGER.debug('Dismissed Use App Bar')
             dismiss = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.USE_APP_BAR)))
             self._press_button(dismiss)
 
     
-    def _dismiss_dialogue(self, wait_time:float=2):
+    def _dismiss_dialogue(self:'InstaClient', wait_time:float=1.5):
         """
         Dismiss an eventual Instagram dialogue with button text containing either 'Cancel' or 'Not Now'.
         """
         try:
-            if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN))):
+            if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.DIALOGUE)), wait_time=wait_time):
                 dialogue = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)), wait_time=wait_time)
                 self._press_button(dialogue)
         except:
-            try:
-                dialogue = self.__find_buttons(button_text='Cancel') # TODO add this to translation docs
-                self._press_button(dialogue)
-            except:
-                pass
-
+            pass
 
     
     def _press_button(self, button):
@@ -282,17 +278,11 @@ class Component:
             time.sleep(randrange(0,2))
             self._detect_restriction()
             return True
-        except:
-            x = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.X)), wait_time=3)
-            x.click()
-            time.sleep(1)
-            button.click()
-            time.sleep(randrange(0,2))
-            self._detect_restriction()
-            return True
+        except Exception as error:
+            LOGGER.warning('Error pressing button', exc_info=error)
+            return False
 
 
-    
     def _detect_restriction(self):
         """
         _detect_restriction detects wheter instagram has restricted the current account

@@ -8,6 +8,26 @@ from instaclient.client.checker import Checker
 class Navigator(Checker):
 
     # NAVIGATION PROCEDURES
+    def _show_nav_bar(self:'InstaClient'):
+        if self.driver.current_url != ClientUrls.HOME_URL:
+            self._nav_home()
+        self._dismiss_dialogue()
+        self._dismiss_useapp_bar()
+        
+
+    def _nav_home(self:'InstaClient', manual=False):
+        """Navigates to IG home page
+        """
+        if not manual:
+            if self.driver.current_url != ClientUrls.HOME_URL:
+                self.driver.get(ClientUrls.HOME_URL)
+                self._dismiss_dialogue()
+        else:
+            self._show_nav_bar()
+            home_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.HOME_BTN)))
+            self._press_button(home_btn)
+
+
     def _nav_user(self:'InstaClient', user:str, check_user:bool=True):
         """
         Navigates to a users profile page
@@ -26,6 +46,7 @@ class Navigator(Checker):
             result = self.is_valid_user(user=user)
         if self.driver.current_url != ClientUrls.NAV_USER.format(user):
             self.driver.get(ClientUrls.NAV_USER.format(user))
+            self._dismiss_useapp_bar()
 
     
     def _nav_user_dm(self:'InstaClient', user:str, check_user:bool=True):
@@ -146,11 +167,15 @@ class Navigator(Checker):
             raise InvaildLocationError(id, slug)
 
 
-
-    def _nav_explore(self:'InstaClient'):
+    def _nav_explore(self:'InstaClient', manual=False):
         """Navigates to the explore page
         """
-        self.driver.get(ClientUrls.EXPLORE_PAGE)
-        if self._is_valid_page(ClientUrls.EXPLORE_PAGE):
-            return True
-        return False
+        if not manual:
+            self.driver.get(ClientUrls.EXPLORE_PAGE)
+            if self._is_valid_page(ClientUrls.EXPLORE_PAGE):
+                return True
+            return False
+        else:
+            self._show_nav_bar()
+            explore_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.EXPLORE_BTN)))
+            self._press_button(explore_btn)
