@@ -41,8 +41,6 @@ class Interactions(Navigator):
             profile.requested_by_viewer = True
         return profile
 
-
-
     
     @Component._login_required
     def unfollow_user(self:'InstaClient', user:str, nav_to_user=True, check_user=True):
@@ -140,6 +138,15 @@ class Interactions(Navigator):
             LOGGER.error('INSTACLIENT: An error occured when sending a DM to the user <{}>'.format(user))
             raise error
 
+
+    """ @Component._login_required
+    def forward_post(self:'InstaClient', shortcode:str, user:str, message:str):
+        # Load Post Page
+        post = self.get_post(shortcode)
+        if not post:
+            raise InvalidShortCodeError(shortcode)
+
+        # Forward """
 
     # ENGAGEMENT PROCEDURES
     @Component._login_required

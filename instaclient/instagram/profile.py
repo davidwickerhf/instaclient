@@ -187,6 +187,13 @@ class Profile(InstaBaseObject):
         return self._update(refreshed)
 
     
+    def load_page(self):
+        """Loads the page of this object on the webdriver
+        """
+        self.client._nav_user(self.username)
+        return self
+
+    
     def get_posts(self, count:Optional[int], deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List['Post'], List[str]]]:
         """Shortcut for::
             client.get_user_posts(username, count, deep_scrape, callback_frequency, callback, **callback_args)

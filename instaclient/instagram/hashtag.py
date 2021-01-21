@@ -44,6 +44,13 @@ class Hashtag(InstaBaseObject):
         refreshed = self.client.get_hashtag(self.name)
         return self._update(refreshed)
 
+    
+    def load_page(self):
+        """Loads the page of this object on the webdriver
+        """
+        self.client._nav_tag(self.name)
+        return self
+
 
     def get_posts(self, count:Optional[int]=None, deep_scrape:Optional[bool]=False, callback_frequency:int=100, callback=None, **callback_args) -> Optional[Union[List['Post'], List[str]]]:
         """Shortcut for::

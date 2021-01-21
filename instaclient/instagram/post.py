@@ -170,6 +170,13 @@ class Post(InstaBaseObject):
         return self._update(refreshed)
 
 
+    def load_page(self):
+        """Loads the page of this object on the webdriver
+        """
+        self.client._nav_post(self.shortcode)
+        return self
+
+
     def get_owner(self) -> Optional[Profile]:
         """Shortcut for::
             client.get_profile(owner, context=True)

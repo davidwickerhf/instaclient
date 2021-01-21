@@ -46,6 +46,7 @@ class Paths:
     SEND_COMMENT_BTN = '//button[@class="sqdOP yWX7d    y3zKF     "]'
     LIKE_BTN = '//span[@class="fr66n"]'
     COMMENT_BTN = '//span[@class="_15y0l"]'
+    SHARE_POST_BTN = '//span[@class="_8-yf5 "]'
 
     # Follow User Procedure
     FOLLOW_BTN = '//button[@class="sqdOP  L3NKy _4pI4F  y3zKF     " or @class="_5f5mN       jIbKX  _6VtSN     yZn4P   "]'
