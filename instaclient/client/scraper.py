@@ -47,7 +47,7 @@ class Scraper(Component):
         notifications = []
 
         # Map nodes into Notification Objects
-        for node in nodes:
+        for node in selected_nodes:
             user = Profile(
                 client=self,
                 id=node['user']['id'],
