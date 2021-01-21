@@ -10,7 +10,7 @@ class Component:
         def wrapper(self: 'InstaClient', *args, **kwargs):
 
             if not self.logged_in:
-                if not self.username or not self.password:
+                if (not self.username or not self.password) and not self.session_cookies:
                     raise NotLoggedInError()
                 if not self.driver:
                     self.connect(True, func=func.__name__)

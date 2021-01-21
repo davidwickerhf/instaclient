@@ -65,6 +65,9 @@ class InstaClient(Auth, Interactions, Scraper):
     @property
     def logged_in(self) -> bool:
         """Checks whether the client is currently logged in to Instagram.
+        A client is considered to be logged in if either a password and 
+        username are provided to the client or if the client has the cookies
+        necessary to log into instagram.
 
         Returns:
             bool: True if `driver` is open and user is logged into Instagram.

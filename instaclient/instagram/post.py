@@ -204,7 +204,8 @@ class Post(InstaBaseObject):
         """
         result = self.client.comment_post(self.shortcode, text)
         if result:
-            self.comments_count += 1
+            if self.comments_count:
+                self.comments_count += 1
             return self.client._find_comment(self.shortcode, self.client.username, text)
         return None
 
