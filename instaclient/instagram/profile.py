@@ -80,6 +80,12 @@ class Profile(InstaBaseObject):
             and if the email is set to be public, it will be saved in this attribute. 
             Defaults to None.
 
+        follows_viewer (bool, optional): True if this profile follows the `viewer`.
+            Defaults to None.
+
+        followed_by_viewer (bool, optional): True if this profile is followed by the `viewer`.
+            Defaults to None.
+
         blocked_by_viewer (bool, optional): Is true if the `viewer` is currently 
             blocked by this profile. Defaults to None.
 
@@ -124,8 +130,10 @@ class Profile(InstaBaseObject):
     external_url:str=None,
     fb_id:str=None,
     profile_pic_url:str=None,
-
     business_email:str=None,
+
+    follows_viewer:bool=None,
+    followed_by_viewer:bool=None,
     blocked_by_viewer:bool=None,
     restricted_by_viewer:bool=None,
     has_blocked_viewer:bool=None,
@@ -152,8 +160,10 @@ class Profile(InstaBaseObject):
         self.external_url = external_url
         self.fb_id = fb_id
         self.profile_pic_url = profile_pic_url
-
         self.business_email = business_email
+
+        self.follows_viewer = follows_viewer
+        self.followed_by_viewer = followed_by_viewer
         self.blocked_by_viewer = blocked_by_viewer
         self.restricted_by_viewer = restricted_by_viewer
         self.has_blocked_viewer = has_blocked_viewer

@@ -103,6 +103,8 @@ class Scraper(Component):
                 
                 # Context Based
                 business_email = user.get('business_email'),
+                followed_by_viewer = user.get('followed_by_viewer'),
+                follows_viewer= user.get('follows_viewer'),
                 blocked_by_viewer = user['blocked_by_viewer'],
                 restricted_by_viewer = user['restricted_by_viewer'],
                 has_blocked_viewer = user['has_blocked_viewer'],
@@ -521,6 +523,8 @@ class Scraper(Component):
                         name = user['full_name'],
                         is_private = user['is_private'],
                         is_verified = user['is_verified'],
+                        follows_viewer = user['follows_viewer'],
+                        followed_by_viewer = user['followed_by_viewer'],
                         requested_by_viewer = user['requested_by_viewer'],
                         profile_pic_url= user.get('profile_pic_url')
                     )
@@ -713,6 +717,8 @@ class Scraper(Component):
                         name = user['full_name'],
                         is_private = user['is_private'],
                         is_verified = user['is_verified'],
+                        follows_viewer = user['follows_viewer'],
+                        followed_by_viewer = user['followed_by_viewer'],
                         requested_by_viewer = user['requested_by_viewer'],
                         profile_pic_url= user.get('profile_pic_url')
                     )
@@ -1057,8 +1063,9 @@ class Scraper(Component):
                     name=item['full_name'],
                     is_private=item['is_private'],
                     is_verified=item['is_verified'],
-                    has_requested_viewer=friendship_status.get('incoming_request') if friendship_status else None,
-                    requested_by_viewer=friendship_status.get('outgoing_request') if friendship_status else None,
+                    followed_by_viewer = None if not friendship_status else friendship_status.get('is_following') ,
+                    has_requested_viewer=None if not friendship_status else friendship_status.get('incoming_request'),
+                    requested_by_viewer=None if not friendship_status else friendship_status.get('outgoing_request'),
                     profile_pic_url= item.get('profile_pic_url'),
                 ))
             except:
