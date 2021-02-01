@@ -86,7 +86,9 @@ class InstaClient(Auth, Interactions, Scraper):
         """Checks whether the client is currently logged in to Instagram.
         A client is considered to be logged in if either a password and 
         username are provided to the client or if the client has the cookies
-        necessary to log into instagram.
+        necessary to log into instagram. If a specific cookie named 
+        ``sessionid`` is not present, the client will be considered to be
+        logged out.
 
         Returns:
             bool: True if `driver` is open and user is logged into Instagram.
@@ -97,7 +99,9 @@ class InstaClient(Auth, Interactions, Scraper):
                 if 'https://www.instagram.com' in url and ClientUrls.LOGIN_URL not in url:
                     return True
             elif self.session_cookies:
-                return True
+                for cookie in self.session_cookies:
+                    if cookie.get('name') == 'sessionid':
+                        return True
         return False
 
     @property
