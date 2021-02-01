@@ -23,7 +23,7 @@
 With this library you can create Instagram Bots with ease and simplicity. The InstaClient takes advantage of the selenium library to excecute tasks which are not allowed in the Instagram Graph API (such as sending DMs).
 
 The only thing you need to worry about is to spread your requests throughout the day to avoid reaching Instagram spam limits.
-> **Disclaimer:** Please note that this is a research project. **I am by no means responsible for any usage of this tool.** Use it on your behalf. I'm also not responsible if your accounts get banned due to the extensive use of this tool.
+> **Disclaimer:** Please note that this is a research project. **I am by no means responsible for any usage of this tool.** Use it on your behalf. I'm also not responsible if your accounts get banned or restricted due to the extensive use of this tool.
 
 ## Table of Contents
 

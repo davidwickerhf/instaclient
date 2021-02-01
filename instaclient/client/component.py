@@ -1,3 +1,22 @@
+#!/usr/bin/env python
+#
+# Unofficial Instagram Python client. Built with the use of the selenium,
+# and requests modules.
+# Copyright (C) 2015-2021
+# David Henry Francis Wicker <wickerdevs@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser Public License for more details.
+#
+# You should have received a copy of the GNU Lesser Public License
+# along with this program.  If not, see [http://www.gnu.org/licenses/].
 from instaclient.client import *
 
 if TYPE_CHECKING:
@@ -116,12 +135,12 @@ class Component:
                     chrome_options.add_argument("--no-sandbox")
                     chrome_options.add_argument("--disable-setuid-sandbox") 
                     chrome_options.add_argument("--remote-debugging-port=9222")
-                    chrome_options.add_argument('--log-level=3')
+                    chrome_options.add_argument('--log-level=4')
                     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
                     chrome_options.add_experimental_option('useAutomationExtension', False)
                     if self.proxy:
                         chrome_options.add_argument('--proxy-server=%s' % self.proxy)
-                    self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options)
+                    self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options, service_log_path=os.devnull)
                 elif self.host_type == self.LOCAHOST:
                     # Running locally
                     chrome_options = webdriver.ChromeOptions()
@@ -129,13 +148,13 @@ class Component:
                     chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
                     chrome_options.add_argument("--headless") if self.localhost_headless else None
                     chrome_options.add_argument("--disable-dev-shm-usage")
-                    chrome_options.add_argument('--log-level=3')
+                    chrome_options.add_argument('--log-level=4')
                     chrome_options.add_argument("--no-sandbox")
                     LOGGER.debug('Path: {}'.format(self.driver_path))
                     if self.proxy:
                         chrome_options.add_argument('--proxy-server=%s' % self.proxy)
                     
-                    self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options)
+                    self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options, service_log_path=os.devnull)
                 else:
                     raise InvaildHostError(self.host_type)
             else:

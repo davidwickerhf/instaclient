@@ -4,9 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [v2.9.0](https://github.com/davidwickerhf/instaclient/releases/tag/v2.9.0) - 2021-01-21
+## [v2.10.0](https://github.com/davidwickerhf/instaclient/releases/tag/v2.10.0) - 2021-01-25
 
-<small>[Compare with v2.8.9](https://github.com/davidwickerhf/instaclient/compare/v2.8.9...v2.9.0)</small>
+<small>[Compare with v2.9.3](https://github.com/davidwickerhf/instaclient/compare/v2.9.3...v2.10.0)</small>
+
+### Added
+- Added follows_viewer & followed_by_viewer attributes to profile ([73c84ca](https://github.com/davidwickerhf/instaclient/commit/73c84ca23edd102ddc860e8baca75ef6b11f6edd) by David Wicker).
+
+### Changed
+- Changed set_session_cookies() docs ([09ec7ff](https://github.com/davidwickerhf/instaclient/commit/09ec7ff0a09c815c0c2f4a520dff5e7e9d192518) by David Wicker).
+
+### Fixed
+- Fixes: minore fixes ([f7e84ea](https://github.com/davidwickerhf/instaclient/commit/f7e84eae6d76f91c98b520a3ee936d74d4e26b8f) by David Wicker).
+- Fix scraper.get_notifications() selected_nodes filter ([88171e3](https://github.com/davidwickerhf/instaclient/commit/88171e3e73b8ce8fc23e2888d1e85ff07d5411db) by Mandy Schoep).
+
+
+## [v2.9.3](https://github.com/davidwickerhf/instaclient/releases/tag/v2.9.3) - 2021-01-21
+
+<small>[Compare with v2.8.9](https://github.com/davidwickerhf/instaclient/compare/v2.8.9...v2.9.3)</small>
 
 ### Added
 - Added forward_post() & set_session_cookies() ([b94278e](https://github.com/davidwickerhf/instaclient/commit/b94278e2ab2e388c94d978c2e87bde77f07c8089) by David Wicker).
