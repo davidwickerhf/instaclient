@@ -96,7 +96,7 @@ class Scraper(Component):
         data = self._request(GraphUrls.GRAPH_USER.format(username), use_driver=context)
 
         if not data:
-            if ClientUrls.LOGIN_URL in self.driver.current_url:
+            if self.driver and (ClientUrls.LOGIN_URL in self.driver.current_url) or not self.driver:
                 raise NotLoggedInError()
             return None
 
@@ -1158,6 +1158,3 @@ class Scraper(Component):
                 return json.loads(source)
             except:
                 return None
-
-
-    

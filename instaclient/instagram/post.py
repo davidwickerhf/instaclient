@@ -174,6 +174,19 @@ class Post(InstaBaseObject):
                 return True
         return False
 
+    
+    def to_dict(self) -> dict:
+        data = super().to_dict()
+        for key in data:
+            if isinstance(data[key], list):
+                values = list()
+                for item in values:
+                    if hasattr(item, 'to_dict'):
+                        values.append(item.to_dict())
+                    values.append(item)
+                data[key] = values
+
+
 
     def refresh(self, context:bool=True):
         """Syncs this object instance with Instagram.

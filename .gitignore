@@ -115,3 +115,5 @@ config.ini
 # logs
 bot.log
 *.png
+cookies.json
+scraped.json
