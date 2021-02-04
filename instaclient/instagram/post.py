@@ -180,11 +180,13 @@ class Post(InstaBaseObject):
         for key in data:
             if isinstance(data[key], list):
                 values = list()
-                for item in values:
+                for item in data[key]:
                     if hasattr(item, 'to_dict'):
                         values.append(item.to_dict())
+                        continue
                     values.append(item)
                 data[key] = values
+        return data
 
 
 
