@@ -86,12 +86,14 @@ class Scraper(Component):
         return notifications
 
 
-    @Component._login_required
-    def get_profile(self:'InstaClient', username:str, context:bool=True) -> Optional['Profile']:
+    #@Component._login_required
+    def get_profile(self:'InstaClient', username:str, context:bool=False) -> Optional['Profile']:
         
-        if context and not self.logged_in and None not in (self.username, self.password):
+        if context and not self.logged_in:
+            if None in (self.username, self.password):
+                raise NotLoggedInError()
             self.login(self.username, self.password)
-        data = self._request(GraphUrls.GRAPH_USER.format(username), use_driver=True)
+        data = self._request(GraphUrls.GRAPH_USER.format(username), use_driver=context)
 
         if not data:
             if ClientUrls.LOGIN_URL in self.driver.current_url:
@@ -138,12 +140,14 @@ class Scraper(Component):
             raise InvalidInstaSchemaError(__name__)
 
     
-    @Component._driver_required
-    def get_post(self:'InstaClient', shortcode:str, context:bool=True) -> Optional['Post']:
-        if context and not self.logged_in and None not in (self.username, self.password):
+    #@Component._driver_required
+    def get_post(self:'InstaClient', shortcode:str, context:bool=False) -> Optional['Post']:
+        if context and not self.logged_in:
+            if None in (self.username, self.password):
+                raise NotLoggedInError()
             self.login(self.username, self.password)
 
-        data = self._request(GraphUrls.GRAPH_POST.format(shortcode), use_driver=True)
+        data = self._request(GraphUrls.GRAPH_POST.format(shortcode), use_driver=context)
         if not data:
             raise InvalidInstaRequestError(GraphUrls.GRAPH_POST.format(shortcode))
 
@@ -1139,7 +1143,7 @@ class Scraper(Component):
                 }
                 result = requests.get(url, proxies=proxyDict)
             else:
-                result = requests.get(url)
+                result = requests.get(url, headers={'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36 Edg/88.0.705.56'})
 
             try:
                 return result.json()
