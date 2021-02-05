@@ -85,7 +85,7 @@ class Hashtag(InstaBaseObject):
         """
         if not count:
             count = self.posts_count
-        return self.client.get_location_posts(self.name, count, deep_scrape, callback_frequency, callback, **callback_args)
+        return self.client.get_hashtag_posts(self.name, count, deep_scrape, callback_frequency, callback, **callback_args)
 
     
 

@@ -290,3 +290,13 @@ class Profile(InstaBaseObject):
         :meth:`instaclient.InstaClient.unfollow_user`.
         """
         self.client.unfollow_user(user=self.username)
+
+    
+    def send_dm(self, message:str):
+        """Shortcut for::
+            client.send_dm(user, message)
+
+        for the full documentation of this method, please see
+        :meth:`instaclient.InstaClient.send_dm`.
+        """
+        self.client.send_dm(self.username, message)
