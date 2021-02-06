@@ -17,6 +17,9 @@
 #
 # You should have received a copy of the GNU Lesser Public License
 # along with this program.  If not, see [http://www.gnu.org/licenses/].
+from instaclient.client.driver import HiddenChromeWebDriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common import service
 from instaclient.client import *
 
 if TYPE_CHECKING:
@@ -147,6 +150,7 @@ class Component:
                     mobile_emulation = { "deviceName": "Nexus 5" }
                     chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
                     chrome_options.add_argument("--headless") if self.localhost_headless else None
+                    chrome_options.add_experimental_option("excludeSwitches", ['enable-automation']);
                     chrome_options.add_argument("--disable-dev-shm-usage")
                     chrome_options.add_argument('--log-level=4')
                     chrome_options.add_argument("--no-sandbox")
@@ -154,7 +158,7 @@ class Component:
                     if self.proxy:
                         chrome_options.add_argument('--proxy-server=%s' % self.proxy)
                     
-                    self.driver = webdriver.Chrome(executable_path=self.driver_path, chrome_options=chrome_options, service_log_path=os.devnull)
+                    self.driver =   HiddenChromeWebDriver(executable_path=self.driver_path, chrome_options=chrome_options, service_log_path=os.devnull)
                 else:
                     raise InvaildHostError(self.host_type)
             else:
