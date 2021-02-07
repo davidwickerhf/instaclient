@@ -102,10 +102,12 @@ class Auth(Checker):
 
         passwordalert: WebElement = self._check_existence(EC.presence_of_element_located((By.XPATH,Paths.INCORRECT_PASSWORD_ALERT)))
         if passwordalert:
-            # Password is incorrect
-            self.driver.get(ClientUrls.LOGIN_URL)
-            self.password = None
-            raise InvaildPasswordError(password)
+            alert:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH,Paths.INCORRECT_PASSWORD_ALERT)))
+            if 'incorrect' in alert.text:
+                # Password is incorrect
+                self.driver.get(ClientUrls.LOGIN_URL)
+                self.password = None
+                raise InvaildPasswordError(password)
 
         # Detect Suspicious Login Attempt Dialogue
         send_code = self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.SEND_CODE)))
