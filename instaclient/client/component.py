@@ -142,7 +142,7 @@ class Component:
                     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
                     chrome_options.add_experimental_option('useAutomationExtension', False)
                     if self.proxy:
-                        chrome_options.add_argument('--proxy-server=%s' % self.proxy)
+                        chrome_options.add_argument(f'--proxy-server={self.proxy}:{self.port}s')
                     self.driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chrome_options, service_log_path=os.devnull)
                 elif self.host_type == self.LOCAHOST:
                     # Running locally
@@ -156,7 +156,7 @@ class Component:
                     chrome_options.add_argument("--no-sandbox")
                     LOGGER.debug('Path: {}'.format(self.driver_path))
                     if self.proxy:
-                        chrome_options.add_argument('--proxy-server=%s' % self.proxy)
+                        chrome_options.add_argument(f'--proxy-server={self.proxy}:{self.port}s')
                     
                     self.driver =   HiddenChromeWebDriver(executable_path=self.driver_path, chrome_options=chrome_options, service_log_path=os.devnull)
                 else:

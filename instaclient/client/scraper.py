@@ -1135,15 +1135,16 @@ class Scraper(Component):
 
     def _request(self: 'InstaClient', url:str, use_driver:bool=False) -> Optional[dict]:
         if not use_driver:
+            headers={'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36 Edg/88.0.705.56'}
             if self.proxy:
                 proxyDict = { 
-                "http"  : self.proxy, 
-                "https" : self.proxy, 
-                "ftp"   : self.proxy
+                "http"  : f'{self.proxy}:{self.port}', 
+                "https" : f'{self.proxy}:{self.port}', 
+                "ftp"   : f'{self.proxy}:{self.port}'
                 }
-                result = requests.get(url, proxies=proxyDict)
+                result = requests.get(url, proxies=proxyDict, headers=headers)
             else:
-                result = requests.get(url, headers={'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36 Edg/88.0.705.56'})
+                result = requests.get(url, headers=headers)
 
             try:
                 return result.json()

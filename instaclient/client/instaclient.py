@@ -35,7 +35,7 @@ class InstaClient(Auth, Interactions, Scraper):
     CHROMEDRIVER=1
     LOCAHOST=1
     WEB_SERVER=2
-    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, connect=False, logger:logging.Logger=None, debug=False, error_callback=None, localhost_headless=False, proxy=None):
+    def __init__(self, driver_type: int=CHROMEDRIVER, host_type:int=LOCAHOST, driver_path=None, connect=False, logger:logging.Logger=None, debug=False, error_callback=None, localhost_headless=False, proxy:str=None, port:int=None):
         """
         Create an `InstaClient` object to access the instagram website.
 
@@ -66,6 +66,7 @@ class InstaClient(Auth, Interactions, Scraper):
         self.error_callback = error_callback 
         self.localhost_headless = localhost_headless
         self.proxy = proxy
+        self.port = port if port else 8080
         self.driver:WebDriver = None
         self.username = None
         self.password = None
