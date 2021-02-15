@@ -509,7 +509,6 @@ class Scraper(Component):
                 request = GraphUrls.GRAPH_CURSOR_FOLLOWERS.format(QUERY_HASH=QueryHashes.FOLLOWERS_HASH, ID=profile.id, END_CURSOR=cursor)
             requests = 1
             looping = True
-            stopping = False
             while looping:
                 result = self._request(request, use_driver=True)
                 requests += 1
@@ -529,11 +528,12 @@ class Scraper(Component):
                 data = result['data']['user']['edge_followed_by']
 
                 # Get Page Info
-                page_info = data['page_info']
-                cursor = page_info['end_cursor'].replace('==', '')
-                if not page_info['has_next_page']:
-                    break
+                page_info = data.get('page_info')
+                if not page_info or not page_info.get('end_cursor'):
+                    cursor = None
+                    looping = False
                 else:
+                    cursor = page_info['end_cursor'].replace('==', '')
                     request = GraphUrls.GRAPH_CURSOR_FOLLOWERS.format(QUERY_HASH=QueryHashes.FOLLOWERS_HASH, ID=profile.id, END_CURSOR=cursor)
                 
                 for user_data in data['edges']:
@@ -722,11 +722,12 @@ class Scraper(Component):
                 
 
                 # Get Page Info
-                page_info = data['page_info']
-                cursor = page_info['end_cursor'].replace('==', '')
-                if not page_info['has_next_page']:
-                    break
+                page_info = data.get('page_info')
+                if not page_info or not page_info.get('end_cursor'):
+                    cursor = None
+                    looping = False
                 else:
+                    cursor = page_info['end_cursor'].replace('==', '')
                     request = GraphUrls.GRAPH_CURSOR_FOLLOWING.format(QUERY_HASH=QueryHashes.FOLLOWING_HASH, ID=profile.id, END_CURSOR=cursor)
 
                 # Load users
