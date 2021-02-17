@@ -98,39 +98,6 @@ class Interactions(Navigator):
 
     
     @Component._login_required
-    def like_user_posts(self, user:str, n_posts:int, like:bool=True):
-        """
-        Likes a number of a users latest posts, specified by n_posts.
-
-        Args:
-            user:str: User whose posts to like or unlike
-            n_posts:int: Number of most recent posts to like or unlike
-            like:bool: If True, likes recent posts, else if False, unlikes recent posts
-
-        TODO: Currently maxes out around 15.
-        TODO: Adapt this def
-        """
-
-        action = 'Like' if like else 'Unlike'
-
-        self._nav_user(user)
-
-        imgs = []
-        elements = self._find_element(EC.presence_of_all_elements_located((By.CLASS_NAME, '_9AhH0')))
-        imgs.extend(elements)
-
-        for img in imgs[:n_posts]:
-            img.click() 
-            time.sleep(1) 
-            try:
-                self.driver.find_element_by_xpath("//*[@aria-label='{}']".format(action)).click()
-            except Exception as e:
-                LOGGER.error(e)
-
-            self.driver.find_elements_by_class_name('ckWGn')[0].click()
-
-
-    @Component._login_required
     def send_dm(self:'InstaClient', user:str, message:str):
         """
         Send an Instagram Direct Message to a user. 
@@ -222,9 +189,6 @@ class Interactions(Navigator):
             self.send_dm(user, message)
         return True
 
-        
-
-
 
     # ENGAGEMENT PROCEDURES
     @Component._login_required
@@ -270,6 +234,7 @@ class Interactions(Navigator):
 
         try:
             like_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.LIKE_BTN)))
+            self.scroll(Interactions.END_PAGE_SCROLL, interval=0)
             self._press_button(like_btn)
             LOGGER.info(f'Liked Post<{shortcode}>')
             post.likes_count += 1
