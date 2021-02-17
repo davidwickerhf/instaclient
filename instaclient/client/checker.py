@@ -69,7 +69,7 @@ class Checker(Component):
             if ClientUrls.LOGIN_URL in self.driver.current_url:
                 raise NotLoggedInError()
             raise InvalidUserError(user)
-        if profile.is_private:
+        if profile.is_private and not profile.followed_by_viewer:
             raise PrivateAccountError(user)
         return True
 
