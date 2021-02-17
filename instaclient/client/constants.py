@@ -121,6 +121,7 @@ class Paths:
     
 
 class ClientUrls:
+    CHALLENGE_URL = 'https://www.instagram.com/challenge'
     LOGIN_URL='https://www.instagram.com/accounts/login/'
     NAV_USER='https://www.instagram.com/{}/'
     NEW_DM = 'https://www.instagram.com/direct/new/'

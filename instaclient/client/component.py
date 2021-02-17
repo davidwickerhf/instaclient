@@ -216,6 +216,12 @@ class Component:
         except TimeoutException:
             # Element was not found in time
             LOGGER.debug('INSTACLIENT: Element Not Found...')
+
+            # Check for Account Block
+            if ClientUrls.CHALLENGE_URL in self.driver.current_url:
+                self.logger.warning('Account Blocked. Manual action is required.')
+                raise BlockedAccountError(self.username)
+
             if retry and attempt < 2:
                 LOGGER.debug('Retrying find element...')
                 if attempt == 0:
