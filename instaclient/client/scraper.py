@@ -1148,7 +1148,10 @@ class Scraper(Component):
                 result = requests.get(url, headers=headers)
 
             try:
-                return result.json()
+                if result.json():
+                    return result.json()
+                else:
+                    use_driver = True
             except:
                 use_driver = True
         
