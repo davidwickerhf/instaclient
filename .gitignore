@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 drivers
 scripts
+trials
 
 # C extensions
 *.so

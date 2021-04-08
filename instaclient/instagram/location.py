@@ -114,6 +114,20 @@ class Location(InstaBaseObject):
                 return True
         return False
 
+    
+    def to_dict(self) -> dict:
+        data = super().to_dict()
+        for key in data:
+            if isinstance(data[key], list):
+                values = list()
+                for item in data[key]:
+                    if hasattr(item, 'to_dict'):
+                        values.append(item.to_dict())
+                        continue
+                    values.append(item)
+                data[key] = values
+        return data
+
 
     def refresh(self):
         """Syncs this object instance with Instagram.

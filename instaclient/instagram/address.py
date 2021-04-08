@@ -41,3 +41,17 @@ class Address():
 
     def __repr__(self) -> str:
         return f'Address<{self.city_name}>'
+
+    
+    def to_dict(self) -> dict:
+        data = vars(self)
+        for key in data:
+            if isinstance(data[key], list):
+                values = list()
+                for item in data[key]:
+                    if hasattr(item, 'to_dict'):
+                        values.append(item.to_dict())
+                        continue
+                    values.append(item)
+                data[key] = values
+        return data
