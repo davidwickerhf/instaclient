@@ -113,7 +113,19 @@ class Interactions(Navigator):
         try:
             self._nav_user_dm(user)
             text_area = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.DM_TEXT_AREA)))
-            text_area.send_keys(message)
+            text_area.send_keys(' ')
+            self.driver.execute_script(
+                '''
+                    var elm = arguments[0];
+                    txt = arguments[1];
+                    elm.value += txt;
+                    elm.dispatchEvent(new Event('keydown'));
+                    elm.dispatchEvent(new Event('keypress'));
+                    elm.dispatchEvent(new Event('input'));
+                    elm.dispatchEvent(new Event('keyup'));
+            ''', text_area, message)
+            time.sleep(1)
+            text_area.send_keys(' ')
             time.sleep(1)
             send_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_DM_BTN)))
             self._press_button(send_btn)
@@ -267,25 +279,35 @@ class Interactions(Navigator):
 
 
     @Component._login_required
-    def comment_post(self:'InstaClient', shortcode:str, text:str) -> bool:
+    def comment_post(self:'InstaClient', shortcode:str, text:str) -> Optional[Comment]:
         # Load Page
         self._nav_post_comments(shortcode)
 
         # Find Comment Text Area
-        comment_area = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.COMMENT_TEXT_AREA)))
-
-        # Input Comment
-        comment_area.send_keys(text)
+        comment_area:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.COMMENT_TEXT_AREA)))
+        comment_area.send_keys(' ')
+        self.driver.execute_script(
+            '''
+                var elm = arguments[0];
+                txt = arguments[1];
+                elm.value += txt;
+                elm.dispatchEvent(new Event('keydown'));
+                elm.dispatchEvent(new Event('keypress'));
+                elm.dispatchEvent(new Event('input'));
+                elm.dispatchEvent(new Event('keyup'));
+        ''', comment_area, text)
         time.sleep(1)
+        comment_area.send_keys(' ')
 
         # Send Comment
         try:
             send_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.SEND_COMMENT_BTN)))
-            self._press_button(send_btn) 
+            result = self._press_button(send_btn) 
+            if not result:
+                raise Exception('Send Comment Button was not clickable')
+            LOGGER.info(f'Successfully commented on Post<{shortcode}>')
         except:
-            comment_area.send_keys(Keys.ENTER)
-            time.sleep(1)
-            comment_area.send_keys(Keys.ENTER)
-            
-        LOGGER.info(f'Successfully commented on Post<{shortcode}>')
+            LOGGER.warning(f'Failed sending comment on Post<{shortcode}>')
+            return None
+        
         return Comment(self, None, self.username, self.username, shortcode, text) # TODO Return Comment Instance
