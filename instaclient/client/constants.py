@@ -66,7 +66,7 @@ class Paths:
     SEND_COMMENT_BTN = '//button[@class="sqdOP yWX7d    y3zKF     "]'
     LIKE_BTN = '//span[@class="fr66n"]//descendant::button'
     COMMENT_BTN = '//span[@class="_15y0l"]'
-    SHARE_POST_BTN = '//*[@id="react-root"]/section/main/div/div/article/div[3]/section[1]/button' # TODO critical
+    SHARE_POST_BTN = '//*[@id="react-root"]/section/main/div/div/article/div[3]/section[1]/span[3]/button' # TODO critical
 
     # Follow User Procedure
     FOLLOW_BTN = '//button[@class="sqdOP  L3NKy _4pI4F  y3zKF     " or @class="_5f5mN       jIbKX  _6VtSN     yZn4P   "]'
@@ -115,7 +115,9 @@ class Paths:
     SHORTCODE_DIV = '//div[@class="v1Nh3 kIKUG  _bz0w"]//descendant::a'
 
     # EXPLORE PAGE
-    EXPLORE_SEARCH_INPUT = '//label[@class="NcCcD"]//descendant::input'
+    # //*[@id="react-root"]/section/nav[1]/div/header/div/h1/div/div/div/div/label/input
+    # EXPLORE_SEARCH_INPUT = '//label[@class="NcCcD"]//descendant::input' # TODO this is not working!
+    EXPLORE_SEARCH_INPUT = '//*[@id="react-root"]/section/nav[1]/div/header/div/h1/div/div/div/div/label/input'
     SEARCH_USER_DIV = '//div[@class="_7UhW9   xLCgt       qyrsm KV-D4          uL8Hv         " and contains(text(), {})]'
 
     
