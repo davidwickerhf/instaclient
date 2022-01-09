@@ -162,7 +162,7 @@ class Component:
                     if self.proxy:
                         chrome_options.add_argument(f'--proxy-server={self.proxy}:{self.port}s')
                     
-                    self.driver =   HiddenChromeWebDriver(executable_path=self.driver_path, chrome_options=chrome_options, service_log_path=os.devnull)
+                    self.driver =   HiddenChromeWebDriver(executable_path=self.driver_path, options=chrome_options, service_log_path=os.devnull)
                 else:
                     raise InvaildHostError(self.host_type)
             else:
@@ -298,8 +298,12 @@ class Component:
         Dismiss an eventual Instagram dialogue with button text containing either 'Cancel' or 'Not Now'.
         """
         try:
-            if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.DIALOGUE)), wait_time=wait_time):
+            if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)), wait_time=wait_time):
                 dialogue = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)), wait_time=wait_time)
+                self._press_button(dialogue)
+
+            if self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.DIALOGUE)), wait_time=wait_time):
+                dialogue = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.DIALOGUE)), wait_time=wait_time)
                 self._press_button(dialogue)
         except:
             pass

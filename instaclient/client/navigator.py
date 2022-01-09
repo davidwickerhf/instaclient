@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU Lesser Public License
 # along with this program.  If not, see [http://www.gnu.org/licenses/].
 from instaclient.client import *
+from instaclient.instagram import profile
 
 if TYPE_CHECKING:
     from instaclient.client.instaclient import InstaClient
@@ -62,13 +63,15 @@ class Navigator(Checker):
             InvaildUserError if user does not exist
         """
         if check_user:
-            result = self.is_valid_user(user=user)
+            result, profile = self.is_valid_user(user=user)
+            if not result:
+                raise InvalidUserError(user)
         if self.driver.current_url != ClientUrls.NAV_USER.format(user):
             self.driver.get(ClientUrls.NAV_USER.format(user))
             self._dismiss_useapp_bar()
 
     
-    def _nav_user_dm(self:'InstaClient', user:str, check_user:bool=True):
+    def _nav_user_dm(self:'InstaClient', user:str):
         """
         Open DM page with a specific user
         
@@ -81,19 +84,26 @@ class Navigator(Checker):
         Returns:
             True if operation was successful
         """
-        try:
-            self._nav_user(user, check_user=check_user)
-            private = False
-            LOGGER.debug('INSTACLIENT: User <{}> is valid and public (or followed)'.format(user))
-        except PrivateAccountError:
-            private = True
-            LOGGER.debug('INSTACLIENT: User <{}> is private'.format(user))
+        result, profile = self.is_valid_user(user)
+        if not result:
+            raise InvalidUserError(user)
+        LOGGER.debug(f'INSTACLIENT: User <{user}> is valid and public (or followed)'.format(user))
+        
 
         # TODO NEW VERSION: Opens DM page and creates new DM
         try:
-            # LOAD PAGE
+            # LOAD INBOX PAGE
             LOGGER.debug('LOADING PAGE')
-            self.driver.get(ClientUrls.NEW_DM)
+            self.driver.get(ClientUrls.INBOX)
+
+            self._dismiss_dialogue(2)
+
+            # GET NEW MESSAGE ELEMENT
+            new_msg_btn:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.NEW_MSG_BTN)), wait_time=10)
+            self._press_button(new_msg_btn)
+
+
+            # LOAD NEW PAGE
             user_div:WebElement = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.USER_DIV)), wait_time=10)
             LOGGER.debug('Page Loaded')
 

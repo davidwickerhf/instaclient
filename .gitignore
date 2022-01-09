@@ -119,3 +119,4 @@ bot.log
 *.png
 cookies.json
 scraped.json
+tests-config.json

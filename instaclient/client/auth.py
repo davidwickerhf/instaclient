@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 class Auth(Checker):
     @Component._driver_required
-    def login(self:'InstaClient', username:str, password:str) -> bool:
+    def login(self:'InstaClient', username:str, password:str) -> 'InstaClient':
         """
         Sign Into Instagram with credentials. Go through 2FA if necessary. Sets the InstaClient variable `InstaClient.logged_in` to True if login was successful.
 
@@ -44,7 +44,7 @@ class Auth(Checker):
             SecurityCodeNecessary: Raised if the user's account has 2FA. If this error is raised, you can complete the login procedure with `InstaClient.input_security_code`
 
         Returns:
-            bool: Returns True if login was successful.
+            InstaClient: Returns the logged in client
         """
         if len(password) < 6:
             raise InvaildPasswordError(password)
@@ -85,7 +85,7 @@ class Auth(Checker):
                 raise error
             else:
                 LOGGER.debug('INSTACLIENT: User already logged in?')
-                return self.logged_in
+                return self
         
         # Detect correct Login
 
@@ -149,7 +149,7 @@ class Auth(Checker):
             not_now = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.NOT_NOW_BTN)))
             self._press_button(not_now)
             LOGGER.debug('Dismissed Dialogue')
-        return self.logged_in
+        return self
 
     @Component._driver_required
     def set_session_cookies(self:'InstaClient', cookies:list):
@@ -306,7 +306,7 @@ class Auth(Checker):
         result = None
         result = self.check_status()
         username = self.username
-        self.username, self.password = None
+        self.username, self.password = None, None
 
         if result:
             if disconnect:

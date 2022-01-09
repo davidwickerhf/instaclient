@@ -21,6 +21,8 @@
 
 # IMPORT UTILITIES, DEPENDENCIES & MODELS
 from selenium.webdriver.remote.webdriver import WebDriver
+import webdrivermanager
+from instaclient.client.driver import HiddenChromeWebDriver
 from instaclient.instagram.comment import Comment
 from instaclient.client import *
 
@@ -56,9 +58,13 @@ class InstaClient(Auth, Interactions, Scraper):
         """
         self.driver_type = driver_type
         self.host_type = host_type
-        if host_type == self.LOCAHOST and driver_path is None:
-            raise InvalidDriverPathError(driver_path)
-        self.driver_path = driver_path
+        # if host_type == self.LOCAHOST and driver_path is None:
+        #     raise InvalidDriverPathError(driver_path)
+        if not driver_path:
+            path = webdrivermanager.ChromeDriverManager().download_and_install()[0] # TODO Change for Mac
+            self.driver_path = str(path.absolute())
+        else:
+            self.driver_path = driver_path
         self.debug = debug
         if error_callback:
             if not callable(error_callback):
@@ -80,6 +86,17 @@ class InstaClient(Auth, Interactions, Scraper):
 
         if connect:
             self.connect(func='__init__')
+
+    @property
+    def connected(self) -> bool:
+        """Checks whether the client is currently connected to an operating ChromeDriver
+
+        Returns:
+            bool: True if a webdriver is connected
+        """
+        if self.driver and type(self.driver) == HiddenChromeWebDriver:
+            return True
+        return False
 
     # CLIENT PROPERTIES
     @property

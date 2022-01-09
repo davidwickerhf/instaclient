@@ -47,6 +47,8 @@ class Interactions(Navigator):
         profile = self.get_profile(user)
         if not profile:
             raise InvalidUserError(user)
+        elif profile.followed_by_viewer is True:
+            return profile
 
         # Navigate to User Page
         self._nav_user(user, check_user=False)
@@ -57,12 +59,12 @@ class Interactions(Navigator):
         else:
             follow_button = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.FOLLOW_BTN)), url=ClientUrls.NAV_USER.format(user))
             self._press_button(follow_button)
-            profile.requested_by_viewer = True
+            profile.refresh()
         return profile
 
     
     @Component._login_required
-    def unfollow_user(self:'InstaClient', user:str, nav_to_user=True, check_user=True):
+    def unfollow_user(self:'InstaClient', user:str) -> Profile:
         """
         Unfollows a given user.
 
@@ -77,6 +79,8 @@ class Interactions(Navigator):
         profile = self.get_profile(user)
         if not profile:
             raise InvalidUserError(user)
+        elif profile.followed_by_viewer is False and not profile.requested_by_viewer:
+            return profile
 
         LOGGER.debug('INSTACLIENT: User <{}> is valid'.format(user))
         self._nav_user(user, check_user=False)
@@ -87,6 +91,7 @@ class Interactions(Navigator):
             confirm_unfollow = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_UNFOLLOW_BTN)))
             self._press_button(confirm_unfollow)
             LOGGER.debug(f'Cancelled Follow Request for user <{user}>')
+            profile.requested_by_viewer = False
         
         elif self._check_existence(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN))):
             unfollow_btn = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.UNFOLLOW_BTN)))
@@ -95,6 +100,8 @@ class Interactions(Navigator):
             confirm_unfollow = self._find_element(EC.presence_of_element_located((By.XPATH, Paths.CONFIRM_UNFOLLOW_BTN)))
             self._press_button(confirm_unfollow)
             LOGGER.debug('INSTACLIENT: Unfollowed user <{}>'.format(user))
+            profile.followed_by_viewer = False
+        return profile
 
     
     @Component._login_required

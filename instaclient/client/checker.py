@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU Lesser Public License
 # along with this program.  If not, see [http://www.gnu.org/licenses/].
+from typing import Tuple
 from instaclient.client import *
 from instaclient.client.component import Component
 
@@ -47,31 +48,30 @@ class Checker(Component):
 
 
     @Component._driver_required
-    def is_valid_user(self:'InstaClient', user:str) -> bool:
+    def is_valid_user(self:'InstaClient', user:str) -> Tuple[bool, Profile]:
         """
-        _is_valid_user Checks if a given username is a valid Instagram user.
+        is_valid_user Checks if a given username is a valid Instagram user.
 
         Args:
             user (str): Instagram username to check
             nav_to_user (bool, optional): Whether the driver shouldnavigate to the user page or not. Defaults to True.
 
         Raises:
-            NotLoggedInError: Raised if you are not logged into any account
-            InvalidUserError: Raised if the user is invalid
+            NotLoggedInError: Raised if you need to login in order to check such an account
             PrivateAccountError: Raised if the user is a private account
 
         Returns:
-            bool: True if the user is valid
+            tuple: A tuple containing a bool (whether the profile is valid or not) and the fetched profile.
         """
         LOGGER.debug('INSTACLIENT: Checking user vadility')
         profile:Profile = self.get_profile(user)
         if not profile:
             if ClientUrls.LOGIN_URL in self.driver.current_url:
                 raise NotLoggedInError()
-            raise InvalidUserError(user)
+            return False, profile
         if profile.is_private and not profile.followed_by_viewer:
             raise PrivateAccountError(user)
-        return True
+        return True, profile
 
 
     @Component._driver_required

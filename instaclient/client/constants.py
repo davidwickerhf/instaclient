@@ -48,6 +48,7 @@ class Paths:
     PRIVATE_ACCOUNT_ALERT = '//h2[@class="rkEop"]'
 
     # SEND DM PROCEDURE
+    NEW_MSG_BTN = '//button[@class="wpO6b ZQScA "]'
     SEARCH_USER_INPUT = '//input[@name="queryBox"]'
     USER_DIV = '//div[@class="-qQT3"]'
     USER_DIV_USERNAME = '//div[@class="_7UhW9   xLCgt       qyrsm KV-D4          uL8Hv         "]'
@@ -126,6 +127,7 @@ class ClientUrls:
     CHALLENGE_URL = 'https://www.instagram.com/challenge'
     LOGIN_URL='https://www.instagram.com/accounts/login/'
     NAV_USER='https://www.instagram.com/{}/'
+    INBOX = 'https://www.instagram.com/direct/inbox/'
     NEW_DM = 'https://www.instagram.com/direct/new/'
     SEARCH_TAGS='https://www.instagram.com/explore/tags/{}/'
     FOLLOWERS_URL = 'https://www.instagram.com/{}/followers/'
